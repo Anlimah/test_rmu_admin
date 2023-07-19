@@ -3,7 +3,7 @@ session_start();
 
 if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
 } else {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
 }
 
 if (isset($_GET['logout'])  || strtolower($_SESSION["role"]) != "admissions") {
@@ -22,7 +22,7 @@ if (isset($_GET['logout'])  || strtolower($_SESSION["role"]) != "admissions") {
         );
     }
 
-    header('Location: ../login.php');
+    header('Location: ../index.php');
 }
 ?>
 <?php
@@ -65,9 +65,8 @@ require_once('../inc/page-data.php');
 
         <section class=" section dashboard">
 
-
             <!-- Dashboard view -->
-            <div class="row" <?= isset($_GET["t"]) ? 'style="display:none"' : "" ?>>
+            <div class="row" <?= isset($_GET["a"]) && isset($_GET["s"]) ? 'style="display:none"' : "" ?>>
 
                 <!-- Left side columns -->
                 <div class="col-lg-12">
@@ -226,7 +225,10 @@ require_once('../inc/page-data.php');
     </main><!-- End #main -->
 
     <?= require_once("../inc/footer-section.php") ?>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>
 
+    </script>
 </body>
 
 </html>

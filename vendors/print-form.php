@@ -5,7 +5,7 @@ if (!isset($_GET['exttrid']) || empty($_GET['exttrid'])) header('Location: index
 
 if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
 } else {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
 }
 
 if (isset($_SESSION["vendor_id"]) && !empty($_SESSION["vendor_id"]))
@@ -28,7 +28,7 @@ if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "vendors") {
         );
     }
 
-    header('Location: ../login.php');
+    header('Location: ../index.php');
 }
 
 
@@ -44,6 +44,8 @@ $expose = new ExposeDataController();
 
 $data = $expose->getApplicationInfo($_GET["exttrid"]);
 $vendor_info = $admin->fetchFullName($_SESSION["user"]);
+
+$_SESSION["lastAccessed"] = time();
 ?>
 <!DOCTYPE html>
 <html lang="en">

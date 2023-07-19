@@ -3,10 +3,36 @@
     <div class="d-flex align-items-center justify-content-between">
         <a href="index.php" class="logo d-flex align-items-center">
             <img src="../assets/img/rmu-logo.png" alt="">
-            <span class="d-none d-lg-block">RMU / <?= $_SESSION["role"] ?></span>
+            <span class="d-none d-lg-block">RMU / <?= isset($_SESSION["role"]) ? $_SESSION["role"] : "" ?></span>
         </a>
         <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
+
+    <div class="setDashboardForm-bar" style="width: 100%; margin: 0 25px;">
+        <div style="display:flex; justify-content:center;">
+            <form class="search-form d-flex align-items-center" method="POST" action="#" id="setDashboardForm" style="min-width: 200px;">
+                <label for="admission-period" class="form-label me-2">Admission Period</label>
+                <select name="admission-period" id="admission-period" class="form-select me-2" style="width: 300px;">
+                    <option value="" hidden>Choose</option>
+                    <?php
+                    $result = $admin->fetchAllAdmissionPeriod();
+                    foreach ($result as $value) {
+                    ?>
+                        <option value="<?= $value["id"] ?>" <?= $value["active"] ? "selected" : "" ?>><?= $value["info"] ?></option>
+                    <?php
+                    }
+                    ?>
+                </select>
+                <label for="admission-period" class="form-label me-2">Stream</label>
+                <select name="stream" id="stream" class="form-select" style="width: 200px;">
+                    <option value="" hidden>Choose</option>
+                    <option value="AUGUST">AUGUST</option>
+                    <option value="JANUARY">JANUARY</option>
+                </select>
+            </form>
+
+        </div>
+    </div><!-- End Search Bar -->
 
     <nav class="header-nav ms-auto">
         <ul class="d-flex align-items-center">
@@ -15,12 +41,12 @@
 
                 <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
                     <img src="../assets/img/icons8-circled-user-male-skin-type-5-96.png" alt="Profile" class="rounded-circle">
-                    <span class="d-none d-md-block dropdown-toggle ps-2"><?= $admin->fetchUserName($_SESSION["user"])[0]["userName"] ?></span>
+                    <span class="d-none d-md-block dropdown-toggle ps-2"><?= isset($_SESSION["user"]) ? $admin->fetchUserName($_SESSION["user"])[0]["userName"] : "" ?></span>
                 </a><!-- End Profile Iamge Icon -->
 
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                     <li class="dropdown-header">
-                        <h6><?= $admin->fetchFullName($_SESSION["user"])[0]["fullName"] ?></h6>
+                        <h6><?= isset($_SESSION["user"]) ? $admin->fetchFullName($_SESSION["user"])[0]["fullName"] : "" ?></h6>
                     </li>
                     <li>
                         <hr class="dropdown-divider">

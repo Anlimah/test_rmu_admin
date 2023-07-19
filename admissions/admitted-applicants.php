@@ -3,7 +3,7 @@ session_start();
 //echo $_SERVER["HTTP_USER_AGENT"];
 if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
 } else {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
 }
 
 if (isset($_GET['logout'])  || strtolower($_SESSION["role"]) != "admissions") {
@@ -22,7 +22,7 @@ if (isset($_GET['logout'])  || strtolower($_SESSION["role"]) != "admissions") {
         );
     }
 
-    header('Location: ../login.php');
+    header('Location: ../index.php');
 }
 ?>
 <?php
@@ -49,7 +49,7 @@ require_once('../inc/page-data.php');
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Admit Applicants</h1>
+            <h1>Admitted Applicants</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
@@ -74,7 +74,7 @@ require_once('../inc/page-data.php');
                         </div>
 
                         <div class="card-body">
-                            <h5 class="card-title">Admit Applicants</h5>
+                            <h5 class="card-title">Admitted Applicants</h5>
                             <form id="fetchDataForm" class="mb-4">
                                 <div class="row">
                                     <div class="col-3">

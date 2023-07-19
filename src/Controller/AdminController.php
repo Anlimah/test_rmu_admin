@@ -31,12 +31,12 @@ class AdminController
         return $this->dm->getData($query, array(':ui' => $user_id));
     }
 
-    public function resetUserPassword($password)
+    public function resetUserPassword($user_id, $password)
     {
-
         // Hash password
         $hashed_pw = password_hash($password, PASSWORD_DEFAULT);
-        $query_result = $this->dm->inputData("UPDATE sys_users SET `password` = :pw WHERE id = :id", array(":pw" => $hashed_pw));
+        $query = "UPDATE sys_users SET `password` = :pw WHERE id = :id";
+        $query_result = $this->dm->inputData($query, array(":id" => $user_id, ":pw" => $hashed_pw));
 
         if ($query_result) {
             $this->logActivity(
@@ -44,7 +44,7 @@ class AdminController
                 "UPDATE",
                 "{$_SESSION["user"]} Updated user their account's password"
             );
-            return array("success" => false, "message" => "Account's password reset was successful!");
+            return array("success" => true, "message" => "Account's password reset was successful!");
         }
         return array("success" => false, "message" => "Failed to reset user account password!");
     }
@@ -88,6 +88,11 @@ class AdminController
     public function getAvailableForms()
     {
         return $this->dm->getData("SELECT * FROM `forms`");
+    }
+
+    public function getFormByFormID($form_id)
+    {
+        return $this->dm->getData("SELECT * FROM `forms` WHERE id = :i", array(":i" => $form_id));
     }
 
     public function getFormCategories()
@@ -228,10 +233,10 @@ class AdminController
         return $this->dm->inputData($query, array(":c" => $company, ":b" => $branch));
     }
 
-    public function verifySysUserExists($email)
+    public function verifySysUserExistsByID($user_id)
     {
-        $query = "SELECT `id` FROM `sys_users` WHERE `username` = :u";
-        return $this->dm->inputData($query, array(":u" => $email));
+        $query = "SELECT * FROM `sys_users` WHERE `id` = :u";
+        return $this->dm->inputData($query, array(":u" => $user_id));
     }
 
     /*public function addVendor($v_name, $v_email, $v_phone, $branch)
@@ -411,6 +416,12 @@ class AdminController
         return $this->dm->getData($query, array(":i" => $prog_id));
     }
 
+    public function fetchAllFromProgramByName($prog_name)
+    {
+        $query = "SELECT * FROM programs WHERE `name` = :n";
+        return $this->dm->getData($query, array(":n" => $prog_name));
+    }
+
     public function addProgramme($prog_name, $prog_type, $prog_wkd, $prog_grp)
     {
         $query = "INSERT INTO programs (`name`, `type`, `weekend`, `group`) VALUES(:n, :t, :w, :g)";
@@ -561,10 +572,10 @@ class AdminController
         $hashed_pw = password_hash($password, PASSWORD_DEFAULT);
 
         // Create insert query
-        $query1 = "INSERT INTO sys_users (`first_name`, `last_name`, `user_name`, `password`, `role`) VALUES(:fn, :ln, :un, :pw, :rl)";
+        $query1 = "INSERT INTO sys_users (`first_name`, `last_name`, `user_name`, `password`, `role`, `type`) VALUES(:fn, :ln, :un, :pw, :rl, :tp)";
         $params1 = array(
             ":fn" => $user_data["first_name"], ":ln" => $user_data["last_name"], ":un" => $user_data["user_name"],
-            ":pw" => $hashed_pw, ":rl" => $user_data["user_role"]
+            ":pw" => $hashed_pw, ":rl" => $user_data["user_role"], ":tp" => $user_data["user_type"]
         );
 
         // execute query
@@ -591,12 +602,13 @@ class AdminController
 
         if (strtoupper($user_data["user_role"]) == "VENDORS") {
             if (!$vendor_id) $vendor_id = time();
-            $query1 = "INSERT INTO vendor_details (`id`, `type`, `company`, `branch`, `role`, `phone_number`, `user_id`) 
-                        VALUES(:id, :tp, :cp, :bh, :vr, :pn, :ui)";
+            $query1 = "INSERT INTO vendor_details (`id`, `type`, `company`, `company_code`, `branch`, `role`, `phone_number`, `user_id`, `api_user`) 
+                        VALUES(:id, :tp, :cp, :cc, :bh, :vr, :pn, :ui, :au)";
             $params1 = array(
                 ":id" => $vendor_id, ":tp" => "VENDOR", ":cp" => $user_data["vendor_company"],
-                ":bh" => $user_data["vendor_branch"], ":vr" => $user_data["vendor_role"],
-                ":pn" => $user_data["vendor_phone"], ":ui" => $sys_user[0]["id"]
+                ":cc" => $user_data["company_code"], ":bh" => $user_data["vendor_branch"],
+                ":vr" => $user_data["vendor_role"], ":pn" => $user_data["vendor_phone"],
+                ":ui" => $sys_user[0]["id"], ":au" => $user_data["api_user"]
             );
             $this->dm->inputData($query1, $params1);
             $subject = "Regional Maritime University - Vendor Account";
@@ -610,7 +622,7 @@ class AdminController
 
         // Prepare email
         $message = "<p>Hi " . $user_data["first_name"] . " " . $user_data["last_name"] . ", </p></br>";
-        $message .= "<p>Your account to access Regional Maritime University's Admissions Portal as a " . $user_data["user_role"] . " officer was created successfully.</p>";
+        $message .= "<p>Your account to access Regional Maritime University's Admissions Portal as a " . $user_data["user_role"] . " was created successfully.</p>";
         $message .= "<p>Find below your Login details.</p></br>";
         $message .= "<p style='font-weight: bold;'>Username: " . $user_data["user_name"] . "</p>";
         $message .= "<p style='font-weight: bold;'>Password: " . $password . "</p></br>";
@@ -619,7 +631,7 @@ class AdminController
         $message .= "<li>Don't let anyone see your login password</li>";
         $message .= "<li>Access the portal and change your password</li>";
         $message .= "</ol></br>";
-        $message .= "<p><a href='office.rmuictonline.com'>Click here to access portal</a>.</p>";
+        $message .= "<p><a href='https://office.rmuictonline.com'>Click here to access portal</a>.</p>";
 
         // Send email
         $emailed = $this->expose->sendEmail($user_data["user_name"], $subject, $message);
@@ -633,20 +645,20 @@ class AdminController
         return array("success" => true, "message" => "Successfully created user account!");
     }
 
-    public function updateSystemUser($user_id, $first_name, $last_name, $email_addr, $role, $privileges)
+    public function updateSystemUser($data, $privileges)
     {
-        $query = "UPDATE sys_users SET `user_name` = :un, `first_name` = :fn, `last_name` = :ln, `role` = :rl 
+        $query = "UPDATE sys_users SET `user_name` = :un, `first_name` = :fn, `last_name` = :ln, `role` = :rl, `type` = :tp 
                 WHERE id = :id";
         $params = array(
-            ":un" => $email_addr, ":fn" => $first_name, ":ln" => $last_name,
-            ":rl" => $role, ":id" => $user_id
+            ":un" => $data["user-email"], ":fn" => $data["user-fname"], ":ln" => $data["user-lname"],
+            ":rl" => $data["user-role"], ":tp" => $data["user-type"], ":id" => $data["user-id"]
         );
         if ($this->dm->inputData($query, $params)) {
             // Create insert query for user privileges
             $query2 = "UPDATE `sys_users_privileges` SET `select` = :s, `insert` = :i,`update` = :u, `delete`= :d 
                         WHERE `user_id` = :ui";
             $params2 = array(
-                ":ui" => $user_id, ":s" => $privileges["select"], ":i" => $privileges["insert"],
+                ":ui" => $data["user-id"], ":s" => $privileges["select"], ":i" => $privileges["insert"],
                 ":u" => $privileges["update"], ":d" => $privileges["delete"]
             );
             // Execute user privileges 
@@ -656,7 +668,7 @@ class AdminController
             $this->logActivity(
                 $_SESSION["user"],
                 "UPDATE",
-                "Updated user {$user_id} account information and privileges"
+                "Updated user {$data["user-id"]} account information and privileges"
             );
 
             return array("success" => true, "message" => "Successfully updated user account information!");
@@ -708,6 +720,43 @@ class AdminController
 
     // end of setups
 
+    // CRUD for API Users
+
+    public function fetchVendorAPIData($vendor_id): mixed
+    {
+        return $this->dm->getData("SELECT * FROM api_users WHERE vendor_id = :vi", array(":vi", $vendor_id));
+    }
+
+    public function generateAPIKeys($vendor_id): mixed
+    {
+        $vendorData = $this->fetchVendor($vendor_id);
+        if (empty($vendorData)) return array("success" => false, "message" => "Vendor data doesn't exist");
+
+        if ($vendorData["api_user"] != 1) return array("success" => false, "message" => "This vendor account is not allowed to use RMU forms APIs");
+
+        // Generate vendor api username
+        $api_username = $this->expose->genVendorAPIUsername();
+
+        // Hash username
+        $hashed_un = sha1($api_username);
+
+        // Generate vendor api password
+        $api_password = $this->expose->genVendorPin();
+
+        // Hash password
+        $hashed_pw = password_hash($api_password, PASSWORD_DEFAULT);
+
+        $vendorAPIData = $this->fetchVendorAPIData($vendor_id);
+        if (empty($vendorAPIData)) $query = "UPDATE api_users SET `username` = :un, `password` = :pw WHERE `vendor_id`:vi";
+        else $query = "INSERT INTO api_users (`username`, `password`, `vendor_id`) VALUES(:un, :pw, :vi)";
+        $params = array(":un" => $hashed_un, ":pw" => $hashed_pw, ":vi" => $vendor_id);
+
+        if ($this->dm->inputData($query, $params))
+            return array("success" => true, "message" => array("username" => $api_username, "password" => $api_password));
+
+        return array("success" => false, "message" => "Failed to register API keys");
+    }
+
     public function fetchAvailableformTypes()
     {
         return $this->dm->getData("SELECT * FROM forms");
@@ -735,7 +784,8 @@ class AdminController
                     admission_period AS ap, academic_background AS ab  
                 WHERE
                     al.id = ab.app_login AND al.purchase_id = pd.id AND 
-                    ap.id = pd.admission_period AND ab.awaiting_result = 1 AND ap.active = 1";
+                    ap.id = pd.admission_period AND ab.awaiting_result = 1 AND 
+                    ap.active = 1 AND ab.cert_type = 'WASSCE'";
         return $this->dm->getData($query);
     }
 
@@ -991,6 +1041,30 @@ class AdminController
         return $this->dm->getData($query);
     }
 
+    // fetch data by form type and admission period
+    public function fetchTotalApplicationsByFormTypeAndAdmPeriod(int $form_id = 0, $admin_period = 0)
+    {
+        if ($form_id == 0 && $admin_period == 0) {
+            $query = "SELECT 
+                    COUNT(*) AS total 
+                FROM 
+                    purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                WHERE 
+                    ap.id = pd.admission_period AND ap.active = 1 AND fc.app_login = al.id AND al.purchase_id = pd.id 
+                    AND pd.form_id = ft.id";
+            return $this->dm->getData($query);
+        } else {
+            $query = "SELECT 
+                    COUNT(*) AS total 
+                FROM 
+                    purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                WHERE 
+                    ap.id = pd.admission_period AND fc.app_login = al.id AND al.purchase_id = pd.id 
+                    AND pd.form_id = ft.id AND ft.id = :f AND ap.id = :a";
+            return $this->dm->getData($query, array(":f" => $form_id, ":a" => $admin_period));
+        }
+    }
+
     public function fetchTotalApplications(int $form_id = 100)
     {
         if ($form_id == 100) {
@@ -1050,7 +1124,8 @@ class AdminController
                 FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft, 
                 academic_background AS ab 
                 WHERE ap.id = pd.admission_period AND ap.active = 1 AND fc.app_login = al.id AND al.purchase_id = pd.id AND 
-                ab.app_login = al.id AND pd.form_id = ft.id AND fc.`declaration` = 1 AND ab.`awaiting_result` = 1";
+                ab.app_login = al.id AND pd.form_id = ft.id AND fc.`declaration` = 1 AND ab.`awaiting_result` = 1 
+                AND ab.cert_type = 'WASSCE'";
         return $this->dm->getData($query);
     }
 
@@ -1086,6 +1161,7 @@ class AdminController
         if (in_array($cert_type, ["WASSCE", "NECO"])) $in_query = "AND ab.cert_type IN ('WASSCE', 'NECO')";
         if (in_array($cert_type, ["SSSCE", "GBCE"])) $in_query = "AND ab.cert_type IN ('SSSCE', 'GBCE')";
         if (in_array($cert_type, ["BACCALAUREATE"])) $in_query = "AND ab.cert_type IN ('BACCALAUREATE')";
+        if (in_array($cert_type, ["OTHERS"])) $in_query = "AND ab.cert_type NOT IN ('WASSCE', 'NECO', 'SSSCE', 'GBCE', 'BACCALAUREATE')";
 
         $query = "SELECT a.`id`, p.`first_name`, p.`middle_name`, p.`last_name`, pg.name AS programme, b.program_choice 
                 FROM `personal_information` AS p, `applicants_login` AS a, broadsheets AS b, programs AS pg,  academic_background AS ab  
@@ -1611,7 +1687,7 @@ class AdminController
         if (strtolower($data["admission-period"]) != "all" && !empty($data["admission-period"]))
             $QUERY_CON .= " AND pd.`admission_period` = '" . $data["admission-period"] . "'";
         if (!empty($data["from-date"])  && !empty($data["to-date"]))
-            $QUERY_CON .= " AND pd.`added_at` BETWEEN '" . $data["from-date"] . "'" . " AND '" . $data["to-date"] . "'";
+            $QUERY_CON .= " AND DATE(pd.`added_at`) BETWEEN '" . $data["from-date"] . "'" . " AND '" . $data["to-date"] . "'";
         if (strtolower($data["form-type"]) != "all" && !empty($data["form-type"]))
             $QUERY_CON .= " AND pd.`form_id` = '" . $data["form-type"] . "'";
         if (strtolower($data["purchase-status"]) != "all" && !empty($data["purchase-status"]))
@@ -1623,7 +1699,34 @@ class AdminController
                  CONCAT('(', pd.`country_code`,') ', pd.`phone_number`) AS phoneNumber, 
                  pd.`status`, pd.`added_at`, ft.`name` AS formType, ap.`info` AS admissionPeriod, pd.`payment_method` AS paymentMethod 
                  FROM `purchase_detail` AS pd, `admission_period` AS ap, `forms` AS ft, vendor_details AS vd 
-                 WHERE pd.admission_period = ap.`id` AND pd.form_id = ft.id AND pd.vendor = vd.`id`$QUERY_CON";
+                 WHERE pd.admission_period = ap.`id` AND pd.form_id = ft.id AND pd.vendor = vd.`id`$QUERY_CON ORDER BY pd.`added_at` DESC";
+
+        $_SESSION["downloadQueryStmt"] = array("type" => "dailyReport", "data" => $data, "query" => $query);
+        return $this->dm->getData($query);
+    }
+
+    //
+    public function fetchAllVendorFormPurchases($data = array())
+    {
+        $QUERY_CON = "";
+        if (strtolower($data["admission-period"]) != "all" && !empty($data["admission-period"]))
+            $QUERY_CON .= " AND pd.`admission_period` = '" . $data["admission-period"] . "'";
+        if (!empty($data["from-date"])  && !empty($data["to-date"]))
+            $QUERY_CON .= " AND DATE(pd.`added_at`) BETWEEN '" . $data["from-date"] . "'" . " AND '" . $data["to-date"] . "'";
+        if (strtolower($data["form-type"]) != "all" && !empty($data["form-type"]))
+            $QUERY_CON .= " AND pd.`form_id` = '" . $data["form-type"] . "'";
+        if (strtolower($data["purchase-status"]) != "all" && !empty($data["purchase-status"]))
+            $QUERY_CON .= " AND pd.`status` = '" . $data["purchase-status"] . "'";
+        if (!empty($data["vendor-id"]))
+            $QUERY_CON .= " AND pd.`vendor` = '" . $data["vendor-id"] . "'";
+
+        $query = "SELECT pd.`id`, CONCAT(pd.`first_name`, ' ', pd.`last_name`) AS fullName, 
+                 CONCAT('(', pd.`country_code`,') ', pd.`phone_number`) AS phoneNumber, 
+                 pd.`status`, pd.`added_at`, ft.`name` AS formType, ap.`info` AS admissionPeriod 
+                 FROM `purchase_detail` AS pd, `admission_period` AS ap, `forms` AS ft, vendor_details AS vd 
+                 WHERE pd.admission_period = ap.`id` AND pd.form_id = ft.id AND pd.vendor = vd.`id`$QUERY_CON ORDER BY pd.`added_at` DESC";
+
+        $_SESSION["downloadQueryStmt"] = array("type" => "dailyReport", "data" => $data, "query" => $query);
         return $this->dm->getData($query);
     }
 
@@ -1631,7 +1734,7 @@ class AdminController
     {
         $query = "SELECT pd.`id` AS transID, CONCAT(pd.`first_name`, ' ', pd.`last_name`) AS fullName, 
                 pd.`email_address` AS email,  CONCAT('(', pd.`country_code`,') ', pd.`phone_number`) AS phoneN, 
-                pd.`country_name` AS country, pd.`app_number` AS appN, pd.`pin_number` AS pin, 
+                pd.`country_name` AS country, CONCAT('RMU-', pd.`app_number`) AS appN, pd.`pin_number` AS pin, 
                 pd.`status`, pd.`added_at`, ft.`name` AS formT, pd.`payment_method` AS payM, 
                 vd.`company` AS vendor, ap.`info` AS admisP 
                 FROM `purchase_detail` AS pd, `admission_period` AS ap, `forms` AS ft, vendor_details AS vd 
@@ -1664,7 +1767,7 @@ class AdminController
 
     private function getAppPurchaseData(int $trans_id)
     {
-        $sql = "SELECT f.`form_id`, pd.`country_code`, pd.`phone_number`, pd.`email_address` 
+        $sql = "SELECT pd.`form_id`, pd.`country_code`, pd.`phone_number`, pd.`email_address` 
                 FROM `purchase_detail` AS pd, forms AS f WHERE pd.`id` = :t AND f.`id` = pd.`form_id`";
         return $this->dm->getData($sql, array(':t' => $trans_id));
     }
@@ -1712,11 +1815,13 @@ class AdminController
      * Generates and sends new applicant login details
      * @param transID - transaction id of purchase 
      */
-    public function sendPurchaseInfo(int $transID)
+    public function sendPurchaseInfo(int $transID, $genrateNewLoginDetails = true)
     {
-        //geenerate new login details
-        $gen = $this->genLoginsAndSend($transID);
-        if (!$gen["success"]) return $gen;
+        if ($genrateNewLoginDetails) {
+            //generate new login details
+            $gen = $this->genLoginsAndSend($transID);
+            if (!$gen["success"]) return $gen;
+        }
 
         // Get purchase data
         $data = $this->dm->getData("SELECT * FROM purchase_detail WHERE id = :ti", array(":ti" => $transID));
@@ -1727,7 +1832,11 @@ class AdminController
         $message .= 'APPLICATION NUMBER: RMU-' . $data[0]['app_number'];
         $message .= '    PIN: ' . $data[0]['pin_number'] . ".";
         $message .= ' Follow the link, https://admissions.rmuictonline.com start application process.';
-        $to = $data[0]["country_code"] . $data[0]["phone_number"];
+
+        if ($data[0]["payment_method"] == "USSD")
+            $to = "+" . $data[0]["last_name"];
+        else
+            $to = $data[0]["country_code"] . $data[0]["phone_number"];
 
         $sentEmail = false;
         $smsSent = false;
@@ -1736,9 +1845,7 @@ class AdminController
         $response = json_decode($this->expose->sendSMS($to, $message));
 
         // Set SMS response status
-        if (!$response->status) {
-            $smsSent = true;
-        }
+        if (!$response->status) $smsSent = true;
 
         // Check if email address was provided
         if (!empty($data[0]["email_address"])) {
@@ -1754,15 +1861,13 @@ class AdminController
             $e_response = $this->expose->sendEmail($data[0]["email_address"], 'ONLINE APPLICATION PORTAL LOGIN INFORMATION', $e_message);
 
             // Ste email reponse status
-            if ($e_response) {
-                $sentEmail = true;
-            }
+            if ($e_response) $sentEmail = true;
         }
 
         // Set output message
         $output = "";
-        if ($smsSent && $sentEmail) $output = "Successfully, sent purchase details via SMS and email!";
-        else $output = "Successfully, sent purchase details!";
+        if ($smsSent && $sentEmail) $output = "Successfully sent purchase details via SMS and email!";
+        else $output = "Successfully sent purchase details!" . $to;
 
         // Log activity
         $this->logActivity(
@@ -1781,7 +1886,7 @@ class AdminController
         if (strtolower($data["admission-period"]) != "all" && !empty($data["admission-period"]))
             $QUERY_CON .= " AND pd.`admission_period` = '" . $data["admission-period"] . "'";
         if (!empty($data["from-date"])  && !empty($data["to-date"]))
-            $QUERY_CON .= " AND pd.`added_at` BETWEEN '" . $data["from-date"] . "' AND '" . $data["to-date"] . "'";
+            $QUERY_CON .= " AND DATE(pd.`added_at`) BETWEEN '" . $data["from-date"] . "'" . " AND '" . $data["to-date"] . "'";
         if (strtolower($data["form-type"]) != "all" && !empty($data["form-type"]))
             $QUERY_CON .= " AND pd.`form_id` = '" . $data["form-type"] . "'";
         if (strtolower($data["purchase-status"]) != "all" && !empty($data["purchase-status"]))
@@ -1803,36 +1908,48 @@ class AdminController
         return $this->dm->getData($_SESSION["downloadQuery"]);
     }
 
+    public function executeDownloadQueryStmt()
+    {
+        return $this->dm->getData($_SESSION["downloadQueryStmt"]["query"]);
+    }
+
     public function fetchFormPurchasesGroupReport($data)
     {
         $query = "";
-        if ($data == "PayMethod") {
+        $in_query = "";
+        if (!empty($data["to-date"]) && !empty($data["from-date"])) $in_query .= " AND DATE(pd.`added_at`) BETWEEN '" . $data["from-date"] . "' AND '" . $data["to-date"] . "'";
+        if ($data["report-by"] == "PayMethod") {
             $query = "SELECT pm.id, pd.payment_method AS title, COUNT(pd.payment_method) AS total_num_sold, SUM(pd.amount) AS total_amount_sold
                     FROM purchase_detail AS pd, vendor_details AS vd, admission_period AS ap, forms AS ft, payment_method AS pm   
                     WHERE pd.admission_period = ap.id AND pd.vendor = vd.id AND pd.form_id = ft.id AND pd.payment_method = pm.name 
-                    AND pd.`status` = 'COMPLETED' GROUP BY pd.payment_method";
+                    AND pd.`status` = 'COMPLETED'$in_query GROUP BY pd.payment_method";
         }
-        if ($data == "Vendors") {
+        if ($data["report-by"] == "Vendors") {
             $query = "SELECT vd.id, vd.company AS title, COUNT(pd.vendor) AS total_num_sold, SUM(pd.amount) AS total_amount_sold
                     FROM purchase_detail AS pd, vendor_details AS vd, admission_period AS ap, forms AS ft, payment_method AS pm 
                     WHERE pd.admission_period = ap.id AND pd.vendor = vd.id AND pd.form_id = ft.id AND pd.payment_method = pm.name 
-                    AND pd.`status` = 'COMPLETED' GROUP BY pd.vendor";
+                    AND pd.`status` = 'COMPLETED'$in_query GROUP BY pd.vendor";
         }
+        $_SESSION["downloadQueryStmt"] = array("type" => "groupReport", "data" => $data, "query" => $query);
         return $this->dm->getData($query);
     }
 
-    public function fetchFormPurchasesGroupReportInfo(int $i, $t)
+    public function fetchFormPurchasesGroupReportInfo($data)
     {
         $query = "";
-        if ($t == "PayMethod") {
+        $in_query = "";
+        if (!empty($data["to-date"]) && !empty($data["from-date"])) $in_query .= " AND DATE(pd.`added_at`) BETWEEN '" . $data["from-date"] . "' AND '" . $data["to-date"] . "'";
+
+        if ($data["report-by"] == "PayMethod") {
             $query = "SELECT * FROM purchase_detail AS pd, payment_method AS pm 
-                    WHERE pd.payment_method = pm.name AND pm.id = :i AND pd.`status` = 'COMPLETED'";
+                    WHERE pd.payment_method = pm.name AND pm.id = {$data["_dataI"]} AND pd.`status` = 'COMPLETED'$in_query";
         }
-        if ($t == "Vendors") {
+        if ($data["report-by"] == "Vendors") {
             $query = "SELECT * FROM purchase_detail AS pd, vendor_details AS vd 
-                    WHERE pd.vendor = vd.id AND vd.id = :i AND pd.`status` = 'COMPLETED'";
+                    WHERE pd.vendor = vd.id AND vd.id = {$data["_dataI"]} AND pd.`status` = 'COMPLETED'$in_query";
         }
-        return $this->dm->getData($query, array(":i" => $i));
+        $_SESSION["downloadQueryStmt"] = array("type" => "groupReportInfo", "data" => $data, "query" => $query);
+        return $this->dm->getData($query);
     }
 
     // Excel Sheet Download for Admissions
@@ -1845,6 +1962,12 @@ class AdminController
         if ($status == "apps-declined") $in_query = "AND fsc.declaration = 1";
         $sql = $query . " " . $in_query;
         return $this->dm->getData($sql);
+    }
+
+    public function fetchApplicationStatus($appID)
+    {
+        $query = "SELECT `declaration`, `reviewed`, `admitted`, `declined` FROM `form_sections_chek` WHERE `app_login` = :i";
+        return $this->dm->getData($query, array(":i" => $appID));
     }
 
     public function downloadFile($file_url)

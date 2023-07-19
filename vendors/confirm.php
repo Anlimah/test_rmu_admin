@@ -6,11 +6,11 @@ if (empty($_GET['status']) || empty($_GET['exttrid'])) header('Location: index.p
 
 if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
 } else {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
 }
 
 if (isset($_SESSION["vendor_id"]) && !empty($_SESSION["vendor_id"]))
-    $trans_id = $_GET["exttrid"];
+    $trans_id = isset($_GET["exttrid"]) ? $_GET["exttrid"] : "";
 else header("Location: index.php");
 
 if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "vendors") {
@@ -29,7 +29,7 @@ if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "vendors") {
         );
     }
 
-    header('Location: ../login.php');
+    header('Location: ../index.php');
 }
 
 
@@ -43,7 +43,9 @@ use Src\Controller\ExposeDataController;
 
 $expose = new ExposeDataController();
 
-$data = $expose->getApplicationInfo($_GET["exttrid"]);
+$_SESSION["lastAccessed"] = time();
+
+$data = isset($_GET["exttrid"]) ? $expose->getApplicationInfo($_GET["exttrid"]) : "";
 ?>
 <!DOCTYPE html>
 <html lang="en">

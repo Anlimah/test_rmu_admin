@@ -22,7 +22,6 @@ use Src\Controller\AdminController;
 use Src\Controller\DownloadExcelDataController;
 use Src\Controller\DownloadAllExcelDataController;
 use Src\Controller\UploadExcelDataController;
-use Src\Controller\UploadBranchesExcelDataController;
 use Src\Controller\ExposeDataController;
 
 $expose = new ExposeDataController();
@@ -30,6 +29,13 @@ $admin = new AdminController();
 
 $data = [];
 $errors = [];
+
+if (!isset($_SESSION["lastAccessed"])) $_SESSION["lastAccessed"] = time();
+$_SESSION["currentAccess"] = time();
+
+$diff = ($_SESSION["currentAccess"] - $_SESSION["lastAccessed"]);
+
+if ($diff >  1800) die(json_encode(array("success" => false, "message" => "logout")));
 
 // All GET request will be sent here
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
@@ -118,6 +124,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
         $_SESSION['user'] = $result[0]["id"];
         $_SESSION['role'] = $result[0]["role"];
+        $_SESSION['user_type'] = $result[0]["type"];
         $_SESSION["admin_period"] = $expose->getCurrentAdmissionPeriodID();
 
         if (strtoupper($result[0]['role']) == "VENDORS") {
@@ -478,16 +485,23 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (!isset($_POST["v-name"]) || empty($_POST["v-name"])) {
             die(json_encode(array("success" => false, "message" => "Missing input field: Vendor Name")));
         }
+        if (!isset($_POST["v-code"]) || empty($_POST["v-code"])) {
+            die(json_encode(array("success" => false, "message" => "Missing input field: Company code")));
+        }
         if (!isset($_POST["v-email"]) || empty($_POST["v-email"])) {
             die(json_encode(array("success" => false, "message" => "Missing input field: Email Address")));
         }
         if (!isset($_POST["v-phone"]) || empty($_POST["v-phone"])) {
             die(json_encode(array("success" => false, "message" => "Missing input field: Phone Number")));
         }
+        if (!isset($_POST["v-api-user"]) || empty($_POST["v-api-user"])) {
+            die(json_encode(array("success" => false, "message" => "Missing input field: API User status")));
+        }
 
         $user_data = array(
             "first_name" => $_POST["v-name"], "last_name" => "MAIN", "user_name" => $_POST["v-email"], "user_role" => "Vendors",
-            "vendor_company" => $_POST["v-name"], "vendor_phone" => $_POST["v-phone"], "vendor_branch" => "MAIN"
+            "user_type" => "user", "vendor_company" => $_POST["v-name"], "company_code" => $_POST["v-code"],
+            "vendor_phone" => $_POST["v-phone"], "vendor_branch" => "MAIN", "api_user" => ($_POST["v-api-user"] == "YES" ? 1 : 0)
         );
 
         $privileges = array("select" => 1, "insert" => 1, "update" => 0, "delete" => 0);
@@ -627,6 +641,9 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (!isset($_POST["user-role"]) || empty($_POST["user-role"])) {
             die(json_encode(array("success" => false, "message" => "Missing input field: Role")));
         }
+        if (!isset($_POST["user-type"]) || empty($_POST["user-type"])) {
+            die(json_encode(array("success" => false, "message" => "Missing input field: User Type")));
+        }
 
         if ($_POST["user-role"] == "Vendors") {
             if (!isset($_POST["vendor-tin"]) || empty($_POST["vendor-tin"])) {
@@ -646,8 +663,9 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         $user_data = array(
             "first_name" => $_POST["user-fname"], "last_name" => $_POST["user-lname"],
             "user_name" => $_POST["user-email"], "user_role" => $_POST["user-role"],
-            "vendor_company" => $_POST["vendor-company"], "vendor_tin" => $_POST["vendor-tin"],
-            "vendor_phone" => $_POST["vendor-phone"], "vendor_address" => $_POST["vendor-address"]
+            "user_type" => $_POST["user-type"], "vendor_company" => $_POST["vendor-company"],
+            "vendor_tin" => $_POST["vendor-tin"], "vendor_phone" => $_POST["vendor-phone"],
+            "vendor_address" => $_POST["vendor-address"]
         );
 
         $privileges = array("select" => 1, "insert" => 0, "update" => 0, "delete" => 0);
@@ -666,7 +684,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
                 break;
 
             case 'update':
-                $rslt = $admin->updateSystemUser($_POST["user-id"], $_POST["user-fname"], $_POST["user-lname"], $_POST["user-email"], $_POST["user-role"], $privileges);
+                $rslt = $admin->updateSystemUser($_POST, $privileges);
                 if (!$rslt) {
                     die(json_encode(array("success" => false, "message" => "Failed to update admission information!")));
                 }
@@ -694,6 +712,24 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         die(json_encode(array("success" => true, "message" => $result)));
     }
 
+    // For sales report on vendor's dashboard
+    elseif ($_GET["url"] == "vendorSalesReport") {
+        if (!isset($_POST["admission-period"])) die(json_encode(array("success" => false, "message" => "Invalid input request for admission period!")));
+        if (!isset($_POST["from-date"])) die(json_encode(array("success" => false, "message" => "Invalid input request for from date!")));
+        if (!isset($_POST["to-date"])) die(json_encode(array("success" => false, "message" => "Invalid input request for to date!")));
+        if (!isset($_POST["form-type"])) die(json_encode(array("success" => false, "message" => "Invalid input request for form type!")));
+        if (!isset($_POST["purchase-status"])) die(json_encode(array("success" => false, "message" => "Invalid input request for purchase status!")));
+
+        if ((!empty($_POST["from-date"]) && empty($_POST["to-date"])) || (!empty($_POST["to-date"]) && empty($_POST["from-date"])))
+            die(json_encode(array("success" => false, "message" => "Date range (From - To) must be set!")));
+
+        $_POST["vendor-id"] = $_SESSION["vendor_id"];
+
+        $result = $admin->fetchAllVendorFormPurchases($_POST);
+        if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found for given parameters!")));
+        die(json_encode(array("success" => true, "message" => $result)));
+    }
+
     //
     elseif ($_GET["url"] == "purchaseInfo") {
         if (!isset($_POST["_data"]) || empty($_POST["_data"]))
@@ -705,33 +741,48 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     }
 
     // send purchase info
+    elseif ($_GET["url"] == "gen-send-purchase-info") {
+        if (!isset($_POST["genSendTransID"]) || empty($_POST["genSendTransID"]))
+            die(json_encode(array("success" => false, "message" => "Invalid request!")));
+        $transID = $expose->validateNumber($_POST["genSendTransID"]);
+        die(json_encode($admin->sendPurchaseInfo($transID)));
+    }
+
+    // send purchase info
     elseif ($_GET["url"] == "send-purchase-info") {
         if (!isset($_POST["sendTransID"]) || empty($_POST["sendTransID"]))
             die(json_encode(array("success" => false, "message" => "Invalid request!")));
         $transID = $expose->validateNumber($_POST["sendTransID"]);
-        die(json_encode($admin->sendPurchaseInfo($transID)));
+        die(json_encode($admin->sendPurchaseInfo($transID, false)));
     }
 
     // fetch group sales data
     elseif ($_GET["url"] == "group-sales-report") {
-        if (!isset($_POST["_data"])) die(json_encode(array("success" => false, "message" => "Invalid input request!")));
-        $_data = $expose->validateText($_POST["_data"]);
-        $result = $admin->fetchFormPurchasesGroupReport($_data);
+        if (!isset($_POST["from-date"])) die(json_encode(array("success" => false, "message" => "Invalid input request for from date!")));
+        if (!isset($_POST["to-date"])) die(json_encode(array("success" => false, "message" => "Invalid input request for to date!")));
+        if (!isset($_POST["report-by"])) die(json_encode(array("success" => false, "message" => "Invalid input request for filter by!")));
+
+        if ((!empty($_POST["from-date"]) && empty($_POST["to-date"])) || (!empty($_POST["to-date"]) && empty($_POST["from-date"])))
+            die(json_encode(array("success" => false, "message" => "Date range (From - To) not set!")));
+
+        $_data = $expose->validateText($_POST["report-by"]);
+        $result = $admin->fetchFormPurchasesGroupReport($_POST);
         if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found for given parameters!")));
         die(json_encode(array("success" => true, "message" => $result)));
     }
 
     // fetch group sales data
     elseif ($_GET["url"] == "group-sales-report-list") {
-        if (!isset($_POST["_dataI"]) || empty($_POST["_dataI"]))
-            die(json_encode(array("success" => false, "message" => "Invalid input request!")));
-        if (!isset($_POST["_dataT"]) || empty($_POST["_dataT"]))
-            die(json_encode(array("success" => false, "message" => "Invalid input request!")));
+        if (!isset($_POST["_dataI"]) || empty($_POST["_dataI"])) die(json_encode(array("success" => false, "message" => "Invalid input request!")));
+        if (!isset($_POST["from-date"])) die(json_encode(array("success" => false, "message" => "Invalid input request for from date!")));
+        if (!isset($_POST["to-date"])) die(json_encode(array("success" => false, "message" => "Invalid input request for to date!")));
+        if (!isset($_POST["report-by"])) die(json_encode(array("success" => false, "message" => "Invalid input request for filter by!")));
+
+        if ((!empty($_POST["from-date"]) && empty($_POST["to-date"])) || (!empty($_POST["to-date"]) && empty($_POST["from-date"])))
+            die(json_encode(array("success" => false, "message" => "Date range (From - To) not set!")));
 
         $_dataI = $expose->validateNumber($_POST["_dataI"]);
-        $_dataT = $expose->validateText($_POST["_dataT"]);
-
-        $result = $admin->fetchFormPurchasesGroupReportInfo($_dataI, $_dataT);
+        $result = $admin->fetchFormPurchasesGroupReportInfo($_POST);
         if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found for given parameters!")));
         die(json_encode(array("success" => true, "message" => $result)));
     }
@@ -741,6 +792,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         $result = $admin->prepareDownloadQuery($_POST);
         if (!$result) die(json_encode(array("success" => false, "message" => "Fatal error: server generated error!")));
         die(json_encode(array("success" => true, "message" => "successfully!")));
+    } else if ($_GET["url"] == "general-download") {
     }
 
     // backup database
@@ -776,21 +828,27 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
         if ($newPass !== $renewPass) die(json_encode(array("success" => false, "message" => "New password entry mismatched!")));
 
-        $username = $admin->fetchVendorUsernameByUserID($_SESSION["user"]);
-        $result = $admin->verifyAdminLogin($username, $currentPass);
-        if (!$result) {
-            die(json_encode(array("success" => false, "message" => "Incorrect password!")));
-        }
+        $userDetails = $admin->verifySysUserExistsByID($_SESSION["user"]);
+        if (empty($userDetails)) die(json_encode(array("success" => false, "message" => "Failed to verify user account!")));
 
-        die(json_encode($admin->resetUserPassword($newPass)));
-    } elseif ($_GET["url"] == "admit-individual-applicant") {
+        $result = $admin->verifyAdminLogin($userDetails[0]["user_name"], $currentPass);
+        if (!$result) die(json_encode(array("success" => false, "message" => "Incorrect current password!")));
+
+        $changePassword = $admin->resetUserPassword($_SESSION["user"], $newPass);
+        die(json_encode($changePassword));
+    }
+    //
+    elseif ($_GET["url"] == "admit-individual-applicant") {
         if (!isset($_POST["app-prog"]) || empty($_POST["app-prog"]))
             die(json_encode(array("success" => false, "message" => "Please choose a programme!")));
         if (!isset($_POST["app-login"]) || empty($_POST["app-login"]))
             die(json_encode(array("success" => false, "message" => "There no match for this applicant in database!")));
 
         die(json_encode($admin->admitIndividualApplicant($_POST["app-login"], $_POST["app-prog"])));
-    } elseif ($_GET["url"] == "decline-individual-applicant") {
+    }
+
+    //
+    elseif ($_GET["url"] == "decline-individual-applicant") {
         if (!isset($_POST["app-login"]) || empty($_POST["app-login"]))
             die(json_encode(array("success" => false, "message" => "There no match for this applicant in database!")));
         die(json_encode($admin->declineIndividualApplicant($_POST["app-login"])));

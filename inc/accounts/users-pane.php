@@ -47,35 +47,48 @@
                     <div class="card">
                         <h5 class="card-header">Add New User</h5>
                         <div class="card-body">
-                            <fieldset>
+                            <fieldset class="mb-4">
                                 <legend>Personal Detail</legend>
-                                <div style="display: flex; flex-direction:row; justify-content: space-between">
-                                    <div class="mb-2 me-2">
+                                <div class="row" style="display: flex; flex-direction:row; justify-content: space-between">
+                                    <div class="col mb-2">
                                         <label for="user-fname">First Name</label>
                                         <input type="text" class="form-control form-control-sm" name="user-fname" id="user-fname" placeholder="First Name" required>
                                     </div>
-                                    <div class="mb-2">
+                                    <div class="col mb-2">
                                         <label for="user-lname">Last Name</label>
                                         <input type="text" class="form-control form-control-sm" name="user-lname" id="user-lname" placeholder="Last Name" required>
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col mb-2 me-2">
+                                    <div class="col mb-2">
                                         <label for="user-email">Email Address</label>
                                         <input type="email" class="form-control form-control-sm" name="user-email" id="user-email" placeholder="Email" required>
                                     </div>
+                                </div>
+                                <div class="row">
                                     <div class="col mb-2">
                                         <label for="user-role">Role</label>
                                         <select style="width: 100%;" name="user-role" id="user-role" class="form-select form-select-sm" required>
                                             <option value="" hidden>Choose...</option>
-                                            <option value="Accounts">Accounts</option>
-                                            <option value="Admissions">Admissions</option>
+                                            <?php if (isset($_SESSION["role"]) && strtolower($_SESSION["role"]) == "accounts") { ?>
+                                                <option value="Accounts" selected>Accounts</option>
+                                            <?php } else if (isset($_SESSION["role"]) && strtolower($_SESSION["role"]) == "admissions") { ?>
+                                                <option value="Admissions" selected>Admissions</option>
+                                            <?php } ?>
+                                        </select>
+                                    </div>
+                                    <div class="col mb-2">
+                                        <label for="user-type">User Type</label>
+                                        <select style="width: 100%;" name="user-type" id="user-type" class="form-select form-select-sm" required>
+                                            <option value="" hidden>Choose...</option>
+                                            <option value="admin">Admin</option>
+                                            <option value="user">User</option>
                                         </select>
                                     </div>
                                 </div>
                             </fieldset>
 
-                            <div id="vendor_info" style="display: none">
+                            <!--<div id="vendor_info" style="display: none">
                                 <hr>
 
                                 <fieldset>
@@ -101,11 +114,9 @@
                                         </div>
                                     </div>
                                 </fieldset>
-                            </div>
+                            </div>-->
 
-                            <hr>
-
-                            <fieldset>
+                            <fieldset class="mb-4" style="border-top: 1px solid #aaa; padding: 10px 0px">
                                 <div style="display: flex; flex-direction:row; justify-content: space-around">
 
                                     <p style="font-weight: bolder;">Privileges: </p>
@@ -145,10 +156,8 @@
 
                             </fieldset>
 
-                            <hr>
-
                             <div>
-                                <button type="submit" class="btn btn-primary btn-sm" id="user-action-btn">Add</button>
+                                <button type="submit" style="width: 100px" class="btn btn-primary btn-sm" id="user-action-btn">Add</button>
                             </div>
                         </div>
                     </div>
@@ -267,6 +276,8 @@
                         $("#user-email").val(result.message[0].user_name);
                         $("#user-role option:selected").attr("selected", false);
                         $("#user-role" + " option[value='" + result.message[0].role + "']").attr('selected', true);
+                        $("#user-type option:selected").attr("selected", false);
+                        $("#user-type" + " option[value='" + result.message[0].type + "']").attr('selected', true);
                         $("#select").attr('checked', parseInt(result.message[0].select) ? true : false);
                         $("#insert").attr('checked', parseInt(result.message[0].insert) ? true : false);
                         $("#update").attr('checked', parseInt(result.message[0].update) ? true : false);

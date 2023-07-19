@@ -76,9 +76,15 @@
                         </div>
                         <div class="modal-body">
                             <form id="addOrUpdateVendorForm" method="post" enctype="multipart/form-data">
-                                <div class="mb-4 mt-4">
-                                    <label for="v-name">Company Name</label>
-                                    <input type="text" class="transform-text form-control form-control-sm" name="v-name" id="v-name" placeholder="Name">
+                                <div class="row mb-4 mt-4">
+                                    <div class="col-8">
+                                        <label for="v-name">Company Name</label>
+                                        <input type="text" class="transform-text form-control form-control-sm" name="v-name" id="v-name" placeholder="Name">
+                                    </div>
+                                    <div class="col-4">
+                                        <label for="v-code">Company Code</label>
+                                        <input type="text" class="transform-text form-control form-control-sm" name="v-code" id="v-code" placeholder="Code" maxlength="3" pattern="[A-Za-z]{3}" title="Company code must be 3 characters A - Z">
+                                    </div>
                                 </div>
 
                                 <div class="row mb-4">
@@ -90,6 +96,20 @@
                                     <div class="col">
                                         <label for="v-phone">Phone No.</label>
                                         <input type="text" class="form-control form-control-sm" name="v-phone" id="v-phone" placeholder="02441234567">
+                                    </div>
+                                </div>
+
+                                <div class="row mb-4">
+                                    <div class="col">
+                                        <label for="v-email" style="margin-right: 15px;">API User? </label>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input v-api-user-check" type="radio" name="v-api-user" id="v-api-user-yes" value="YES">
+                                            <label class="form-check-label" for="v-api-user-yes"> YES </label>
+                                        </div>
+                                        <div class="form-check form-check-inline">
+                                            <input class="form-check-input v-api-user-check" type="radio" name="v-api-user" id="v-api-user-no" value="NO" checked>
+                                            <label class="form-check-label" for="v-api-user-no"> NO </label>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -171,9 +191,16 @@
             $("#v-address").val("");
         }
 
+        $(".v-api-user-check").click(function() {
+            if ($('#v-api-user-yes').is(':checked')) {
+                $("#other-branches-file-upload").slideUp();
+            } else if ($('#v-api-user-no').is(':checked')) {
+                $("#other-branches-file-upload").slideDown();
+            }
+        });
+
         $("#addOrUpdateVendorForm").on("submit", function(e) {
             e.preventDefault();
-
             $.ajax({
                 type: "POST",
                 url: "../endpoint/vendor-form",
@@ -322,7 +349,6 @@
 
         $(document).on("click", ".edit-vendor", function(e) {
             let ds = this.dataset.branchtype;
-            console.log($(this).attr("id"));
             let data = {
                 vendor_key: $(this).attr("id")
             }
@@ -352,7 +378,6 @@
                             $("#other-branches-file-upload").hide();
                         };
 
-                        $("#vendorsBranchList").modal("toggle");
                         $("#addOrUpdateVendorModal").modal("toggle");
                     } else {
                         alert(result.message)

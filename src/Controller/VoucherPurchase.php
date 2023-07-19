@@ -231,8 +231,9 @@ class VoucherPurchase
                 "INSERT",
                 "Vendor {$vendor_id} sold form with transaction ID {$trans_id}"
             );
+            return array("success" => true, "exttrid" => $trans_id);
 
-            $message = 'Your RMU Online Application login details. ';
+            /*$message = 'Your RMU Online Application login details. ';
             $message .= 'APPLICATION NUMBER: RMU-' . $login_details['app_number'];
             $message .= '    PIN: ' . $login_details['pin_number'] . ".";
             $message .= ' Follow the link, https://admissions.rmuictonline.com to start application process.';
@@ -256,7 +257,7 @@ class VoucherPurchase
                 return array("success" => true, "message" => $browser_mg, "exttrid" => $trans_id);
             } else {
                 return array("success" => false, "message" => "Failed sending login details via SMS!");
-            }
+            }*/
         } else {
             return array("success" => false, "message" => "Failed saving login details!");
         }

@@ -3,7 +3,7 @@ session_start();
 //echo $_SERVER["HTTP_USER_AGENT"];
 if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
 } else {
-    header("Location: login.php");
+    header("Location: index.php");
 }
 
 if (isset($_SESSION['vendor_id']) && !empty($_SESSION['vendor_id'])) {
@@ -32,7 +32,7 @@ if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "vendors") {
         );
     }
 
-    header('Location: ../login.php');
+    header('Location: ../index.php');
 }
 
 require_once('../bootstrap.php');
@@ -41,6 +41,8 @@ use Src\Controller\AdminController;
 
 $admin = new AdminController();
 require_once('../inc/page-data.php');
+
+$_SESSION["lastAccessed"] = time();
 
 ?>
 <!DOCTYPE html>
@@ -235,7 +237,7 @@ require_once('../inc/page-data.php');
                                         <button class="btn btn-primary btn-sm" type="submit" id="submitBtn" style="padding: 10px 10px; width:200px" disabled>Sell</button>
                                     </div>
                                 </div>
-                                <input type="hidden" name="_v1Token" value="<?= $_SESSION["_vendor1Token"]; ?>">
+                                <input type="hidden" name="_v1Token" value="<?= isset($_SESSION["_vendor1Token"]) ? $_SESSION["_vendor1Token"] : "" ?>">
                                 <input type="hidden" name="form_price" id="form_price" value="0">
                                 <!--<input type="hidden" name="form_type" id="form_type" value="0">-->
                             </form>
@@ -293,8 +295,9 @@ require_once('../inc/page-data.php');
                             //window.location.href = result.message;
                             window.location.href = "confirm.php?status=000&exttrid=" + result.exttrid;
                         } else {
-                            flashMessage("alert-danger", result.message);
-                            console.log("success area: ", result.message);
+                            if (result.message == "logout") window.location.href = "?logout=true";
+                            else flashMessage("alert-danger", result.message);
+                            //console.log("success area: ", result.message);
                         }
                     },
                     error: function(error) {

@@ -1,6 +1,8 @@
 <meta charset="utf-8">
 <meta content="width=device-width, initial-scale=1.0" name="viewport">
-
+<meta name="author" content="Francis A. Anlimah">
+<meta name="email" content="francis.ano.anlimah@gmail.com">
+<meta name="website" content="https://linkedin.com/in/francis-anlimah">
 <title>Dashboard - Admissions</title>
 
 <!-- Favicons -->

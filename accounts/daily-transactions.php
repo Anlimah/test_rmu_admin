@@ -3,7 +3,7 @@ session_start();
 //echo $_SERVER["HTTP_USER_AGENT"];
 if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
 } else {
-    header("Location: login.php");
+    header("Location: index.php");
 }
 
 if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "accounts") {
@@ -22,7 +22,7 @@ if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "accounts") {
         );
     }
 
-    header('Location: ../login.php');
+    header('Location: ../index.php');
 }
 ?>
 <?php
@@ -145,10 +145,10 @@ require_once('../inc/page-data.php');
 
                                                     <div class="d-flex align-items-center">
                                                         <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                            <i class="bi bi-currency-dollar"></i>
+                                                            <img src="../assets/img/icons8-cash-96.png" style="width: 48px;" alt="">
                                                         </div>
                                                         <div class="ps-3">
-                                                            <h5><span class="small">GH</span>&#162;<span><?= $collect_amount ?></span></h5>
+                                                            <h5><span class="small">GH</span>&#162;<span><?= number_format($collect_amount) ?></span></h5>
                                                             <span class="text-muted pt-1">COUNT: </span>
                                                             <span class="pt-2 ps-1" style="font-size: 16px;"><?= $collect_total ?></span>
                                                         </div>
@@ -168,7 +168,7 @@ require_once('../inc/page-data.php');
                                                             <img src="../assets/img/icons8-sell-48.png" style="width: 48px;" alt="">
                                                         </div>
                                                         <div class="ps-3">
-                                                            <h5><span class="small">GH</span>&#162;<span><?= $vendor_amount ?></span></h5>
+                                                            <h5><span class="small">GH</span>&#162;<span><?= number_format($vendor_amount) ?></span></h5>
                                                             <span class="text-muted pt-1">COUNT: </span>
                                                             <span class="pt-2 ps-1" style="font-size: 16px;"><?= $vendor_total ?></span>
                                                         </div>
@@ -188,7 +188,7 @@ require_once('../inc/page-data.php');
                                                             <img src="../assets/img/icons8-online-payment-64.png" style="width: 48px;" alt="">
                                                         </div>
                                                         <div class="ps-3">
-                                                            <h5><span class="small">GH</span>&#162;<span><?= $online_amount ?></span></h5>
+                                                            <h5><span class="small">GH</span>&#162;<span><?= number_format($online_amount) ?></span></h5>
                                                             <span class="text-muted pt-1">COUNT: </span>
                                                             <span class="pt-2 ps-1" style="font-size: 16px;"><?= $online_total ?></span>
                                                         </div>
@@ -208,7 +208,7 @@ require_once('../inc/page-data.php');
                                                             <img src="../assets/img/icons8-withdrawal-96.png" style="width: 48px;" alt="">
                                                         </div>
                                                         <div class="ps-3">
-                                                            <h5><span class="small">GH</span>&#162;<span><?= $provider_amount ?></span></h5>
+                                                            <h5><span class="small">GH</span>&#162;<span><?= number_format($provider_amount) ?></span></h5>
                                                             <span class="text-muted pt-1">COUNT: </span>
                                                             <span class="pt-2 ps-1" style="font-size: 16px;"><?= $provider_total ?></span>
                                                         </div>
@@ -239,7 +239,7 @@ require_once('../inc/page-data.php');
 
                                                             <div style="display: flex; flex-direction:column; justify-content:flex-start">
                                                                 <h5 style="padding-bottom: 0; margin-bottom:0;">
-                                                                    <span class="small">GH</span>&#162;<span class="small"><?= $form["total_amount"] ? $form["total_amount"] : "0.00" ?></span>
+                                                                    <span class="small">GH</span>&#162;<span class="small"><?= $form["total_amount"] ? number_format($form["total_amount"]) : "0.00" ?></span>
                                                                 </h5>
                                                                 <span class="text-muted small">AMOUNT</span>
                                                             </div>
@@ -360,11 +360,11 @@ require_once('../inc/page-data.php');
                     <div class="card recent-sales overflow-auto">
 
                         <div class="filter">
-                            <span class="icon download-file" id="excelFileDownload" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Export as Excel file">
-                                <img src="../assets/img/icons8-microsoft-excel-2019-48.png" alt="Download as Excel file" style="cursor:pointer;width: 22px;">
+                            <span style="margin-right: 0 !important" class="icon download-file" id="excelFileDownload" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Export as Excel file">
+                                <img src="../assets/img/icons8-microsoft-excel-2019-48.png" alt="Download as Excel file" style="cursor:pointer;width: 24px;">
                             </span>
-                            <span class="icon download-file" id="pdfFileDownload" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Download as PDF file">
-                                <img src="../assets/img/icons8-pdf-48.png" alt="Download as PDF file" style="width: 22px;cursor:pointer;">
+                            <span style="margin-left: 0 !important" class="icon download-pdf" id="main" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Download as PDF file">
+                                <img src="../assets/img/icons8-pdf-48.png" alt="Download as PDF file" style="width: 24px;cursor:pointer;">
                             </span>
                         </div>
 
@@ -408,8 +408,8 @@ require_once('../inc/page-data.php');
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
-                            <div class="alert alert-danger alert-dismissible infoFeed" style="display:none" role="alert">
-                                <span id="msgContent">Holy guacamole! You should check in on some of those fields below.</span>
+                            <div class="alert alert-dismissible infoFeed" style="display:none" role="alert">
+                                <span id="msgContent"></span>
                                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                             </div>
                             <div class="mb-4 row">
@@ -480,17 +480,18 @@ require_once('../inc/page-data.php');
                                     </div>
                                 </div>
                             </fieldset>
-                            <fieldset>
-                                <div class="row" style="width:100% !important">
-                                    <form id="sendPurchaseInfoForm" method="post" style="display: flex; justify-content:center">
-                                        <button id="sendTransIDBtn" type="submit" class="btn btn-success" style="padding:15px !important">Generate and resend application login info</button>
-                                        <input type="hidden" name="sendTransID" id="sendTransID" value="">
-                                    </form>
-                                </div>
-                            </fieldset>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <div style="width:100% !important; display:flex; justify-content: space-between">
+                                <form id="genSendPurchaseInfoForm" method="post">
+                                    <button type="submit" id="genSendTransIDBtn" class="btn btn-warning btn-sm" style="padding:15px !important">Generate and send new application login info</button>
+                                    <input type="hidden" name="genSendTransID" id="genSendTransID" value="">
+                                </form>
+                                <form id="sendPurchaseInfoForm" method="post" style="float: right;">
+                                    <button type="submit" id="sendTransIDBtn" class="btn btn-success btn-sm" style="padding:15px !important">Resend application login info</button>
+                                    <input type="hidden" name="sendTransID" id="sendTransID" value="">
+                                </form>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -515,89 +516,55 @@ require_once('../inc/page-data.php');
                 $("#reportsForm").submit();
             });
 
+            $(document).on("click", ".download-pdf", function() {
+                d = $(this).attr("id");
+                window.open("../download-pdf-file.php?w=pdfFileDownload&p=daily-transactions&t=" + d, "_blank");
+            });
+
             $("#reportsForm").on("submit", function(e, d) {
                 e.preventDefault();
-
                 triggeredBy = 1;
-                let data = new FormData(this);
 
-                // Executes when download is click, either for excel or pdf download
-                if (d == "pdfFileDownload" || d == "excelFileDownload") {
-                    $.ajax({
-                        type: "POST",
-                        url: "../endpoint/download-file",
-                        data: data,
-                        processData: false,
-                        contentType: false,
-                        success: function(result) {
-                            console.log(result);
-                            if (result.success) {
-                                window.open("../download-pdf.php?w=" + d, "_blank");
-                            } else {
-                                $("#alert-output").html('');
-                                $("#alert-output").html(
-                                    '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                    '<i class="bi bi-info-circle me-1"></i>' + result.message +
-                                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
-                                    '</div>'
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/salesReport",
+                    data: new FormData(this),
+                    processData: false,
+                    contentType: false,
+                    success: function(result) {
+                        console.log(result);
+
+                        if (result.success) {
+                            $("#totalData").text(result.message.length);
+                            $("tbody").html('');
+                            $.each(result.message, function(index, value) {
+                                $("tbody").append(
+                                    '<tr>' +
+                                    '<td>' + (index + 1) + '</td>' +
+                                    '<td>' + value.added_at + '</td>' +
+                                    '<td>' + value.id + '</td>' +
+                                    '<td>' + value.fullName + '</td>' +
+                                    '<td>' + value.phoneNumber + '</td>' +
+                                    '<td>' + value.admissionPeriod + '</td>' +
+                                    '<td>' + value.formType + '</td>' +
+                                    '<td>' + value.status + '</td>' +
+                                    '<td>' + value.paymentMethod + '</td>' +
+                                    '<td>' +
+                                    '<button id="' + value.id + '" class="btn btn-xs btn-primary openPurchaseInfo" data-bs-toggle="modal" data-bs-target="#purchaseInfoModal">View</button>' +
+                                    '</td>' +
+                                    '</tr>'
                                 );
-                            }
-                        },
-                        error: function(error) {
-                            console.log(error);
+                            });
+                        } else {
+                            $("#totalData").text(0);
+                            $("tbody").html("<tr style='text-align: center'><td colspan='5'>" + result.message + "</td></tr>");
                         }
-                    });
 
-                }
-
-                // Executes when purchase data is fetched
-                else {
-                    $.ajax({
-                        type: "POST",
-                        url: "../endpoint/salesReport",
-                        data: new FormData(this),
-                        processData: false,
-                        contentType: false,
-                        success: function(result) {
-                            console.log(result);
-
-                            if (result.success) {
-                                $("#totalData").text(result.message.length);
-                                $("tbody").html('');
-                                $.each(result.message, function(index, value) {
-                                    $("tbody").append(
-                                        '<tr>' +
-                                        '<td>' + (index + 1) + '</td>' +
-                                        '<td>' + value.added_at + '</td>' +
-                                        '<td>' + value.id + '</td>' +
-                                        '<td>' + value.fullName + '</td>' +
-                                        '<td>' + value.phoneNumber + '</td>' +
-                                        '<td>' + value.admissionPeriod + '</td>' +
-                                        '<td>' + value.formType + '</td>' +
-                                        '<td>' + value.status + '</td>' +
-                                        '<td>' + value.paymentMethod + '</td>' +
-                                        '<td>' +
-                                        '<button id="' + value.id + '" class="btn btn-xs btn-primary openPurchaseInfo" data-bs-toggle="modal" data-bs-target="#purchaseInfoModal">View</button>' +
-                                        '</td>' +
-                                        '</tr>'
-                                    );
-                                });
-                            } else {
-                                $("#alert-output").html('');
-                                $("#alert-output").html(
-                                    '<div class="alert alert-danger alert-dismissible fade show" role="alert">' +
-                                    '<i class="bi bi-info-circle me-1"></i>' + result.message +
-                                    '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
-                                    '</div>'
-                                );
-                            }
-
-                        },
-                        error: function(error) {
-                            console.log(error);
-                        }
-                    });
-                }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
             });
 
             $(document).on("click", ".openPurchaseInfo", function() {
@@ -627,6 +594,7 @@ require_once('../inc/page-data.php');
                             $("#p-formT").val(result.message[0].formT);
                             $("#p-payM").val(result.message[0].payM);
                             $("#sendTransID").val(result.message[0].transID);
+                            $("#genSendTransID").val(result.message[0].transID);
                         } else {
                             alert(result.message);
                         }
@@ -637,9 +605,41 @@ require_once('../inc/page-data.php');
                 });
             });
 
+            $("#genSendPurchaseInfoForm").on("submit", function(e) {
+                e.preventDefault();
+
+                var confirmMsg = confirm("Please note that applicant current progress on the application portal will be lost after new login info are generated! Click OK to continue.");
+                if (!confirmMsg) return;
+
+                triggeredBy = 3;
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/gen-send-purchase-info",
+                    data: new FormData(this),
+                    processData: false,
+                    contentType: false,
+                    success: function(result) {
+                        console.log(result);
+
+                        $("#msgContent").text(result.message);
+                        if (result.success) {
+                            $(".infoFeed").removeClass("alert-danger").addClass("alert-success");
+                            $(".infoFeed").fadeIn(1000).fadeOut(500);
+                        } else {
+                            $(".infoFeed").removeClass("alert-success").addClass("alert-danger");
+                            $(".infoFeed").fadeIn(1000).fadeOut(500);
+                        }
+
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+
             $("#sendPurchaseInfoForm").on("submit", function(e) {
                 e.preventDefault();
-                triggeredBy = 3;
+                triggeredBy = 4;
                 $.ajax({
                     type: "POST",
                     url: "../endpoint/send-purchase-info",
@@ -651,9 +651,11 @@ require_once('../inc/page-data.php');
 
                         $("#msgContent").text(result.message);
                         if (result.success) {
-                            $(".infoFeed").removeClass("alert-danger").addClass("alert-success").toggle();
+                            $(".infoFeed").removeClass("alert-danger").addClass("alert-success");
+                            $(".infoFeed").fadeIn(1000).fadeOut(500);
                         } else {
-                            $(".infoFeed").removeClass("alert-success").addClass("alert-danger").toggle();
+                            $(".infoFeed").removeClass("alert-success").addClass("alert-danger");
+                            $(".infoFeed").fadeIn(1000).fadeOut(500);
                         }
 
                     },
@@ -665,11 +667,13 @@ require_once('../inc/page-data.php');
 
             $(document).on({
                 ajaxStart: function() {
-                    if (triggeredBy == 3) $("#sendTransIDBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> processing...');
+                    if (triggeredBy == 3) $("#genSendTransIDBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> processing...');
+                    else if (triggeredBy == 4) $("#sendTransIDBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> processing...');
                     else $("#alert-output").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
                 },
                 ajaxStop: function() {
-                    if (triggeredBy == 3) $("#sendTransIDBtn").prop("disabled", false).html('Send application login info');
+                    if (triggeredBy == 3) $("#genSendTransIDBtn").prop("disabled", false).html('Generate and send new application login info');
+                    else if (triggeredBy == 4) $("#sendTransIDBtn").prop("disabled", false).html('Resend application login info');
                     else $("#alert-output").html('');
                 }
             });

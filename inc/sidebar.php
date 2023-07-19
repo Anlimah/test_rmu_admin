@@ -9,30 +9,9 @@
             </a>
         </li><!-- End Dashboard Nav -->
 
-        <!-- <li class="nav-item">
-            <a class="nav-link collapsed" href="applications.php">
-                <i class="bi bi-people"></i>
-                <span>Application</span>
-            </a>
-        </li>End Application Page Nav -->
-
         <?php
-        if (strtolower($_SESSION["role"]) == "admissions") {
+        if (isset($_SESSION["role"]) && strtolower($_SESSION["role"]) == "admissions" && isset($_SESSION["role"]) && strtolower($_SESSION["user_type"]) == "admin") {
         ?>
-            <!-- <li class="nav-item">
-                <a class="nav-link collapsed" href="admit-applicants.php">
-                    <i class="bi bi-files"></i>
-                    <span>Admit Applicants</span>
-                </a>
-            </li>End Admit Applicants Page Nav -->
-
-            <!-- <li class="nav-item">
-                <a class="nav-link collapsed" href="broadsheet.php">
-                    <i class="bi bi-person-check"></i>
-                    <span>Broadsheet</span>
-                </a>
-            </li>End Application Page Nav -->
-
             <li class="nav-item">
                 <a class="nav-link collapsed" href="backup.php">
                     <i class="bi bi-database-fill-down"></i>
@@ -42,7 +21,7 @@
         <?php } ?>
 
         <?php
-        if (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "accounts") {
+        if (isset($_SESSION["role"]) && (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "accounts") && isset($_SESSION["role"]) && strtolower($_SESSION["user_type"]) == "admin") {
         ?>
             <li class="nav-item">
                 <a class="nav-link collapsed" href="../<?= strtolower($_SESSION["role"]) ?>/user-account.php">

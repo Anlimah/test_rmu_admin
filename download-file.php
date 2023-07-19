@@ -1,6 +1,6 @@
 <?php
 $file = "";
-if ($_GET["type"] == "branch") $file = "./uploads/branches/" . "Sample RMU Vendors Data" . ".xlsx";
+if (isset($_GET["type"]) && $_GET["type"] == "branch") $file = "./uploads/branches/" . "Sample RMU Vendors Data" . ".xlsx";
 
 if (!empty($file)) {
     header('Content-Type:application/octet-stream');

@@ -3,7 +3,7 @@ session_start();
 
 if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
 } else {
-    header("Location: ../login.php");
+    header("Location: ../index.php");
 }
 
 if (isset($_GET['logout'])  || strtolower($_SESSION["role"]) != "admissions") {
@@ -22,7 +22,7 @@ if (isset($_GET['logout'])  || strtolower($_SESSION["role"]) != "admissions") {
         );
     }
 
-    header('Location: ../login.php');
+    header('Location: ../index.php');
 }
 if (!isset($_GET['t']) || empty($_GET['t'])) header("Location: index.php");
 if (!isset($_GET['q']) || empty($_GET['q'])) header("Location: applications.php?t={$_GET['t']}");
@@ -114,8 +114,8 @@ $admin->updateApplicationStatus($_GET["q"]);
         }
 
         .photo-display {
-            width: 150px !important;
-            height: 150px !important;
+            width: 170px !important;
+            height: 170px !important;
             min-width: 150px !important;
             min-height: 150px !important;
             /*background: red;*/
@@ -157,6 +157,68 @@ $admin->updateApplicationStatus($_GET["q"]);
 
         <section class=" section dashboard">
 
+            <div class="row">
+                <div class="col-12">
+                    <div class="card recent-sales overflow-auto">
+                        <div class="card-body" style="padding-top: 18px;">
+
+                            <div style="display: flex !important; justify-content: space-between">
+                                <div class="photo-display">
+                                    <img id="app-photo" src="<?= 'https://admissions.rmuictonline.com/apply/photos/' . $personal[0]["photo"] ?>" alt="">
+                                </div>
+                                <div class="col-7">
+                                    <table class="table table-borderless" style="display: flex; justify-content: flex-start">
+                                        <tr>
+                                            <td style="width: 200px; padding: 4px 8px !important"><b>Name: </b> </td>
+                                            <td style="width: 200px; padding: 4px 8px !important"><?= $personal[0]["first_name"] ?> <?= $personal[0]["middle_name"] ?> <?= $personal[0]["last_name"] ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 200px; padding: 4px 8px !important"><b>National of:</b> </td>
+                                            <td style="width: 200px; padding: 4px 8px !important"><?= $personal[0]["nationality"] ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 200px; padding: 4px 8px !important"><b>Application Mode:</b> </td>
+                                            <td style="width: 200px; padding: 4px 8px !important"><?= $academic_BG[0]["cert_type"] == "OTHER" ? $academic_BG[0]["other_cert_type"] : $academic_BG[0]["cert_type"] ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 200px; padding: 4px 8px !important"><b>First Choice Program:</b> </td>
+                                            <td style="width: 200px; padding: 4px 8px !important"><?= $personal_AB[0]["first_prog"] ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 200px; padding: 4px 8px !important"><b>Term Applied:</b></td>
+                                            <td style="width: 200px; padding: 4px 8px !important"><?= $personal_AB[0]["application_term"] ?></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="width: 200px; padding: 4px 8px !important"><b>Stream Applied:</b></td>
+                                            <td style="width: 200px; padding: 4px 8px !important"><?= $personal_AB[0]["study_stream"] ?></td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <div class="col-3" style="display: flex; flex-direction:column; justify-content:center; align-items:center">
+                                    <?php
+                                    $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
+                                    if (!empty($app_statuses)) {
+                                        if ($app_statuses[0]["declined"]) { ?>
+                                            <span class="badge rounded-pill text-bg-danger">DECLINED</span>
+                                        <?php } else if ($app_statuses[0]["admitted"]) { ?>
+                                            <span>ADMITTED</span>
+                                        <?php } else if ($app_statuses[0]["reviewed"]) { ?>
+                                            <span>REVIEWED</span>
+                                        <?php } else if ($app_statuses[0]["declaration"]) { ?>
+                                            <span>SUBMITTED</span>
+                                    <?php }
+                                    }
+                                    ?>
+                                    <a class="btn btn-primary" target="_blank" href="../download-appData.php?<?= "t=" . $_GET["t"] . "&q=" . $_GET["q"] ?>" style="width: 150px; margin-top: 15px">PRINT</a>
+
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- programs summary view -->
             <div class="row">
 
@@ -172,9 +234,6 @@ $admin->updateApplicationStatus($_GET["q"]);
                                 <div class="col-6" style="border-right: 1px solid #ccc;">
                                     <div class="col">
                                         <div style="display: flex;">
-                                            <div class="photo-display" style="margin-top: 5px; margin-right: 25px;">
-                                                <img id="app-photo" src="<?= 'https://admissions.rmuictonline.com/apply/photos/' . $personal[0]["photo"] ?>" alt="">
-                                            </div>
                                             <div style="display: flex; flex-direction: column">
                                                 <div class="col">
                                                     <h3>Personal Information</h3>
@@ -388,13 +447,10 @@ $admin->updateApplicationStatus($_GET["q"]);
                                     <div class="col">
                                         <h3>Programmes</h3>
                                         <div class="certificates mb-4">
+                                            <h5 style="font-size: 16px;" class="form-label mt-4"><b>Programmes chosen by applicant</b></h5>
                                             <?php
                                             if (!empty($personal_AB)) {
                                             ?>
-                                                <div class="mt-4 mb-4" style="font-weight: 600;">
-                                                    <p>TERM APPLIED: <span><?= $personal_AB[0]["application_term"] ?></span></p>
-                                                    <p>STREAM APPLIED: <span><?= $personal_AB[0]["study_stream"] ?></span></p>
-                                                </div>
                                                 <table class="table table-striped">
                                                     <thead class="table-dark">
                                                         <tr>
@@ -424,7 +480,29 @@ $admin->updateApplicationStatus($_GET["q"]);
                                                         </tr>
                                                     </tbody>
                                                 </table>
+
+                                                <?php
+                                                $programData = $admin->fetchAllFromProgramByName($personal_AB[0]["first_prog"]);
+                                                if ($programData[0]["type"] < 4) {
+                                                ?>
+                                                    <h5 style="font-size: 16px;" class="form-label mt-4"><b>Award a different programme</b></h5>
+                                                    <div class="mb-4">
+                                                        <label for="">Programme Type: </label>
+                                                        <select name="choose-other-prog" id="choose-other-prog" class="form-select">
+                                                            <option value="" hidden>Choose...</option>
+                                                            <option value="1">MASTERS</option>
+                                                            <option value="2">DEGREE</option>
+                                                            <option value="3">DIPLOMA</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-4">
+                                                        <label class="form-label" for="admit-other-prog">Choose a programme <span class="input-required">*</span></label>
+                                                        <select name="admit-other-prog" id="admit-other-prog" class="transform-text form-select mb-3">
+                                                            <option hidden value="">Choose...</option>
+                                                        </select>
+                                                    </div>
                                             <?php
+                                                }
                                             }
                                             ?>
                                         </div>
@@ -530,12 +608,17 @@ $admin->updateApplicationStatus($_GET["q"]);
             $(".app-prog-admit").on("click", function() {
                 let prog = $(this).val();
                 $("#app-prog").val(prog);
-            })
+            });
 
             $("#admit-applicant-form").on("submit", function(e) {
                 e.preventDefault();
                 var c = confirm("Are you sure you want to admit this applicant?");
                 if (c) {
+                    data = new FormData(this);
+                    data.append("choose-other-prog", $("#choose-other-prog").val());
+                    data.append("admit-other-prog", $("#admit-other-prog").val());
+
+                    return;
                     $.ajax({
                         type: "POST",
                         url: "../endpoint/admit-individual-applicant",
@@ -585,6 +668,28 @@ $admin->updateApplicationStatus($_GET["q"]);
                 // Set the PDF file URL as the iframe source
                 pdfFrame.src = "https://docs.google.com/viewer?url=" + encodeURIComponent(pdfUrl) + "&embedded=true";
                 $("#documentDisplay").modal("toggle");
+            });
+
+            $("#choose-other-prog").change("blur", function() {
+                data = {
+                    type: $(this).val()
+                }
+
+                $.ajax({
+                    type: "GET",
+                    url: "../endpoint/programs",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
+                        $("#admit-other-prog").html("<option hidden value=''>Choose...</option>");
+                        $.each(result.message, function(index, value) {
+                            $("#admit-other-prog").append('<option value="' + value.name + '">' + value.name + '</option>');
+                        });
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
             });
 
         });
