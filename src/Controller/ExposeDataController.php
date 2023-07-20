@@ -22,12 +22,6 @@ class ExposeDataController extends DatabaseMethods
         return substr(str_shuffle($str_result), 0, $length_pin);
     }
 
-    public function genVendorAPIUsername(int $length_pin = 8)
-    {
-        $str_result = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-        return strtolower(substr(str_shuffle($str_result), 0, $length_pin));
-    }
-
     public function validateEmail($input)
     {
         if (empty($input)) return array("success" => false, "message" => "Input required!");

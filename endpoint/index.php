@@ -857,6 +857,14 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         die(json_encode(array("success" => true)));
     }
 
+    //
+    else if ($_GET["url"] == "generateNewAPIKeys") {
+        if (!isset($_POST["__generateAPIKeys"]) || empty($_POST["__generateAPIKeys"]))
+            die(json_encode(array("success" => false, "message" => "Invalid request received!")));
+
+        die(json_encode($admin->generateAPIKeys($_SESSION["vendor_id"])));
+    }
+
     // All PUT request will be sent here
 } else if ($_SERVER['REQUEST_METHOD'] == "PUT") {
     parse_str(file_get_contents("php://input"), $_PUT);

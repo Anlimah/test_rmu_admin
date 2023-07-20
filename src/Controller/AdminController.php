@@ -729,6 +729,12 @@ class AdminController
 
     // CRUD for API Users
 
+    public function genVendorAPIKeyPairs(int $length_pin = 8)
+    {
+        $str_result = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+        return substr(str_shuffle($str_result), 0, $length_pin);
+    }
+
     public function fetchVendorAPIData($vendor_id): mixed
     {
         return $this->dm->getData("SELECT * FROM api_users WHERE vendor_id = :vi", array(":vi" => $vendor_id));
@@ -742,26 +748,21 @@ class AdminController
         if ($vendorData["api_user"] != 1) return array("success" => false, "message" => "This vendor account is not allowed to use RMU forms APIs");
 
         // Generate vendor api username
-        $api_username = $this->expose->genVendorAPIUsername();
-
-        // Hash username
-        $hashed_un = sha1($api_username);
-
+        $api_username = strtolower($this->genVendorAPIKeyPairs());
         // Generate vendor api password
-        $api_password = $this->expose->genVendorPin();
-
+        $api_password = $this->genVendorAPIKeyPairs(12);
         // Hash password
         $hashed_pw = password_hash($api_password, PASSWORD_DEFAULT);
 
         $vendorAPIData = $this->fetchVendorAPIData($vendor_id);
-        if (empty($vendorAPIData)) $query = "UPDATE api_users SET `username` = :un, `password` = :pw WHERE `vendor_id`:vi";
-        else $query = "INSERT INTO api_users (`username`, `password`, `vendor_id`) VALUES(:un, :pw, :vi)";
-        $params = array(":un" => $hashed_un, ":pw" => $hashed_pw, ":vi" => $vendor_id);
+        if (empty($vendorAPIData)) $query = "INSERT INTO api_users (`username`, `password`, `vendor_id`) VALUES(:un, :pw, :vi)";
+        else $query = "UPDATE api_users SET `username` = :un, `password` = :pw WHERE `vendor_id`:vi";
+        $params = array(":un" => $api_username, ":pw" => $hashed_pw, ":vi" => $vendor_id);
 
         if ($this->dm->inputData($query, $params))
-            return array("success" => true, "message" => array("username" => $api_username, "password" => $api_password));
+            return array("success" => true, "message" => array("client_id" => $api_username, "client_secret" => $api_password));
 
-        return array("success" => false, "message" => "Failed to register API keys");
+        return array("success" => false, "message" => "Failed to generate new API keys");
     }
 
     public function fetchAvailableformTypes()
