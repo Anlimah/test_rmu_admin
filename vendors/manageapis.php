@@ -85,6 +85,7 @@ $_SESSION["lastAccessed"] = time();
                             <div style="display: flex; justify-content: space-between;">
                                 <div>
                                     <p>Generate new API keys when ever necessary</p>
+                                    <p>Read our the <a href="test.api.rmuictonline.com"><b>Documentation</b></a></p>
                                 </div>
                                 <form method="POST" id="generateNewAPIKeysForm">
                                     <button type="submit" class="btn btn-primary btn-sm" style="padding: 10px 30px">GENERATE NEW API KEYS</button>
