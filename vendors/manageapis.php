@@ -118,19 +118,20 @@ $_SESSION["lastAccessed"] = time();
                     <div class="modal-content">
                         <div class="modal-header">
                             <h1 class="modal-title fs-5" id="genratedAPIKeysModalTitle">Generated API Keys</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body">
                             <div class="alert alert-success">
-                                <p>Please copy the <b>VENDOR_ID</b> and <b>VENDOR_SECRET</b> and store it in a safe location.</p>
-                                <p>NB: <b>VENDOR_SECRET</b> won't be available when you close this message.</p>
+                                <p>Please copy the <b>CLIENT_ID</b> and <b>CLIENT_SECRET</b> and store it in a safe location.</p>
+                                <p>NB: <b>CLIENT_SECRET</b> won't be available when you close this message.</p>
                             </div>
                             <table class="table">
                                 <tr>
-                                    <th scope="row" style="width:120px; background-color: #f1f1f1"><b>VENDOR_ID</b>: </th>
+                                    <th scope="row" style="width:120px; background-color: #f1f1f1"><b>CLIENT_ID</b>: </th>
                                     <td id="vendorID"></td>
                                 </tr>
                                 <tr>
-                                    <th scope="row" style="width:120px; background-color: #f1f1f1"><b>VENDOR_SECRET</b>: </th>
+                                    <th scope="row" style="width:120px; background-color: #f1f1f1"><b>CLIENT_SECRET</b>: </th>
                                     <td id="vendorSecret"></td>
                                 </tr>
                             </table>
@@ -178,14 +179,15 @@ $_SESSION["lastAccessed"] = time();
                     success: function(result) {
                         console.log(result);
                         if (result.success) {
-                            $("#clientID").text(result.message[0].client_id);
-                            $("#clientSecret").text(result.message[0].client_secret);
+                            $("#clientID").text(result.message["client_id"]);
+                            $("#clientSecret").text(result.message["client_secret"]);
                             $("#genratedAPIKeysModal").toggle("modal");
                         } else {
                             if (result.message == "logout") {
                                 window.location.href = "?logout=true";
                                 return;
                             }
+                            alert(result.message);
                         }
                     },
                     error: function(error) {
