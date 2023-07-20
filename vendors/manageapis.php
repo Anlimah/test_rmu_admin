@@ -86,8 +86,8 @@ $_SESSION["lastAccessed"] = time();
                                 <div>
                                     <p>Generate new API keys when ever necessary</p>
                                 </div>
-                                <form method="POST">
-                                    <button type="submit" class="btn btn-primary btn-sm" id="generateNewAPIKeys" style="padding: 10px 30px">GENERATE NEW API KEYS</button>
+                                <form method="POST" id="generateNewAPIKeysForm">
+                                    <button type="submit" class="btn btn-primary btn-sm" style="padding: 10px 30px">GENERATE NEW API KEYS</button>
                                     <input type="hidden" name="__generateAPIKeys" value="<?= isset($vendor_id) ? sha1($vendor_id) : "" ?>">
                                 </form>
                             </div>
@@ -164,7 +164,7 @@ $_SESSION["lastAccessed"] = time();
 
             var triggeredBy = 0;
 
-            $("#generateNewAPIKeys").on("submit", function(e, d) {
+            $("#generateNewAPIKeysForm").on("submit", function(e) {
                 e.preventDefault();
                 triggeredBy = 1;
 
