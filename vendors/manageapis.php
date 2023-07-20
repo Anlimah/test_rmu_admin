@@ -94,6 +94,7 @@ $_SESSION["lastAccessed"] = time();
                             <table class="table" style="margin-top: 50px">
                                 <thead style="width:120px; background-color: #f1f1f1">
                                     <th scope="col">Status</th>
+                                    <th scope="col">Company Code</th>
                                     <th scope="col">Vendor ID</th>
                                     <th scope="col">Date</th>
                                 </thead>
@@ -101,6 +102,7 @@ $_SESSION["lastAccessed"] = time();
                                     <?php if (!empty($vendorAPIData)) { ?>
                                         <tr>
                                             <td><span class="btn btn-success btn-xs">Active</span></td>
+                                            <td><?= $vendorAPIData[0]["company_code"] ?></td>
                                             <td id="clientID"><?= $vendorAPIData[0]["username"] ?></td>
                                             <td><?= $vendorAPIData[0]["added_at"] ?></td>
                                         </tr>

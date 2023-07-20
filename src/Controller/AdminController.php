@@ -738,7 +738,9 @@ class AdminController
 
     public function fetchVendorAPIData($vendor_id): mixed
     {
-        return $this->dm->getData("SELECT * FROM api_users WHERE vendor_id = :vi", array(":vi" => $vendor_id));
+        $query = "SELECT au.*, vd.company, vd.company_code FROM api_users AS au, vendor_details AS vd 
+                    WHERE au.vendor_id = :vi AND au.vendor_id = vd.id";
+        return $this->dm->getData($query, array(":vi" => $vendor_id));
     }
 
     public function generateAPIKeys($vendor_id): mixed
