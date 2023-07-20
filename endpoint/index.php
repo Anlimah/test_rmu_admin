@@ -11,11 +11,6 @@ header("Access-Control-Allow-Methods: GET,POST,PUT,DELETE");
 header("Access-Control-Max-Age: 3600");
 header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
 
-/*$method = $_SERVER['REQUEST_METHOD'];
-$request = explode('/', trim($_SERVER['PATH_INFO'], '/'));
-$input = json_decode(file_get_contents('php://input'), true);
-die(json_encode($input));*/
-
 require "../bootstrap.php";
 
 use Src\Controller\AdminController;

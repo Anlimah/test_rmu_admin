@@ -264,6 +264,10 @@ require_once('../inc/page-data.php');
                             $("#info-output").hide();
 
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             $("tbody").html("<tr style='text-align: center'><td colspan='7'>No entries found</td></tr>");
                         }
                     },
@@ -313,6 +317,10 @@ require_once('../inc/page-data.php');
                             $("#info-output").hide();
 
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             $("tbody").html("<tr style='text-align: center'><td colspan='7'>No entries found</td></tr>");
                         }
 
@@ -330,6 +338,8 @@ require_once('../inc/page-data.php');
                                         $.each(result.message, function(index, value) {
                                             $("#program").append('<option value="' + value.name + '">' + value.name + '</option>');
                                         });
+                                    } else {
+                                        if (result.message == "logout") window.location.href = "?logout=true";
                                     }
                                 },
                                 error: function(error) {
@@ -384,6 +394,7 @@ require_once('../inc/page-data.php');
                         data: data,
                         success: function(result) {
                             console.log(result);
+                            if (result.message == "logout") window.location.href = "?logout=true";
                         },
                         error: function(error) {
                             console.log(error);

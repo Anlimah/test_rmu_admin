@@ -148,7 +148,13 @@ require_once('../inc/page-data.php');
                     success: function(result) {
                         console.log(result);
                         if (result.success) window.open(result.message, '_blank');
-                        else alert(result.message);
+                        else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
+                            alert(result.message);
+                        }
                     },
                     error: function(error) {
                         console.log(error);
@@ -188,6 +194,10 @@ require_once('../inc/page-data.php');
                             });
                             $("#down-bs").show();
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             $("tbody").html('');
                             $("#info-output").html(
                                 '<div class="alert alert-info alert-dismissible fade show" role="alert">' +

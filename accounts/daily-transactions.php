@@ -556,6 +556,10 @@ require_once('../inc/page-data.php');
                                 );
                             });
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             $("#totalData").text(0);
                             $("tbody").html("<tr style='text-align: center'><td colspan='5'>" + result.message + "</td></tr>");
                         }
@@ -596,6 +600,10 @@ require_once('../inc/page-data.php');
                             $("#sendTransID").val(result.message[0].transID);
                             $("#genSendTransID").val(result.message[0].transID);
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             alert(result.message);
                         }
                     },
@@ -620,6 +628,10 @@ require_once('../inc/page-data.php');
                     contentType: false,
                     success: function(result) {
                         console.log(result);
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
 
                         $("#msgContent").text(result.message);
                         if (result.success) {
@@ -648,6 +660,10 @@ require_once('../inc/page-data.php');
                     contentType: false,
                     success: function(result) {
                         console.log(result);
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
 
                         $("#msgContent").text(result.message);
                         if (result.success) {

@@ -151,6 +151,10 @@
                 data: data,
                 success: function(result) {
                     console.log(result);
+                    if (result.message == "logout") {
+                        window.location.href = "?logout=true";
+                        return;
+                    }
                     alert(result.message);
                     if (result.success) {
                         window.location.reload();
@@ -184,7 +188,13 @@
                         $("#form-price").val(result.message[0].amount);
                         $("#form-type option:selected").attr("selected", false);
                         $("#form-type" + " option[value='" + result.message[0].ft_id + "']").attr('selected', true);
-                    } else alert(result.message);
+                    } else {
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
+                        alert(result.message);
+                    }
 
                 },
                 error: function(error) {
@@ -210,6 +220,10 @@
                         alert(result.message);
                         window.location.reload();
                     } else {
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
                         alert(result.message);
                     }
                 },

@@ -192,11 +192,8 @@
         }
 
         $(".v-api-user-check").click(function() {
-            if ($('#v-api-user-yes').is(':checked')) {
-                $("#other-branches-file-upload").slideUp();
-            } else if ($('#v-api-user-no').is(':checked')) {
-                $("#other-branches-file-upload").slideDown();
-            }
+            if ($('#v-api-user-yes').is(':checked')) $("#other-branches-file-upload").slideUp();
+            else if ($('#v-api-user-no').is(':checked')) $("#other-branches-file-upload").slideDown();
         });
 
         $("#addOrUpdateVendorForm").on("submit", function(e) {
@@ -210,6 +207,10 @@
                 processData: false,
                 success: function(result) {
                     console.log(result);
+                    if (result.message == "logout") {
+                        window.location.href = "?logout=true";
+                        return;
+                    }
                     alert(result.message);
                     window.location.reload();
                 },
@@ -249,6 +250,10 @@
                             );
                         });
                     } else {
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
                         alert(result.message)
                     }
 
@@ -294,6 +299,10 @@
 
                         $("#vendorsBranchList").modal("toggle");
                     } else {
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
                         alert(result.message)
                     }
 
@@ -337,6 +346,10 @@
                             );
                         });
                     } else {
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
                         alert(result.message)
                     }
 
@@ -365,8 +378,20 @@
                         $("#v-action-btn").text("Save");
                         $("#v-id").val(result.message[0].id);
                         $("#v-name").val(result.message[0].company).prop("readonly", true).attr("style", "background-color: #f1f1f1; color: #000;");
+                        $("#v-code").val(result.message[0].company_code).prop("readonly", true).attr("style", "background-color: #f1f1f1; color: #000;");
                         $("#v-email").val(result.message[0].user_name);
                         $("#v-phone").val(result.message[0].phone_number);
+
+                        if (result.message[0].api_user) $("#v-api-user-yes").prop("checked", true);
+                        else $("#v-api-user-no").prop("checked", true);
+
+                        if ($('#v-api-user-yes').is(':checked')) {
+                            $("#other-branches-file-upload").slideUp();
+                            $('#v-api-user-no').prop("disabled", true);
+                        } else if ($('#v-api-user-no').is(':checked')) {
+                            $("#other-branches-file-upload").slideDown();
+                            $('#v-api-user-yes').prop("disabled", true);
+                        }
 
                         if (ds == "main") {
                             $("#main-branch-h4").show();
@@ -380,6 +405,10 @@
 
                         $("#addOrUpdateVendorModal").modal("toggle");
                     } else {
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
                         alert(result.message)
                     };
 
@@ -404,6 +433,10 @@
                 data: data,
                 success: function(result) {
                     console.log(result);
+                    if (result.message == "logout") {
+                        window.location.href = "?logout=true";
+                        return;
+                    }
                     alert(result.message);
                     window.location.reload();
                 },

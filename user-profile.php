@@ -82,9 +82,9 @@ require_once('inc/page-data.php');
     <!-- ======= Header ======= -->
     <header id="header" class="header fixed-top d-flex align-items-center">
         <div class="d-flex align-items-center justify-content-between">
-            <a href="<?= strtolower($_SESSION["role"]) ?>/" class="logo d-flex align-items-center">
+            <a href="index.php" class="logo d-flex align-items-center">
                 <img src="assets/img/rmu-logo.png" alt="">
-                <span class="d-none d-lg-block">RMU / <?= $_SESSION["role"] ?></span>
+                <span class="d-none d-lg-block">RMU / <?= isset($_SESSION["role"]) ? $_SESSION["role"] : "" ?></span>
             </a>
             <i class="bi bi-list toggle-sidebar-btn"></i>
         </div><!-- End Logo -->
@@ -96,12 +96,12 @@ require_once('inc/page-data.php');
 
                     <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
                         <img src="assets/img/icons8-circled-user-male-skin-type-5-96.png" alt="Profile" class="rounded-circle">
-                        <span class="d-none d-md-block dropdown-toggle ps-2"><?= $admin->fetchUserName($_SESSION["user"])[0]["userName"] ?></span>
+                        <span class="d-none d-md-block dropdown-toggle ps-2"><?= isset($_SESSION["user"]) ? $admin->fetchUserName($_SESSION["user"])[0]["userName"] : "" ?></span>
                     </a><!-- End Profile Iamge Icon -->
 
                     <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
                         <li class="dropdown-header">
-                            <h6><?= $admin->fetchFullName($_SESSION["user"])[0]["fullName"] ?></h6>
+                            <h6><?= isset($_SESSION["user"]) ? $admin->fetchFullName($_SESSION["user"])[0]["fullName"] : "" ?></h6>
                         </li>
                         <li>
                             <hr class="dropdown-divider">
@@ -144,31 +144,27 @@ require_once('inc/page-data.php');
             </li><!-- End Dashboard Nav -->
 
             <?php
-            if (strtolower($_SESSION["role"]) == "admissions") {
+            if (isset($_SESSION["role"]) && strtolower($_SESSION["role"]) == "admissions" && isset($_SESSION["role"]) && strtolower($_SESSION["user_type"]) == "admin") {
             ?>
                 <li class="nav-item">
-                    <a class="nav-link collapsed" href="admissions/admit-applicants.php">
-                        <i class="bi bi-files"></i>
-                        <span>Admit Applicants</span>
-                    </a>
-                </li><!-- End Broadsheet Page Nav -->
-
-                <li class="nav-item">
-                    <a class="nav-link collapsed" href="admissions/broadsheet.php">
-                        <i class="bi bi-person-check"></i>
-                        <span>Broadsheet</span>
+                    <a class="nav-link collapsed" href="backup.php">
+                        <i class="bi bi-database-fill-down"></i>
+                        <span>Backup Database</span>
                     </a>
                 </li><!-- End Application Page Nav -->
-            <?php }
-            if (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "accounts") {
+            <?php } ?>
+
+            <?php
+            if (isset($_SESSION["role"]) && (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "accounts") && isset($_SESSION["role"]) && strtolower($_SESSION["user_type"]) == "admin") {
             ?>
                 <li class="nav-item">
-                    <a class="nav-link collapsed" href="admissions/user-account.php">
+                    <a class="nav-link collapsed" href="<?= isset($_SESSION["role"]) ? strtolower($_SESSION["role"]) : "" ?>/user-account.php">
                         <i class="bi bi-shield-shaded"></i>
-                        <span>User Account</span>
+                        <span>User Accounts</span>
                     </a>
                 </li><!-- End User Account Page Nav -->
             <?php } ?>
+
         </ul>
     </aside><!-- End Sidebar-->
 
@@ -178,8 +174,7 @@ require_once('inc/page-data.php');
             <h1>Profile</h1>
             <nav>
                 <ol class="breadcrumb">
-                    <li class="breadcrumb-item"><a href="<?= $_SESSION["role"] ?>/index.php">Home</a></li>
-                    <li class="breadcrumb-item">Users</li>
+                    <li class="breadcrumb-item"><a href="<?= isset($_SESSION["role"]) ? strtolower($_SESSION["role"]) : "" ?>/index.php">Home</a></li>
                     <li class="breadcrumb-item active">Profile</li>
                 </ol>
             </nav>

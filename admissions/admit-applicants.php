@@ -186,6 +186,10 @@ require_once('../inc/page-data.php');
                             });
 
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             $("tbody").html('');
                             $("#info-output").html(
                                 '<div class="alert alert-info alert-dismissible fade show" role="alert">' +
@@ -224,6 +228,7 @@ require_once('../inc/page-data.php');
                     success: function(result) {
                         console.log(result);
                         if (result.success) fetchBroadsheet();
+                        else if (result.message == "logout") window.location.href = "?logout=true";
 
                     },
                     error: function(error) {

@@ -266,15 +266,15 @@ $admin->updateApplicationStatus($_GET["q"]);
         <div class="col-5" style="display: flex; justify-content: right; align-items: center;">
             <pre style="font-size: 14px;">
             <b>
-            The registrar
-            Post Office Box GP1115
-            Accra - Ghana
+The registrar
+Post Office Box GP1115
+Accra - Ghana
 
-            +233 302 712775
-            +233 302 718225
-            Email: registrar@rmu.edu.gh
++233 302 712775
++233 302 718225
+Email: registrar@rmu.edu.gh
             </b>
-            <span><?= date("M d, Y"); ?></span>
+<span><?= date("M d, Y"); ?></span>
             </pre>
         </div>
     </div>
@@ -597,6 +597,5 @@ $admin->updateApplicationStatus($_GET["q"]);
 
     <script>
         window.print();
-        window.close();
     </script>
 </body>

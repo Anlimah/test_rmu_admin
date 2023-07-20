@@ -34,6 +34,12 @@ require_once('../inc/page-data.php');
 
 $_SESSION["lastAccessed"] = time();
 
+$vendor_id = isset($_SESSION["vendor_id"]) ? $_SESSION["vendor_id"] : "";
+$vendorData = $admin->fetchVendor($vendor_id);
+if (!empty($vendorData) && !empty($vendorData[0]["api_user"])) {
+    $_SESSION["api_user"] = $vendorData[0]["api_user"];
+}
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -66,37 +72,61 @@ $_SESSION["lastAccessed"] = time();
                 <div class="col-lg-12">
                     <div class="row">
 
-                        <!-- Applications Card -->
-                        <div class="col-xxl-3 col-md-3">
-                            <a href="sell.php">
-                                <div class="card info-card sales-card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Sell Form</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-sell-48.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">forms</span>
+                        <?php if (isset($_SESSION["api_user"])) { ?>
+                            <!-- Applications Card -->
+                            <div class="col-xxl-3 col-md-3">
+                                <a href="manageapis.php">
+                                    <div class="card info-card sales-card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">API Keys</h5>
+                                            <div class="d-flex align-items-center">
+                                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                    <img src="../assets/img/icons8-rest-api-96.png" style="width: 48px;" alt="">
+                                                </div>
+                                                <div class="ps-3">
+                                                    <span class="text-muted small pt-2 ps-1">Manage your API keys</span>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                            </a>
-                        </div><!-- End Applications Card -->
+                                </a>
+                            </div><!-- End Applications Card -->
+
+                        <?php } else { ?>
+
+                            <!-- Applications Card -->
+                            <div class="col-xxl-3 col-md-3">
+                                <a href="sell.php">
+                                    <div class="card info-card sales-card">
+                                        <div class="card-body">
+                                            <h5 class="card-title">Sell Form</h5>
+                                            <div class="d-flex align-items-center">
+                                                <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                    <img src="../assets/img/icons8-sell-48.png" style="width: 48px;" alt="">
+                                                </div>
+                                                <div class="ps-3">
+                                                    <span class="text-muted small pt-2 ps-1">forms</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </a>
+                            </div><!-- End Applications Card -->
+
+                        <?php } ?>
 
                         <!-- Applications Card -->
                         <div class="col-xxl-3 col-md-3">
                             <a href="stats.php">
                                 <div class="card info-card sales-card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Sales Stats</h5>
+                                        <h5 class="card-title">Transaction & Reports</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-stocks-growth-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">Statistics</span>
+                                                <span class="text-muted small pt-2 ps-1">See transactions stats and reports</span>
                                             </div>
                                         </div>
                                     </div>

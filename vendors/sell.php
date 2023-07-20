@@ -270,6 +270,11 @@ $_SESSION["lastAccessed"] = time();
                             $("#form_price").val(result.message[0]["amount"]);
                             //$("#form_type").val(result.message[0]["form_type"]);
                             $(':input[type="submit"]').prop('disabled', false);
+                        } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                         }
                     },
                     error: function(error) {

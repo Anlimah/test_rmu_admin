@@ -412,6 +412,10 @@ $_SESSION["lastAccessed"] = time();
                                 );
                             });
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             $("#totalData").text(0);
                             $("tbody").html("<tr style='text-align: center'><td colspan='9'>" + result.message + "</td></tr>");
                         }
@@ -452,6 +456,10 @@ $_SESSION["lastAccessed"] = time();
                             $("#genSendTransID").val(result.message[0].transID);
                             $("#printVoucher").prop("href", "print-form.php?exttrid=" + result.message[0].transID);
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             alert(result.message);
                         }
                     },
@@ -484,6 +492,10 @@ $_SESSION["lastAccessed"] = time();
                                 $(".infoFeed").fadeOut(5000);
                             });
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             $(".infoFeed").removeClass("alert-success").addClass("alert-danger");
                             $(".infoFeed").fadeIn("slow", function() {
                                 $(".infoFeed").fadeOut(5000);
@@ -516,6 +528,10 @@ $_SESSION["lastAccessed"] = time();
                                 $(".infoFeed").fadeOut(5000);
                             });
                         } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
                             $(".infoFeed").removeClass("alert-success").addClass("alert-danger");
                             $(".infoFeed").fadeIn("slow", function() {
                                 $(".infoFeed").fadeOut(5000);

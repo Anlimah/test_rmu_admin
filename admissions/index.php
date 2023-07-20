@@ -104,14 +104,14 @@ require_once('../inc/page-data.php');
                             <div class="card info-card text-success">
                                 <div class="card-body">
                                     <a href="awaiting-results.php" style="text-decoration: none;">
-                                        <h5 class="card-title">Awaiting Results</h5>
+                                        <h5 class="card-title">Awaiting Results - WASSCE</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-queue-64.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <h6><?= $admin->fetchTotalAwaitingResults()[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">awaiting results</span>
+                                                <span class="text-muted small pt-2 ps-1">awaiting results for WASSCE applicants</span>
                                             </div>
                                         </div>
                                     </a>

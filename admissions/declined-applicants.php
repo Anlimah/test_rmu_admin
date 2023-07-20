@@ -165,6 +165,7 @@ require_once('../inc/page-data.php');
                             $("#info-output").hide();
 
                         } else {
+                            if (result.message == "logout") window.location.href = "?logout=true";
                             $("tbody").html("<tr style='text-align: center'><td colspan='5'>No entries found</td></tr>");
                         }
 

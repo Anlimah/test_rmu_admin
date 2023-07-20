@@ -628,7 +628,8 @@ $admin->updateApplicationStatus($_GET["q"]);
                         processData: false,
                         success: function(result) {
                             console.log(result);
-                            alert(result.message);
+                            if (result.message == "logout") window.location.href = "?logout=true";
+                            else alert(result.message);
                         },
                         error: function(error) {
                             console.log(error);
@@ -650,7 +651,8 @@ $admin->updateApplicationStatus($_GET["q"]);
                         processData: false,
                         success: function(result) {
                             console.log(result);
-                            alert(result.message);
+                            if (result.message == "logout") window.location.href = "?logout=true";
+                            else alert(result.message);
                         },
                         error: function(error) {
                             console.log(error);
@@ -681,10 +683,15 @@ $admin->updateApplicationStatus($_GET["q"]);
                     data: data,
                     success: function(result) {
                         console.log(result);
-                        $("#admit-other-prog").html("<option hidden value=''>Choose...</option>");
-                        $.each(result.message, function(index, value) {
-                            $("#admit-other-prog").append('<option value="' + value.name + '">' + value.name + '</option>');
-                        });
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        } else {
+                            $("#admit-other-prog").html("<option hidden value=''>Choose...</option>");
+                            $.each(result.message, function(index, value) {
+                                $("#admit-other-prog").append('<option value="' + value.name + '">' + value.name + '</option>');
+                            });
+                        }
                     },
                     error: function(error) {
                         console.log(error);
