@@ -755,7 +755,7 @@ class AdminController
 
         $vendorAPIData = $this->fetchVendorAPIData($vendor_id);
         if (empty($vendorAPIData)) $query = "INSERT INTO api_users (`username`, `password`, `vendor_id`) VALUES(:un, :pw, :vi)";
-        else $query = "UPDATE api_users SET `username` = :un, `password` = :pw WHERE `vendor_id`:vi";
+        else $query = "UPDATE api_users SET `username` = :un, `password` = :pw WHERE `vendor_id` = :vi";
         $params = array(":un" => $api_username, ":pw" => $hashed_pw, ":vi" => $vendor_id);
 
         if ($this->dm->inputData($query, $params))
