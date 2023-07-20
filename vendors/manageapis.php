@@ -103,7 +103,7 @@ $_SESSION["lastAccessed"] = time();
                                         <tr>
                                             <td><span class="btn btn-success btn-xs">Active</span></td>
                                             <td><?= $vendorAPIData[0]["company_code"] ?></td>
-                                            <td id="clientID"><?= $vendorAPIData[0]["username"] ?></td>
+                                            <td><?= $vendorAPIData[0]["username"] ?></td>
                                             <td><?= $vendorAPIData[0]["added_at"] ?></td>
                                         </tr>
                                     <?php } ?>
@@ -120,7 +120,7 @@ $_SESSION["lastAccessed"] = time();
                     <div class="modal-content">
                         <div class="modal-header">
                             <h1 class="modal-title fs-5" id="genratedAPIKeysModalTitle">Generated API Keys</h1>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            <button type="button" class="btn-close" onclick="window.location.reload()"></button>
                         </div>
                         <div class="modal-body">
                             <div class="alert alert-success">
@@ -181,7 +181,7 @@ $_SESSION["lastAccessed"] = time();
                     success: function(result) {
                         console.log(result);
                         if (result.success) {
-                            $("#clientID, #vendorID").text(result.message["client_id"]);
+                            $("#vendorID").text(result.message["client_id"]);
                             $("#vendorSecret").text(result.message["client_secret"]);
                             $("#genratedAPIKeysModal").modal("toggle");
                         } else {
