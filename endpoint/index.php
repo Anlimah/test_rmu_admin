@@ -875,11 +875,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         }
 
         $rslt = $admin->closeAdmissionPeriod($_PUT["adp_key"]);
-
-        if (!$rslt) {
-            die(json_encode(array("success" => false, "message" => "Failed to delete programme!")));
-        }
-
+        if (!$rslt) die(json_encode(array("success" => false, "message" => "Failed to delete programme!")));
         die(json_encode(array("success" => true, "message" => "Successfully deleted programme!")));
     }
 
@@ -893,11 +889,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         }
 
         $rslt = $admin->deleteFormPrice($_DELETE["form_key"]);
-
-        if (!$rslt) {
-            die(json_encode(array("success" => false, "message" => "Failed to delete form price!")));
-        }
-
+        if (!$rslt) die(json_encode(array("success" => false, "message" => "Failed to delete form price!")));
         die(json_encode(array("success" => true, "message" => "Successfully deleted form price!")));
     }
 
@@ -907,11 +899,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         }
 
         $rslt = $admin->deleteVendor($_DELETE["vendor_key"]);
-
-        if (!$rslt) {
-            die(json_encode(array("success" => false, "message" => "Failed to delete form price!")));
-        }
-
+        if (!$rslt) die(json_encode(array("success" => false, "message" => "Failed to delete form price!")));
         die(json_encode(array("success" => true, "message" => "Successfully deleted form price!")));
     }
 
@@ -921,11 +909,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         }
 
         $rslt = $admin->deleteProgramme($_DELETE["prog_key"]);
-
-        if (!$rslt) {
-            die(json_encode(array("success" => false, "message" => "Failed to delete programme!")));
-        }
-
+        if (!$rslt)  die(json_encode(array("success" => false, "message" => "Failed to delete programme!")));
         die(json_encode(array("success" => true, "message" => "Successfully deleted programme!")));
     }
 
@@ -935,11 +919,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         }
 
         $rslt = $admin->deleteSystemUser($_DELETE["user_key"]);
-
-        if (!$rslt) {
-            die(json_encode(array("success" => false, "message" => "Failed to delete user account!")));
-        }
-
+        if (!$rslt) die(json_encode(array("success" => false, "message" => "Failed to delete user account!")));
         die(json_encode(array("success" => true, "message" => "Successfully deleted user account!")));
     }
 } else {

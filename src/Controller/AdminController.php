@@ -394,6 +394,7 @@ class AdminController
     {
         $vendor_info = $this->fetchVendor($vendor_id);
         $this->deleteSystemUser($vendor_info[0]["user_id"]);
+        if ($vendor_info[0]["api_user"] == 1) $this->dm->inputData("DELETE FROM api_users WHERE vendor_id = :i", array(":i" => $vendor_id));
         $query_result2 = $this->dm->inputData("DELETE FROM vendor_details WHERE id = :i", array(":i" => $vendor_id));
 
         if ($query_result2)
