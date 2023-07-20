@@ -101,7 +101,7 @@ $_SESSION["lastAccessed"] = time();
                                     <?php if (!empty($vendorAPIData)) { ?>
                                         <tr>
                                             <td><span class="btn btn-success btn-xs">Active</span></td>
-                                            <td><?= $vendorAPIData[0]["username"] ?></td>
+                                            <td id="clientID"><?= $vendorAPIData[0]["username"] ?></td>
                                             <td><?= $vendorAPIData[0]["added_at"] ?></td>
                                         </tr>
                                     <?php } ?>
@@ -113,7 +113,7 @@ $_SESSION["lastAccessed"] = time();
             </div><!-- End Transactions Summary row -->
 
             <!-- Purchase info Modal -->
-            <div class="modal fade" id="genratedAPIKeysModal" tabindex="-1" aria-labelledby="genratedAPIKeysModal" aria-hidden="true">
+            <div class="modal fade" id="genratedAPIKeysModal" tabindex="-1" aria-labelledby="genratedAPIKeysModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
                 <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
@@ -179,9 +179,9 @@ $_SESSION["lastAccessed"] = time();
                     success: function(result) {
                         console.log(result);
                         if (result.success) {
-                            $("#clientID").text(result.message["client_id"]);
-                            $("#clientSecret").text(result.message["client_secret"]);
-                            $("#genratedAPIKeysModal").toggle("modal");
+                            $("#clientID, #vendorID").text(result.message["client_id"]);
+                            $("#vendorSecret").text(result.message["client_secret"]);
+                            $("#genratedAPIKeysModal").modal("toggle");
                         } else {
                             if (result.message == "logout") {
                                 window.location.href = "?logout=true";
