@@ -34,7 +34,7 @@ require_once('../inc/page-data.php');
 
 $_SESSION["lastAccessed"] = time();
 
-$vendor_id = isset($_SESSION["vendor_id"]) ? $_SESSION["vendor_id"] : "";
+$vendor_id = isset($_SESSION["vendor_id"]) ? (int) $_SESSION["vendor_id"] : "";
 $vendorData = $admin->fetchVendor($vendor_id);
 if (!empty($vendorData) && !empty($vendorData[0]["api_user"])) {
     $_SESSION["api_user"] = $vendorData[0]["api_user"];
