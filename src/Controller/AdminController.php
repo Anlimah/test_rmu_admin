@@ -744,7 +744,7 @@ class AdminController
     {
         $vendorData = $this->fetchVendor($vendor_id);
         if (empty($vendorData)) return array("success" => false, "message" => "Vendor data doesn't exist");
-        if ($vendorData["api_user"] == 0) return array("success" => false, "message" => "This vendor account is not allowed to use RMU forms APIs");
+        if ($vendorData[0]["api_user"] == 0) return array("success" => false, "message" => "This vendor account is not allowed to use RMU forms APIs");
 
         // Generate vendor api username
         $api_username = strtolower($this->genVendorAPIKeyPairs());
