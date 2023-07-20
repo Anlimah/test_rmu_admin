@@ -24,14 +24,15 @@ if (isset($_GET['logout'])) {
 
     header('Location: index.php');
 }
-?>
-<?php
+
 require_once('bootstrap.php');
 
 use Src\Controller\AdminController;
 
 $admin = new AdminController();
 require_once('inc/page-data.php');
+
+$_SESSION["lastAccessed"] = time();
 
 ?>
 <!DOCTYPE html>
@@ -214,9 +215,7 @@ require_once('inc/page-data.php');
                             <div class="tab-content pt-2">
 
                                 <div class="tab-pane fade show active profile-overview" id="profile-overview">
-                                    <!--<h5 class="card-title">About</h5>
-                  <p class="small fst-italic">Sunt est soluta temporibus accusantium neque nam maiores cumque temporibus. Tempora libero non est unde veniam est qui dolor. Ut sunt iure rerum quae quisquam autem eveniet perspiciatis odit. Fuga sequi sed ea saepe at unde.</p>
--->
+
                                     <h5 class="card-title">Profile Details</h5>
 
                                     <div class="row">
@@ -285,14 +284,7 @@ require_once('inc/page-data.php');
     <!-- ======= Footer ======= -->
     <footer id="footer" class="footer">
         <div class="copyright">
-            &copy; Copyright <strong><span>NiceAdmin</span></strong>. All Rights Reserved
-        </div>
-        <div class="credits">
-            <!-- All the links in the footer should remain intact. -->
-            <!-- You can delete the links only if you purchased the pro version. -->
-            <!-- Licensing information: https://bootstrapmade.com/license/ -->
-            <!-- Purchase the pro version with working PHP/AJAX contact form: https://bootstrapmade.com/nice-admin-bootstrap-admin-html-template/ -->
-            Designed by <a href="https://bootstrapmade.com/">BootstrapMade</a>
+            &copy; Copyright <strong><span>RMU</span></strong>. All Rights Reserved
         </div>
     </footer><!-- End Footer -->
 

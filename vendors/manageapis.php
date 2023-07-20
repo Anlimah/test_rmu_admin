@@ -43,6 +43,15 @@ $_SESSION["lastAccessed"] = time();
 
 <head>
     <?= require_once("../inc/head.php") ?>
+    <style>
+        .btn-group-xs>.btn,
+        .btn-xs {
+            padding: 1px 5px !important;
+            font-size: 12px !important;
+            line-height: 1.5 !important;
+            border-radius: 3px !important;
+        }
+    </style>
 </head>
 
 <body>
@@ -74,30 +83,12 @@ $_SESSION["lastAccessed"] = time();
 
                             <!-- Form Types -->
                             <div style="display: flex; justify-content: space-between;">
-                                <?php
-                                if (!empty($vendorAPIData)) { ?>
-                                    <div>
-                                        <p>Use your test API keys to test your program</p>
-                                        <table class="table " style="width: 300px">
-                                            <thead style="text-align: center; background-color: #f1f1f1">
-                                                <th scope="col" colspan="2">TEST API KEYS</th>
-                                            </thead>
-                                            <tr>
-                                                <th scope="row" style="width:120px; background-color: #f1f1f1">Vendor ID: </th>
-                                                <td>ahsdohasdhah</td>
-                                            </tr>
-                                            <tr>
-                                                <th scope="row" style="width:120px; background-color: #f1f1f1">Vendor Secret: </th>
-                                                <td>ahsdohasdhah</td>
-                                            </tr>
-                                        </table>
-                                    </div>
-                                    <div>
-                                        <button class="btn btn-primary btn-sm" id="generateNewAPIKeys" style="padding: 10px 30px">GENERATE NEW API KEYS</button>
-                                    </div>
-                                <?php
-                                }
-                                ?>
+                                <div>
+                                    <p>Use your test API keys to test your program</p>
+                                </div>
+                                <div>
+                                    <button class="btn btn-primary btn-sm" id="generateNewAPIKeys" style="padding: 10px 30px">GENERATE NEW API KEYS</button>
+                                </div>
                             </div>
                             <table class="table" style="margin-top: 50px">
                                 <thead style="width:120px; background-color: #f1f1f1">
@@ -106,11 +97,13 @@ $_SESSION["lastAccessed"] = time();
                                     <th>Date</th>
                                 </thead>
                                 <tbody class="table">
-                                    <tr>
-                                        <td>Active</td>
-                                        <td>asdaskdlask</td>
-                                        <td>asduiahsidjoai</td>
-                                    </tr>
+                                    <?php if (!empty($vendorAPIData)) { ?>
+                                        <tr>
+                                            <td><span class="btn btn-success btn-xs">Active</span></td>
+                                            <td><?= $vendorAPIData[0]["username"] ?></td>
+                                            <td><?= $vendorAPIData[0]["added_at"] ?></td>
+                                        </tr>
+                                    <?php } ?>
                                 </tbody>
                             </table>
                         </div>

@@ -495,7 +495,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
         $user_data = array(
             "first_name" => $_POST["v-name"], "last_name" => "MAIN", "user_name" => $_POST["v-email"], "user_role" => "Vendors",
-            "user_type" => "user", "vendor_company" => $_POST["v-name"], "company_code" => $_POST["v-code"],
+            "user_type" => "user", "vendor_company" => $_POST["v-name"], "company_code" => $_POST["v-code"], "vendor_role" => "Ops Head",
             "vendor_phone" => $_POST["v-phone"], "vendor_branch" => "MAIN", "api_user" => ($_POST["v-api-user"] == "YES" ? 1 : 0)
         );
 
