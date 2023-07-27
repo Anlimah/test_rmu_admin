@@ -50,6 +50,7 @@
                     <li class="dropdown-header">
                         <h6><?= isset($_SESSION["user"]) ? $admin->fetchFullName($_SESSION["user"])[0]["fullName"] : "" ?></h6>
                     </li>
+
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -60,6 +61,7 @@
                             <span>My Profile</span>
                         </a>
                     </li>
+
                     <li>
                         <hr class="dropdown-divider">
                     </li>

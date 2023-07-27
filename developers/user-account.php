@@ -6,7 +6,7 @@ if (!isset($_SESSION["adminLogSuccess"]) || $_SESSION["adminLogSuccess"] == fals
 }
 
 $isUser = false;
-if (strtolower($_SESSION["role"]) == "accounts" || strtolower($_SESSION["role"]) == "developers") $isUser = true;
+if (strtolower($_SESSION["role"]) == "developers") $isUser = true;
 
 if (isset($_GET['logout']) || !$isUser) {
     session_destroy();
@@ -51,11 +51,11 @@ require_once('../inc/page-data.php');
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Vendors Account</h1>
+            <h1>User Account</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Vendors Account</li>
+                    <li class="breadcrumb-item active">User Account</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
@@ -68,18 +68,17 @@ require_once('../inc/page-data.php');
                 <!-- Left side columns -->
                 <div class="col-lg-12">
                     <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <!--<li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-tab-pane" type="button" role="tab" aria-controls="users-tab-pane" aria-selected="true">Users</button>
-                        </li>-->
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="vendors-tab" data-bs-toggle="tab" data-bs-target="#vendors-tab-pane" type="button" role="tab" aria-controls="vendors-tab-pane" aria-selected="true">Vendors</button>
+                            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users-tab-pane" type="button" role="tab" aria-controls="users-tab-pane" aria-selected="true">Users</button>
                         </li>
+                        <!--<li class="nav-item" role="presentation">
+                            <button class="nav-link" id="vendors-tab" data-bs-toggle="tab" data-bs-target="#vendors-tab-pane" type="button" role="tab" aria-controls="vendors-tab-pane" aria-selected="false">Vendors</button>
+                        </li>-->
                     </ul>
 
                     <div class="tab-content" id="myTabContent">
-                        <?php require_once("../inc/accounts/vendors-pane.php"); ?>
+                        <?php require_once("../inc/accounts/users-pane.php"); ?>
                     </div>
-
                 </div>
             </div>
         </section>

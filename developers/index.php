@@ -6,7 +6,7 @@ if (!isset($_SESSION["adminLogSuccess"]) || $_SESSION["adminLogSuccess"] == fals
 }
 
 $isUser = false;
-if (strtolower($_SESSION["role"]) == "accounts" || strtolower($_SESSION["role"]) == "developers") $isUser = true;
+if (strtolower($_SESSION["role"]) == "developers") $isUser = true;
 
 if (isset($_GET['logout']) || !$isUser) {
     session_destroy();
@@ -69,16 +69,16 @@ require_once('../inc/page-data.php');
 
                         <!-- Applications Card -->
                         <div class="col-xxl-3 col-md-3">
-                            <a href="daily-transactions.php">
+                            <a href="../accounts/">
                                 <div class="card info-card sales-card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Reports</h5>
+                                        <h5 class="card-title">Accounts</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-payment-history-96.png" style="width: 48px;" alt="">
+                                                <img src="../assets/img/icons8-profit-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">Sales summary & reports</span>
+                                                <span class="text-muted small pt-2 ps-1">Accounts Dashboard</span>
                                             </div>
                                         </div>
                                     </div>
@@ -88,59 +88,21 @@ require_once('../inc/page-data.php');
 
                         <!-- Applications Card -->
                         <div class="col-xxl-3 col-md-3">
-                            <a href="vendors-transactions.php">
+                            <a href="../admissions/">
                                 <div class="card info-card sales-card">
                                     <div class="card-body">
-                                        <h5 class="card-title">Vendors Stats</h5>
+                                        <h5 class="card-title">Admissions</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-chart-96.png" style="width: 48px;" alt="">
+                                                <img src="../assets/img/icons8-properties-script-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">Vendors' sales summary & reports</span>
+                                                <span class="text-muted small pt-2 ps-1">Admissions Dashboard</span>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </a>
-                        </div><!-- End Applications Card -->
-
-                        <!-- Applications Card -->
-                        <div class="col-xxl-3 col-md-3">
-                            <a href="vendors-account.php">
-                                <div class="card info-card sales-card">
-                                    <div class="card-body">
-                                        <h5 class="card-title">Vendors Account</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-male-female-user-group-96.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">Add, edit, and remove vendors account</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </a>
-                        </div><!-- End Applications Card -->
-
-                        <!-- Applications Card -->
-                        <div class="col-xxl-3 col-md-3">
-                            <div class="card info-card sales-card">
-                                <div class="card-body">
-                                    <a href="settings.php">
-                                        <h5 class="card-title">Forms</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-documents-96.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">Add, edit, and remove forms</span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
                         </div><!-- End Applications Card -->
 
                     </div>

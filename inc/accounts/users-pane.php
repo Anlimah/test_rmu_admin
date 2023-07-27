@@ -74,6 +74,10 @@
                                                 <option value="Accounts" selected>Accounts</option>
                                             <?php } else if (isset($_SESSION["role"]) && strtolower($_SESSION["role"]) == "admissions") { ?>
                                                 <option value="Admissions" selected>Admissions</option>
+                                            <?php } else if (isset($_SESSION["role"]) && strtolower($_SESSION["role"]) == "developers") { ?>
+                                                <option value="Accounts">Accounts</option>
+                                                <option value="Admissions">Admissions</option>
+                                                <option value="Developers">Developers</option>
                                             <?php } ?>
                                         </select>
                                     </div>
@@ -87,34 +91,6 @@
                                     </div>
                                 </div>
                             </fieldset>
-
-                            <!--<div id="vendor_info" style="display: none">
-                                <hr>
-
-                                <fieldset>
-                                    <legend>Vendor Business Detail</legend>
-                                    <div class="row">
-                                        <div class="col mb-2 me-2">
-                                            <label for="vendor-tin">Ghana Card</label>
-                                            <input type="text" class="form-control form-control-sm" name="vendor-tin" id="vendor-tin" placeholder="TIN">
-                                        </div>
-                                        <div class="col mb-2 me-2">
-                                            <label for="vendor-phone">Phone No.</label>
-                                            <input type="text" class="form-control form-control-sm" name="vendor-phone" id="vendor-phone" placeholder="02441234567">
-                                        </div>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col mb-3">
-                                            <label for="vendor-company">Company</label>
-                                            <input type="text" rows="1" class="form-control form-control-sm" name="vendor-company" id="vendor-company" placeholder="Company">
-                                        </div>
-                                        <div class="col mb-3">
-                                            <label for="vendor-address">Address</label>
-                                            <textarea type="text" rows="1" class="form-control form-control-sm" name="vendor-address" id="vendor-address" placeholder="Address"></textarea>
-                                        </div>
-                                    </div>
-                                </fieldset>
-                            </div>-->
 
                             <fieldset class="mb-4" style="border-top: 1px solid #aaa; padding: 10px 0px">
                                 <div style="display: flex; flex-direction:row; justify-content: space-around">
@@ -200,7 +176,6 @@
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                <button type="button" class="btn btn-primary">Understood</button>
                             </div>
                         </div>
                     </div>

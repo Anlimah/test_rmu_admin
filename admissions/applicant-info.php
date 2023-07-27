@@ -1,12 +1,14 @@
 <?php
 session_start();
 
-if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
-} else {
+if (!isset($_SESSION["adminLogSuccess"]) || $_SESSION["adminLogSuccess"] == false || !isset($_SESSION["user"]) || empty($_SESSION["user"])) {
     header("Location: ../index.php");
 }
 
-if (isset($_GET['logout'])  || strtolower($_SESSION["role"]) != "admissions") {
+$isUser = false;
+if (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "developers") $isUser = true;
+
+if (isset($_GET['logout']) || !$isUser) {
     session_destroy();
     $_SESSION = array();
     if (ini_get("session.use_cookies")) {
@@ -299,7 +301,7 @@ $admin->updateApplicationStatus($_GET["q"]);
                                                             <span><?= $personal[0]["phone_no1_code"] ?> <?= $personal[0]["phone_no1"] ?></span>
                                                         </p>
                                                         <p>
-                                                            <span><b>Secondary phone number: </b> </span>
+                                                            <span><b>Whatsapp number: </b> </span>
                                                             <span><?= $personal[0]["phone_no2_code"] ?> <?= $personal[0]["phone_no2"] ?></span>
                                                         </p>
                                                         <p>
