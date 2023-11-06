@@ -367,7 +367,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     elseif ($_GET["url"] == "downloadBS") {
         if (!isset($_POST["cert-type"]) || empty($_POST["cert-type"]))
             die(json_encode(array("success" => false, "message" => "Please choose a certificate type!")));
-        $url = "https://office.rmuictonline.com/download-bs.php?a=bs&c=" . $_POST["cert-type"];
+        $url = "https://test.office.rmuictonline.com/download-bs.php?a=bs&c=" . $_POST["cert-type"];
         die(json_encode(array("success" => true, "message" => $url)));
     }
     //
