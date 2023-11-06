@@ -24,8 +24,9 @@ if (isset($_GET['logout']) || !isset($_SESSION["api_user"]) || strtolower($_SESS
 
     header('Location: ../index.php');
 }
-?>
-<?php
+
+$_SESSION["lastAccessed"] = time();
+
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
@@ -34,8 +35,6 @@ $admin = new AdminController();
 require_once('../inc/page-data.php');
 
 $vendor_id = isset($_SESSION["vendor_id"]) ? $_SESSION["vendor_id"] : "";
-
-$_SESSION["lastAccessed"] = time();
 
 ?>
 <!DOCTYPE html>

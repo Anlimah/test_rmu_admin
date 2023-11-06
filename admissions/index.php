@@ -26,8 +26,9 @@ if (isset($_GET['logout']) || !$isUser) {
 
     header('Location: ../index.php');
 }
-?>
-<?php
+
+$_SESSION["lastAccessed"] = time();
+
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
@@ -35,6 +36,7 @@ use Src\Controller\AdminController;
 $admin = new AdminController();
 require_once('../inc/page-data.php');
 
+$adminSetup = true;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,22 +76,64 @@ require_once('../inc/page-data.php');
                 <div class="col-lg-12">
                     <div class="row">
 
+                        <?php //var_dump($admin->fetchTotalAppsByProgCodeAndAdmisPeriod('MSC', 0)[0]["total"]) 
+                        ?>
+                        <!-- Applications Card -->
+                        <div class="col-xxl-3 col-md-3">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="applications.php?t=1&c=MASTERS">
+                                        <h5 class="card-title">MASTERS</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-masters.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "MASTERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-3 col-md-3">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="applications.php?t=1&c=UPGRADERS">
+                                        <h5 class="card-title">UPGRADERS</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
                         <?php
-                        $form_types = $admin->getAvailableForms();
+                        $form_types = $admin->getAvailableFormsExceptType(1);
                         foreach ($form_types as $form_type) {
                         ?>
                             <!-- Applications Card -->
                             <div class="col-xxl-3 col-md-3">
                                 <div class="card info-card sales-card">
                                     <div class="card-body">
-                                        <a href="applications.php?t=<?= $form_type["id"] ?>">
+                                        <a href="applications.php?t=<?= $form_type["id"] ?>&c=<?= $form_type["name"] ?>">
                                             <h5 class="card-title"><?= $form_type["name"] ?></h5>
                                             <div class="d-flex align-items-center">
                                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                     <img src="../assets/img/icons8-<?= ucfirst(strtolower($form_type["name"])) ?>.png" style="width: 48px;" alt="">
                                                 </div>
                                                 <div class="ps-3">
-                                                    <h6><?= $admin->fetchTotalApplications($form_type["id"])[0]["total"]; ?></h6>
+                                                    <h6><?= $admin->fetchTotalApplications($_SESSION["admin_period"], $form_type["id"])[0]["total"]; ?></h6>
                                                     <span class="text-muted small pt-2 ps-1">Applications</span>
                                                 </div>
                                             </div>
@@ -112,8 +156,8 @@ require_once('../inc/page-data.php');
                                                 <img src="../assets/img/icons8-queue-64.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalAwaitingResults()[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">awaiting results for WASSCE applicants</span>
+                                                <h6><?= $admin->fetchTotalAwaitingResults($_SESSION["admin_period"])[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1"> applications</span>
                                             </div>
                                         </div>
                                     </a>
@@ -229,7 +273,30 @@ require_once('../inc/page-data.php');
     <?= require_once("../inc/footer-section.php") ?>
     <script src="../js/jquery-3.6.0.min.js"></script>
     <script>
-
+        $(document).ready(function() {
+            $("#admission-period").change("blur", function(e) {
+                data = {
+                    "data": $(this).val()
+                };
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/set-admission-period",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
+                        if (!result.success) alert(result.message);
+                        else window.location.reload();
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
     </script>
 </body>
 

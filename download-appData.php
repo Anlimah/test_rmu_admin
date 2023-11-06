@@ -1,12 +1,14 @@
 <?php
 session_start();
 
-if (isset($_SESSION["adminLogSuccess"]) && $_SESSION["adminLogSuccess"] == true && isset($_SESSION["user"]) && !empty($_SESSION["user"])) {
-} else {
+if (!isset($_SESSION["adminLogSuccess"]) || $_SESSION["adminLogSuccess"] == false || !isset($_SESSION["user"]) || empty($_SESSION["user"])) {
     header("Location: index.php");
 }
 
-if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "admissions") {
+$isUser = false;
+if (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "developers") $isUser = true;
+
+if (isset($_GET['logout']) || !$isUser) {
     session_destroy();
     $_SESSION = array();
     if (ini_get("session.use_cookies")) {
@@ -53,7 +55,7 @@ $uploads = $user->fetchUploadedDocs($_GET['q']);
 $form_name = $admin->getFormTypeName($_GET["t"]);
 $app_number = $admin->getApplicantAppNum($_GET["q"]);
 
-$admin->updateApplicationStatus($_GET["q"]);
+$admin->updateApplicationStatus($_GET["q"], 'reviewed', 1);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -263,19 +265,19 @@ $admin->updateApplicationStatus($_GET["q"]);
                 </div>
             </div>
         </div>
-        <div class="col-5" style="display: flex; justify-content: right; align-items: center;">
-            <pre style="font-size: 14px;">
-            <b>
-The registrar
-Post Office Box GP1115
-Accra - Ghana
+        <div class="col-5" style="display: flex; justify-content: right;">
+            <p>
+                <b>
+                    The registrar <br>
+                    Post Office Box GP1115 <br>
+                    Accra - Ghana <br><br>
 
-+233 302 712775
-+233 302 718225
-Email: registrar@rmu.edu.gh
-            </b>
-<span><?= date("M d, Y"); ?></span>
-            </pre>
+                    +233 302 712775 <br>
+                    +233 302 718225 <br>
+                    Email: registrar@rmu.edu.gh <br><br>
+                </b>
+                <span><?= date("M d, Y"); ?></span>
+            </p>
         </div>
     </div>
 
@@ -596,6 +598,9 @@ Email: registrar@rmu.edu.gh
     <!-- End Right side columns -->
 
     <script>
-        window.print();
+        document.addEventListener("DOMContentLoaded", function() {
+            window.print();
+            window.close();
+        });
     </script>
 </body>

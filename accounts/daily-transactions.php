@@ -26,8 +26,9 @@ if (isset($_GET['logout']) || !$isUser) {
 
     header('Location: ../index.php');
 }
-?>
-<?php
+
+$_SESSION["lastAccessed"] = time();
+
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
@@ -35,6 +36,7 @@ use Src\Controller\AdminController;
 $admin = new AdminController();
 require_once('../inc/page-data.php');
 
+$adminSetup = true;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -72,7 +74,7 @@ require_once('../inc/page-data.php');
                     <div class="card recent-sales overflow-auto">
 
                         <?php
-                        $summary = $admin->fetchInitialSummaryRecord();
+                        $summary = $admin->fetchInitialSummaryRecord($_SESSION["admin_period"]);
 
                         if (!empty($summary)) {
                             //collections
@@ -464,7 +466,10 @@ require_once('../inc/page-data.php');
                                     </div>
                                     <div class="mb-3 col">
                                         <label for="p-status" class="form-label">Status</label>
-                                        <input disabled type="text" class="form-control _textD" id="p-status">
+                                        <div style="display: flex; justify-content: space-between;">
+                                            <input disabled type="text" class="form-control _textD" id="p-status" style="width: 95%; border-top-right-radius: 0 !important; border-bottom-right-radius: 0 !important">
+                                            <input disabled type="text" class="form-control _textD" id="p-statusColor" style="width: 5%; border-top-left-radius: 0 !important; border-bottom-left-radius: 0 !important; border: none !important">
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="row">
@@ -485,15 +490,47 @@ require_once('../inc/page-data.php');
                         </div>
                         <div class="modal-footer">
                             <div style="width:100% !important; display:flex; justify-content: space-between">
-                                <form id="genSendPurchaseInfoForm" method="post">
-                                    <button type="submit" id="genSendTransIDBtn" class="btn btn-warning btn-sm" style="padding:15px !important">Generate and send new application login info</button>
+                                <ul>
+                                    <li>Verify transaction status <label for="verifyTransIDBtn" class="btn btn-primary btn-xs forVerifyTransIDBtn">Verify</label></li>
+                                    <li>Resend application login info <label for="sendTransIDBtn" class="btn btn-success btn-xs forSendTransIDBtn">Resend</label></li>
+                                    <li>Generate and send new application login info <label for="genSendTransIDBtn" class="btn btn-warning btn-xs forGenSendTransIDBtn">Generate and send</label></li>
+                                </ul>
+                                <form id="genSendPurchaseInfoForm" method="post" style="display: none;">
+                                    <button type="submit" id="genSendTransIDBtn">Generate and send new application login info</button>
                                     <input type="hidden" name="genSendTransID" id="genSendTransID" value="">
                                 </form>
-                                <form id="sendPurchaseInfoForm" method="post" style="float: right;">
-                                    <button type="submit" id="sendTransIDBtn" class="btn btn-success btn-sm" style="padding:15px !important">Resend application login info</button>
+                                <form id="sendPurchaseInfoForm" method="post" style="display: none; float: right;">
+                                    <button type="submit" id="sendTransIDBtn">Resend application login info</button>
                                     <input type="hidden" name="sendTransID" id="sendTransID" value="">
                                 </form>
+                                <form id="verifyTransactionStatusForm" method="post" style="display: none; float: right;">
+                                    <button type="submit" id="verifyTransIDBtn">Verify transaction status</button>
+                                    <input type="hidden" name="verifyTransID" id="verifyTransID" value="">
+                                </form>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Purchase info Modal -->
+            <div class="modal fade" id="smsCustomerModal" tabindex="-1" aria-labelledby="smsCustomerModal" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h1 class="modal-title fs-5" id="smsCustomerModalTitle">SMS Customer</h1>
+                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="alert alert-dismissible infoFeed" style="display:none" role="alert">
+                                <span id="smsStatusMsg"></span>
+                                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                            </div>
+                            <div class="mb-3">
+                                <label for="p-name" class="form-label">Recipient: <span id="sms-recipient"></span></label>
+                                <textarea name="sms-message" id="sms-message" cols="30" rows="3" class="form-control" placeholder="Type mesage..."></textarea>
+                            </div>
+                            <button type="button" id="smsCustomerBtn" class="btn btn-success">Send</button>
                         </div>
                     </div>
                 </div>
@@ -507,6 +544,7 @@ require_once('../inc/page-data.php');
     </main><!-- End #main -->
 
     <?= require_once("../inc/footer-section.php") ?>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
     <script>
         $(document).ready(function() {
 
@@ -551,8 +589,9 @@ require_once('../inc/page-data.php');
                                     '<td>' + value.formType + '</td>' +
                                     '<td>' + value.status + '</td>' +
                                     '<td>' + value.paymentMethod + '</td>' +
-                                    '<td>' +
-                                    '<button id="' + value.id + '" class="btn btn-xs btn-primary openPurchaseInfo" data-bs-toggle="modal" data-bs-target="#purchaseInfoModal">View</button>' +
+                                    '<td style="display: flex; justify-content: space-around">' +
+                                    '<button id="' + value.id + '" class="btn btn-xs btn-primary openPurchaseInfo" data-bs-toggle="modal" data-bs-target="#purchaseInfoModal" title="View details"><span class="bi bi-eye"></span></button>' +
+                                    '<button id="' + value.id + '" class="btn btn-xs btn-success openSmsCustomer" data-bs-toggle="modal" data-bs-target="#smsCustomerModal" data-phonenumber="' + value.phoneNumber + '" title="Send SMS"><span class="bi bi-send"></span></button>' +
                                     '</td>' +
                                     '</tr>'
                                 );
@@ -563,7 +602,7 @@ require_once('../inc/page-data.php');
                                 return;
                             }
                             $("#totalData").text(0);
-                            $("tbody").html("<tr style='text-align: center'><td colspan='5'>" + result.message + "</td></tr>");
+                            $("tbody").html("<tr style='text-align: center'><td colspan='10'>" + result.message + "</td></tr>");
                         }
 
                     },
@@ -599,6 +638,7 @@ require_once('../inc/page-data.php');
                             $("#p-vendor").val(result.message[0].vendor);
                             $("#p-formT").val(result.message[0].formT);
                             $("#p-payM").val(result.message[0].payM);
+                            $("#verifyTransID").val(result.message[0].transID);
                             $("#sendTransID").val(result.message[0].transID);
                             $("#genSendTransID").val(result.message[0].transID);
                         } else {
@@ -683,17 +723,68 @@ require_once('../inc/page-data.php');
                 });
             });
 
-            $(document).on({
-                ajaxStart: function() {
-                    if (triggeredBy == 3) $("#genSendTransIDBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> processing...');
-                    else if (triggeredBy == 4) $("#sendTransIDBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> processing...');
-                    else $("#alert-output").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Loading...');
-                },
-                ajaxStop: function() {
-                    if (triggeredBy == 3) $("#genSendTransIDBtn").prop("disabled", false).html('Generate and send new application login info');
-                    else if (triggeredBy == 4) $("#sendTransIDBtn").prop("disabled", false).html('Resend application login info');
-                    else $("#alert-output").html('');
+            $("#verifyTransactionStatusForm").on("submit", function(e) {
+                e.preventDefault();
+                triggeredBy = 5;
+                let formData = new FormData(this);
+                formData.append("payMethod", $("#p-payM").val());
+
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/verify-transaction-status",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
+
+                        if (result.success) {
+                            if (result.message == "COMPLETED") document.querySelector("#p-statusColor").setAttribute("class", "form-control _textD bg-success");
+                            if (result.message == "PENDING") document.querySelector("#p-statusColor").setAttribute("class", "form-control _textD bg-warning");
+                            if (result.message == "FAILED") document.querySelector("#p-statusColor").setAttribute("class", "form-control _textD bg-danger");
+                        } else {
+                            alert(result.message)
+                        }
+
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+
+            $(document).on("click", ".openSmsCustomer", function() {
+                $("#sms-recipient").text(this.dataset.phonenumber);
+            });
+
+            $("#smsCustomerBtn").on("click", function() {
+                data = {
+                    recipient: $("#sms-recipient").text(),
+                    message: $("#sms-message").val()
                 }
+
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/sms-customer",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
+
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
+
+                        alert(result.message);
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
             });
 
             $(document).on("click", ".download-file", function() {
@@ -703,21 +794,55 @@ require_once('../inc/page-data.php');
                 $("#reportsForm").trigger("submit", $(this).attr("id"));
             });
 
-        });
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
-    <script>
-        $(document).ready(function() {
+            $("#admission-period").change("blur", function(e) {
+                data = {
+                    "data": $(this).val()
+                };
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/set-admission-period",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
+                        if (!result.success) alert(result.message);
+                        else window.location.reload();
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+
             $(document).on({
                 ajaxStart: function() {
-                    // Show full page LoadingOverlay
-                    $.LoadingOverlay("show");
+                    if (triggeredBy = 3) $(".forGenSendTransIDBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Processing...');
+                    else if (triggeredBy = 4) $(".forSendTransIDBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Sending...');
+                    else if (triggeredBy = 5) $(".forVerifyTransIDBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>Verifying...');
+                    else $.LoadingOverlay("show");
                 },
                 ajaxStop: function() {
-                    // Hide it after 3 seconds
-                    $.LoadingOverlay("hide");
+                    if (triggeredBy = 3) $(".forGenSendTransIDBtn").prop("disabled", false).html('Generate and send');
+                    else if (triggeredBy = 4) $(".forSendTransIDBtn").prop("disabled", false).html('Resend');
+                    else if (triggeredBy = 5) $(".forVerifyTransIDBtn").prop("disabled", false).html('Verify');
+                    else $.LoadingOverlay("hide");
                 }
             });
+
+        });
+    </script>
+
+    <script>
+        $(document).on({
+            ajaxStart: function() {
+                $.LoadingOverlay("show");
+            },
+            ajaxStop: function() {
+                $.LoadingOverlay("hide");
+            }
         });
     </script>
 

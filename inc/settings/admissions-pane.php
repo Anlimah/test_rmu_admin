@@ -2,15 +2,14 @@
 <div class="tab-pane fade" id="admission-tab-pane" role="tabpanel" aria-labelledby="admission-tab" tabindex="0"><!--Programmes Pane-->
     <div class="container mt-4">
         <div class="row">
-            <div class="col-lg-1">
-            </div>
-            <div class="col-lg-6">
+            <div class="col-lg-7">
                 <table class="table table-striped">
                     <thead>
                         <tr>
                             <th scope="col">Start Date</th>
                             <th scope="col">End Date</th>
                             <th scope="col">Description</th>
+                            <th scope="col">Status</th>
                             <th scope="col"></th>
                             <th scope="col"></th>
                         </tr>
@@ -26,13 +25,20 @@
                                     <td><?= $ad["end_date"] ?></td>
                                     <td><?= $ad["info"] ?></td>
                                     <td>
-                                        <?php if ($ad["active"]) { ?>
+                                        <?php if ($ad["active"] == 0) { ?>
+                                            <span class="badge rounded-pill text-bg-danger">closed</span>
+                                        <?php } else { ?>
+                                            <span class="badge rounded-pill text-bg-success">opened</span>
+                                        <?php } ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($ad["active"] == 1) { ?>
                                             <span id="<?= $ad["id"] ?>" style="cursor:pointer;" class="edit-adp bi bi-pencil-square text-primary" title="Edit admission period"></span>
                                         <?php } ?>
                                     </td>
                                     <td>
-                                        <?php if ($ad["active"]) { ?>
-                                            <button id="<?= $ad["id"] ?>" class="btn btn-danger btn-sm">
+                                        <?php if ($ad["active"] == 1) { ?>
+                                            <button id="<?= $ad["id"] ?>" class="btn btn-danger btn-xs close-adp">
                                                 <span style="cursor:pointer;" class="bi bi-door-closed text-default" title="Edit admission period"></span> Close
                                             </button>
                                         <?php } ?>
@@ -45,23 +51,28 @@
                 </table>
             </div>
 
-            <div class="col-lg-1">
-            </div>
-
             <div class="col-lg-4">
                 <form id="addOrUpdateAdmisPeriodForm" method="post" enctype="multipart/form-data">
                     <div class="card">
                         <h5 class="card-header">Set New Admission Period</h5>
                         <div class="card-body">
-                            <div style="display: flex; flex-direction:row; justify-content: space-between">
-                                <div class="mb-2 me-2">
+                            <div class="row mb-2 mt-2">
+                                <div class="col mb-2">
                                     <label for="adp-start">Start Date</label>
                                     <input type="date" name="adp-start" id="adp-start" class="form-control form-control-sm">
                                 </div>
-                                <div class="mb-2">
+                                <div class="col mb-2">
                                     <label for="adp-end">End Date</label>
                                     <input type="date" name="adp-end" id="adp-end" class="form-control form-control-sm">
                                 </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="adp-intake">Intake</label>
+                                <select name="adp-intake" id="adp-intake" class="form-select form-select-sm">
+                                    <option value="" hidden>Select</option>
+                                    <option value="JANUARY">January</option>
+                                    <option value="AUGUST">August</option>
+                                </select>
                             </div>
                             <div class="mb-3">
                                 <label for="adp-desc">Description</label>
@@ -131,11 +142,6 @@
 
         $("#addOrUpdateAdmisPeriodForm").on("submit", function(e) {
             e.preventDefault();
-            alert("ADD")
-
-            if ($("#adp-action").val() == "add") {
-                alert("ADD")
-            }
 
             $.ajax({
                 type: "POST",
@@ -199,7 +205,6 @@
         });
 
         $(".close-adp").click(function(e) {
-            alert($(this).attr("id"))
             var data = {
                 adp_key: $(this).attr("id")
             }

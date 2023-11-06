@@ -26,15 +26,15 @@ if (isset($_GET['logout']) || !$isUser) {
 
     header('Location: ../index.php');
 }
-?>
-<?php
+
+$_SESSION["lastAccessed"] = time();
+
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
 
 $admin = new AdminController();
 require_once('../inc/page-data.php');
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -158,21 +158,6 @@ require_once('../inc/page-data.php');
     <?= require_once("../inc/footer-section.php") ?>
     <script>
         $("dataTable-top").hide();
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
-    <script>
-        $(document).ready(function() {
-            $(document).on({
-                ajaxStart: function() {
-                    // Show full page LoadingOverlay
-                    $.LoadingOverlay("show");
-                },
-                ajaxStop: function() {
-                    // Hide it after 3 seconds
-                    $.LoadingOverlay("hide");
-                }
-            });
-        });
     </script>
 
 </body>

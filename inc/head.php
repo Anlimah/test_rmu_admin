@@ -18,10 +18,6 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">-->
 <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
 <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.css">
-<link href="../assets/vendor/boxicons/css/boxicons.min.css" rel="stylesheet">
-<link href="../assets/vendor/quill/quill.snow.css" rel="stylesheet">
-<link href="../assets/vendor/quill/quill.bubble.css" rel="stylesheet">
-<link href="../assets/vendor/remixicon/remixicon.css" rel="stylesheet">
 <link href="../assets/vendor/simple-datatables/style.css" rel="stylesheet">
 
 <!-- Template Main CSS File -->

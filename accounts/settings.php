@@ -26,8 +26,9 @@ if (isset($_GET['logout']) || !$isUser) {
 
     header('Location: ../index.php');
 }
-?>
-<?php
+
+$_SESSION["lastAccessed"] = time();
+
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;

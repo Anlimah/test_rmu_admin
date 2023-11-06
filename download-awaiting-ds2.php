@@ -25,7 +25,7 @@ class Broadsheet
         $awaitingApps = $this->admin->fetchAllAwaitingApplicationsBS($this->admin_period);
         $awaitingAppsGrp = $this->admin->fetchAllAwaitingApplicationsBSGrouped($this->admin_period);
         if (empty($awaitingApps) || empty($awaitingAppsGrp)) return 0;
-        if (empty($this->admin->saveDownloadedAwaitingResults($awaitingApps))) return 0;
+        //if (empty($this->admin->saveDownloadedAwaitingResults($awaitingApps))) return 0;
         $this->dataSheet = array("awaitingApps" => $awaitingApps, "awaitingAppsGrp" => $awaitingAppsGrp);
         return 1;
     }
@@ -41,6 +41,8 @@ class Broadsheet
             if ($zip->open($zipFileName, ZipArchive::CREATE) === TRUE) {
 
                 foreach ($this->dataSheet["awaitingAppsGrp"] as $grp) {
+                    echo "Program: " . $grp["Program"] . "<br>";
+
                     $sanitizedFileName = str_replace('/', '_', $grp["Program"]);
                     $sanitizedFileName = preg_replace('/[^A-Za-z0-9_. -]/', '', $sanitizedFileName);
                     $sanitizedFileName = trim($sanitizedFileName);
@@ -67,6 +69,7 @@ class Broadsheet
 
                     foreach ($this->dataSheet["awaitingApps"] as $appData) {
                         if ($grp["Program"] == $appData["Program"]) {
+                            echo "Applicant: " . $appData["AdmissionNumber"] . "<br>";
                             $sheet->setCellValue("A" . $row, $appData["AdmissionNumber"]);
                             $sheet->setCellValue("B" . $row, $appData["IndexNumber"]);
                             $sheet->setCellValue("C" . $row, $appData["ExamMonth"]);

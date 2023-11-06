@@ -5,6 +5,7 @@ if (!isset($_SESSION["_adminLogToken"])) {
     $rstrong = true;
     $_SESSION["_adminLogToken"] = hash('sha256', bin2hex(openssl_random_pseudo_bytes(64, $rstrong)));
 }
+$_SESSION["lastAccessed"] = time();
 
 ?>
 <!DOCTYPE html>

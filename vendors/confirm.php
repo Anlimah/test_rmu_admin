@@ -32,6 +32,7 @@ if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "vendors") {
     header('Location: ../index.php');
 }
 
+$_SESSION["lastAccessed"] = time();
 
 require_once('../bootstrap.php');
 
@@ -42,8 +43,6 @@ $admin = new AdminController();
 use Src\Controller\ExposeDataController;
 
 $expose = new ExposeDataController();
-
-$_SESSION["lastAccessed"] = time();
 
 $data = isset($_GET["exttrid"]) ? $expose->getApplicationInfo($_GET["exttrid"]) : "";
 ?>

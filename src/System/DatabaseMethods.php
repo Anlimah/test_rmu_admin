@@ -29,11 +29,8 @@ class DatabaseMethods
     {
         try {
             $result = $this->query($str, $params);
-            if (!empty($result)) {
-                return $result[0]["id"];
-            } else {
-                return 0;
-            }
+            if (!empty($result))  return $result[0]["id"];
+            return 0;
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
@@ -44,11 +41,8 @@ class DatabaseMethods
     {
         try {
             $result = $this->query($str, $params);
-            if (!empty($result)) {
-                return $result;
-            } else {
-                return 0;
-            }
+            if (!empty($result)) return $result;
+            return 0;
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
@@ -59,11 +53,8 @@ class DatabaseMethods
     {
         try {
             $result = $this->query($str, $params);
-            if (!empty($result)) {
-                return $result;
-            } else {
-                return 0;
-            }
+            if (!empty($result)) return $result;
+            return 0;
         } catch (\Exception $e) {
             echo $e->getMessage();
         }

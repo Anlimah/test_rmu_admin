@@ -1,5 +1,13 @@
 <?php
 session_start();
+
+if (!isset($_SESSION["lastAccessed"])) $_SESSION["lastAccessed"] = time();
+$_SESSION["currentAccess"] = time();
+
+$diff = $_SESSION["currentAccess"] - $_SESSION["lastAccessed"];
+
+if ($diff >  1800) die(json_encode(array("success" => false, "message" => "logout")));
+
 /*
 * Designed and programmed by
 * @Author: Francis A. Anlimah
@@ -24,13 +32,6 @@ $admin = new AdminController();
 
 $data = [];
 $errors = [];
-
-if (!isset($_SESSION["lastAccessed"])) $_SESSION["lastAccessed"] = time();
-$_SESSION["currentAccess"] = time();
-
-$diff = ($_SESSION["currentAccess"] - $_SESSION["lastAccessed"]);
-
-if ($diff >  1800) die(json_encode(array("success" => false, "message" => "logout")));
 
 // All GET request will be sent here
 if ($_SERVER['REQUEST_METHOD'] == "GET") {
@@ -128,6 +129,14 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
         $_SESSION['adminLogSuccess'] = true;
         die(json_encode(array("success" => true,  "message" => strtolower($result[0]["role"]))));
+    }
+
+    // set admission period
+    elseif ($_GET["url"] == "set-admission-period") {
+        if (!isset($_POST["data"])) die(json_encode(array("success" => false, "message" => "Invalid request!")));
+        if (empty($_POST["data"])) die(json_encode(array("success" => false, "message" => "Missing input in request!")));
+        $_SESSION["admin_period"] = (int) $_POST["data"];
+        die(json_encode(array("success" => true,  "message" => "Admisssion period changed!")));
     }
 
     // Resend verification code
@@ -263,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         $v_action = $expose->validateText($_POST["action"]);
         $v_form_t = $expose->validateNumber($_POST["form_t"]);
         $data = array('action' => $v_action, 'country' => 'All', 'type' => $v_form_t, 'program' => 'All');
-        $result = $admin->fetchAppsSummaryData($data);
+        $result = $admin->fetchAppsSummaryData($_SESSION["admin_period"], $data);
         if (empty($result)) die(json_encode(array("success" => false, "message" => "Empty result!")));
         die(json_encode(array("success" => true, "message" => $result)));
     }
@@ -277,7 +286,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Missing input!")));
         }
 
-        $result = $admin->fetchAppsSummaryData($_POST);
+        $result = $admin->fetchAppsSummaryData($_SESSION["admin_period"], $_POST);
         if (!empty($result)) {
             $data["success"] = true;
             $data["message"] = $result;
@@ -286,6 +295,13 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             $data["message"] = "No result found!";
         }
         die(json_encode($data));
+    }
+
+    //
+    else if ($_GET["url"] == "checkPrintedDocument") {
+        if (!isset($_POST["app"]) || empty($_POST["app"])) die(json_encode(array("success" => false, "message" => "Missing input!")));
+        if (!empty($admin->updateApplicationStatus($_POST["app"], 'printed', 1))) die(json_encode(array("success" => true)));
+        die(json_encode(array("success" => false, "message" => "Failed to updated printed status!")));
     }
 
     //
@@ -332,17 +348,6 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         die(json_encode(array("success" => true, "message" => $result)));
     }
     //
-    elseif ($_GET["url"] == "getBroadsheetData") {
-
-        if (!isset($_POST["cert-type"])) die(json_encode(array("success" => false, "message" => "Invalid input field")));
-        if (empty($_POST["cert-type"])) die(json_encode(array("success" => false, "message" => "Missing input field")));
-
-        $result = $admin->fetchAllAdmittedApplicantsData($_POST["cert-type"]);
-
-        if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found!")));
-        die(json_encode(array("success" => true, "message" => $result)));
-    }
-    //
     elseif ($_GET["url"] == "admitAll") {
         if (!isset($_POST["cert-type"]) || !isset($_POST["prog-type"])) {
             die(json_encode(array("success" => false, "message" => "Invalid input field")));
@@ -360,18 +365,23 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     }
     //
     elseif ($_GET["url"] == "downloadBS") {
-        if (!isset($_POST["cert-type"])) {
-            die(json_encode(array("success" => false, "message" => "Invalid input field")));
-        }
-        if (empty($_POST["cert-type"])) {
-            die(json_encode(array("success" => false, "message" => "Missing input field")));
-        }
+        if (!isset($_POST["cert-type"]) || empty($_POST["cert-type"]))
+            die(json_encode(array("success" => false, "message" => "Please choose a certificate type!")));
         $url = "https://office.rmuictonline.com/download-bs.php?a=bs&c=" . $_POST["cert-type"];
         die(json_encode(array("success" => true, "message" => $url)));
     }
     //
+    elseif ($_GET["url"] == "getBroadsheetData") {
+
+        if (!isset($_POST["cert-type"]) || empty($_POST["cert-type"]))
+            die(json_encode(array("success" => false, "message" => "Please choose a certificate type!")));
+
+        //$result = $admin->fetchAllAdmittedApplicantsData($_POST["cert-type"]);
+        die(json_encode($admin->fetchAllSubmittedApplicantsData($_POST["cert-type"])));
+    }
+    //
     elseif ($_GET["url"] == "downloadAwaiting") {
-        $url = "../download-awaiting-ds.php?a=as&c=awaiting";
+        $url = "../download-awaiting-ds.php?a=as&c=awaiting&ap=" . $_SESSION['admin_period'];
         die(json_encode(array("success" => true, "message" => $url)));
     }
     //
@@ -590,36 +600,26 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
     //
     elseif ($_GET["url"] == "adp-form") {
-        if (!isset($_POST["adp-start"]) || empty($_POST["adp-start"])) {
+        if (!isset($_POST["adp-start"]) || empty($_POST["adp-start"]))
             die(json_encode(array("success" => false, "message" => "Missing input field: Start Date")));
-        }
-        if (!isset($_POST["adp-end"]) || empty($_POST["adp-end"])) {
+        if (!isset($_POST["adp-end"]) || empty($_POST["adp-end"]))
             die(json_encode(array("success" => false, "message" => "Missing input field: End Date")));
-        }
-        if (!isset($_POST["adp-desc"])) {
+        if (!isset($_POST["adp-intake"]) || empty($_POST["adp-intake"]))
             die(json_encode(array("success" => false, "message" => "Missing input field: Description")));
-        }
+        if (!isset($_POST["adp-desc"]))
+            die(json_encode(array("success" => false, "message" => "Missing input field: Description")));
 
         if (isset($_POST["adp-desc"]) && empty($_POST["adp-desc"])) $desc = '';
 
         $result;
         switch ($_POST["adp-action"]) {
             case 'add':
-                $rslt = $admin->addAdmissionPeriod($_POST["adp-start"], $_POST["adp-end"], $_POST["adp-desc"]);
-                if (!$rslt["success"]) {
-                    die(json_encode($rslt));
-                }
+                $result = $admin->addAdmissionPeriod($_POST["adp-start"], $_POST["adp-end"], $_POST["adp-desc"], $_POST["adp-intake"]);
                 break;
-
             case 'update':
-                $rslt = $admin->updateAdmissionPeriod($_POST["adp-id"], $_POST["adp-start"], $_POST["adp-desc"]);
-                if (!$rslt) {
-                    die(json_encode(array("success" => false, "message" => "Failed to update admission information!")));
-                }
-                $result = array("success" => true, "message" => "Successfully updated admission information!");
+                $result = $admin->updateAdmissionPeriod($_POST["adp-id"], $_POST["adp-start"], $_POST["adp-desc"]);
                 break;
         }
-
         die(json_encode($result));
     }
     //
@@ -702,7 +702,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if ((!empty($_POST["from-date"]) && empty($_POST["to-date"])) || (!empty($_POST["to-date"]) && empty($_POST["from-date"])))
             die(json_encode(array("success" => false, "message" => "Date range (From - To) must be set!")));
 
-        $result = $admin->fetchAllFormPurchases($_POST);
+        $result = $admin->fetchAllFormPurchases($_SESSION["admin_period"], $_POST);
         if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found for given parameters!")));
         die(json_encode(array("success" => true, "message" => $result)));
     }
@@ -720,7 +720,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
         $_POST["vendor-id"] = $_SESSION["vendor_id"];
 
-        $result = $admin->fetchAllVendorFormPurchases($_POST);
+        $result = $admin->fetchAllVendorFormPurchases($_SESSION["admin_period"], $_POST);
         if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found for given parameters!")));
         die(json_encode(array("success" => true, "message" => $result)));
     }
@@ -749,6 +749,34 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Invalid request!")));
         $transID = $expose->validateNumber($_POST["sendTransID"]);
         die(json_encode($admin->sendPurchaseInfo($transID, false)));
+    }
+
+    // send purchase info
+    elseif ($_GET["url"] == "verify-transaction-status") {
+        if (!isset($_POST["verifyTransID"]) || empty($_POST["verifyTransID"]))
+            die(json_encode(array("success" => false, "message" => "Invalid request:  transaction!")));
+        if (!isset($_POST["payMethod"]) || empty($_POST["payMethod"]))
+            die(json_encode(array("success" => false, "message" => "Invalid request: payment method!")));
+        $transID = $expose->validateNumber($_POST["verifyTransID"]);
+        die(json_encode($admin->verifyTransactionStatus($_POST["payMethod"], $transID, false)));
+    }
+
+    // send an sms to customer
+    elseif ($_GET["url"] == "sms-customer") {
+        if (!isset($_POST["recipient"]) || empty($_POST["recipient"]))
+            die(json_encode(array("success" => false, "message" => "No recipient!")));
+        if (!isset($_POST["message"]) || empty($_POST["message"]))
+            die(json_encode(array("success" => false, "message" => "No message typed!")));
+        if (strlen($_POST["message"]) > 160)
+            die(json_encode(array("success" => false, "message" => "Message is too long. Maximum allowed is 160 characters!")));
+
+        // Send SMS message
+        $to = str_replace(array("+", "(", ")", " "), "", $_POST["recipient"]);
+        $response = json_decode($expose->sendSMS($to, $_POST["message"]));
+
+        // Set SMS response status
+        if (!$response->status) die(json_encode(array("success" => true, "message" => "Message sent successfully!")));
+        die(json_encode(array("success" => true, "message" => "Failed to send message!")));
     }
 
     // fetch group sales data
@@ -832,7 +860,8 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         $changePassword = $admin->resetUserPassword($_SESSION["user"], $newPass);
         die(json_encode($changePassword));
     }
-    //
+
+    // admit an applicant to a particular programme and generate admission letter
     elseif ($_GET["url"] == "admit-individual-applicant") {
         if (!isset($_POST["app-prog"]) || empty($_POST["app-prog"]))
             die(json_encode(array("success" => false, "message" => "Please choose a programme!")));
@@ -842,11 +871,39 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         die(json_encode($admin->admitIndividualApplicant($_POST["app-login"], $_POST["app-prog"])));
     }
 
-    //
+    // decline applicant admission
     elseif ($_GET["url"] == "decline-individual-applicant") {
         if (!isset($_POST["app-login"]) || empty($_POST["app-login"]))
             die(json_encode(array("success" => false, "message" => "There no match for this applicant in database!")));
         die(json_encode($admin->declineIndividualApplicant($_POST["app-login"])));
+    }
+
+    // Send admission letter to applicant
+    elseif ($_GET["url"] == "send-admission-files") {
+        if (!isset($_POST["app-login"]) || empty($_POST["app-login"]))
+            die(json_encode(array("success" => false, "message" => "There no match for this applicant in database!")));
+        if (!isset($_FILES["send-files"]) || empty($_FILES["send-files"]))
+            die(json_encode(array("success" => false, "message" => "Invalid request!")));
+        if ($_FILES["send-files"]['error'])
+            die(json_encode(array("success" => false, "message" => "Failed to upload file!")));
+        die(json_encode($admin->sendAdmissionFiles($_POST["app-login"], $_FILES["send-files"])));
+    }
+
+    // Enroll applicant
+    elseif ($_GET["url"] == "enroll-applicant") {
+        if (!isset($_POST["app-login"]) || empty($_POST["app-login"]))
+            die(json_encode(array("success" => false, "message" => "There no match for this applicant in database!")));
+        if (!isset($_POST["app-prog"]) || empty($_POST["app-prog"]))
+            die(json_encode(array("success" => false, "message" => "Please choose a programme!")));
+        die(json_encode($admin->enrollApplicant($_POST["app-login"], $_POST["app-prog"])));
+    }
+
+    //
+    elseif ($_GET["url"] == "unenroll-applicant") {
+        if (!isset($_POST["app-login"]) || empty($_POST["app-login"]))
+            die(json_encode(array("success" => false, "message" => "There no match for this applicant in database!")));
+        if ($admin->updateApplicationStatus($_POST["app-login"], "enrolled", 0)) die(json_encode(array("success" => true)));
+        die(json_encode(array("success" => false, "message" => "Failed to updated enrollment status!")));
     }
 
     ///
@@ -874,7 +931,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Missing input field")));
         }
 
-        $rslt = $admin->closeAdmissionPeriod($_PUT["adp_key"]);
+        $rslt = $admin->openOrCloseAdmissionPeriod($_PUT["adp_key"], 0);
         if (!$rslt) die(json_encode(array("success" => false, "message" => "Failed to delete programme!")));
         die(json_encode(array("success" => true, "message" => "Successfully deleted programme!")));
     }

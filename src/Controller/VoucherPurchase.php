@@ -166,7 +166,6 @@ class VoucherPurchase
             $pm = $pay_method;
 
             $ap_id = $data['admin_period'];
-
             // For on premises purchases, generate app number and pin and send immediately
             $purchase_id = $this->saveVendorPurchaseData($trans_id, $vd, $fi, $ap_id, $pm, $am, $fn, $ln, $em, $cn, $cc, $pn);
             if ($purchase_id) {

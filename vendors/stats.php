@@ -24,8 +24,9 @@ if (isset($_GET['logout']) || strtolower($_SESSION["role"]) != "vendors") {
 
     header('Location: ../index.php');
 }
-?>
-<?php
+
+$_SESSION["lastAccessed"] = time();
+
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
@@ -35,8 +36,7 @@ require_once('../inc/page-data.php');
 
 $vendor_id = isset($_SESSION["vendor_id"]) ? $_SESSION["vendor_id"] : "";
 
-$_SESSION["lastAccessed"] = time();
-
+$adminSetup = true;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -68,12 +68,11 @@ $_SESSION["lastAccessed"] = time();
                     <div class="card recent-sales overflow-auto">
 
                         <?php
-                        $summary = isset($_SESSION["vendor_id"]) ? $admin->fetchVendorSummary($_SESSION["vendor_id"]) : "";
-                        $admissionInfo = $admin->fetchCurrentAdmissionPeriod();
+                        $summary = isset($_SESSION["vendor_id"]) ? $admin->fetchVendorSummary($_SESSION["admin_period"], $_SESSION["vendor_id"]) : "";
                         ?>
 
                         <div class="card-body">
-                            <h5 class="card-title">Summary (<?= $admissionInfo[0]["info"] ?>)</h5>
+                            <h5 class="card-title">Summary</h5>
 
                             <!-- Form Types -->
                             <div class="form-types">
@@ -190,7 +189,7 @@ $_SESSION["lastAccessed"] = time();
                                 "from-date" => "", "to-date" => "", "form-type" => "all",
                                 "purchase-status" => "all", "vendor-id" => $vendor_id
                             );
-                            $purchaseData = $admin->fetchAllVendorFormPurchases($data);
+                            $purchaseData = $admin->fetchAllVendorFormPurchases($_SESSION["admin_period"], $data);
                             $totalPurchaseData = !empty($purchaseData) ? count($purchaseData) : 0;
                             ?>
 
@@ -556,6 +555,29 @@ $_SESSION["lastAccessed"] = time();
                     else if (triggeredBy == 4) $("#sendTransIDBtn").prop("disabled", false).html('Resend application login info');
                     else $("#alert-output").html('');
                 }
+            });
+
+            $("#admission-period").change("blur", function(e) {
+                data = {
+                    "data": $(this).val()
+                };
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/set-admission-period",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
+                        if (!result.success) alert(result.message);
+                        else window.location.reload();
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
             });
         });
     </script>

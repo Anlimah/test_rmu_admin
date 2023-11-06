@@ -8,32 +8,25 @@
         <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
 
-    <?php if (isset($_SESSION["role"]) && $_SESSION["role"] != "Vendors") { ?>
-        <div class="setDashboardForm-bar" style="width: 100%; margin: 0 25px;">
+    <?php if (isset($adminSetup) && $adminSetup == true) { ?>
+        <div class="setDashboardForm-bar" style="display:flex; justify-content:center; width: 100%; margin: 0 25px;">
             <div style="display:flex; justify-content:center;">
                 <form class="search-form d-flex align-items-center" method="POST" action="#" id="setDashboardForm" style="min-width: 200px;">
                     <label for="admission-period" class="form-label me-2">Admission Period</label>
-                    <select name="admission-period" id="admission-period" class="form-select me-2" style="width: 300px;">
+                    <select name="admission-period" id="admission-period" class="form-select me-2" style="width: 360px;">
                         <option value="" hidden>Choose</option>
                         <?php
                         $result = $admin->fetchAllAdmissionPeriod();
                         foreach ($result as $value) {
                         ?>
-                            <option value="<?= $value["id"] ?>" <?= $value["active"] ? "selected" : "" ?>><?= $value["info"] ?></option>
+                            <option value="<?= $value["id"] ?>" <?= ($value["id"] == $_SESSION["admin_period"]) ? "selected" : "" ?>><?= $value["info"] . " - " . ($value["active"] ? "<span class='text-success'><b>OPENED</b></span>" : "<span class='text-danger'><b>CLOSED</b></span>") ?></option>
                         <?php
                         }
                         ?>
                     </select>
-                    <label for="admission-period" class="form-label me-2">Stream</label>
-                    <select name="stream" id="stream" class="form-select" style="width: 200px;">
-                        <option value="" hidden>Choose</option>
-                        <option value="AUGUST">AUGUST</option>
-                        <option value="JANUARY">JANUARY</option>
-                    </select>
                 </form>
-
             </div>
-        </div><!-- End Search Bar -->
+        </div>
     <?php } ?>
 
     <nav class="header-nav ms-auto">
