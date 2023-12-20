@@ -1736,6 +1736,10 @@ class AdminController
             $phpWordObj = \PhpOffice\PhpWord\IOFactory::createReader("Word2007");
             $templatePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR;
             $phpWord = $phpWordObj->load($templatePath . 'letter_template.docx');
+            // Clear headers and footers
+            $phpWord->getSettings()->setHideHeadersAndFootersFirstPage(true);
+            $phpWord->getSettings()->setHideHeadersAndFootersSubsequentPages(true);
+
 
             // Replace placeholders with actual data
             $phpWord->setValue('Full_Name', "['full_name']");
