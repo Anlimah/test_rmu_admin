@@ -259,53 +259,6 @@ class AdminController
         return $this->dm->inputData($query, array(":u" => $user_id));
     }
 
-    /*public function addVendor($v_name, $v_email, $v_phone, $branch)
-    {
-        // verify if a vendor with this email exists
-        if ($this->verifyVendorSysUserExists($v_email)) {
-            return array("success" => false, "message" => "A user with this email exists already exists!");
-        }
-
-
-
-        // if not prepare query and save the details 
-        $query1 = "INSERT INTO vendor_details (`id`, `type`, `company`, `branch`, `phone_number`) VALUES(:id, :tp, :nm, :b, :pn)";
-        $vendor_id = time();
-        $params1 = array(":id" => $vendor_id, ":tp" => "VENDOR", ":nm" => $v_name, ":b" => $branch, ":pn" => $v_phone);
-
-        if ($this->dm->inputData($query1, $params1)) {
-
-            $password = $this->expose->genVendorPin();
-            $hashed_pw = password_hash($password, PASSWORD_DEFAULT);
-
-            $query2 = "INSERT INTO vendor_login (`user_name`, `password`, `vendor`) VALUES(:un, :pw, :vi)";
-            $params2 = array(":un" => sha1($v_email), ":pw" => $hashed_pw, ":vi" => $vendor_id);
-            $query_result = $this->dm->inputData($query2, $params2);
-
-            if ($query_result)
-                $this->logActivity(
-                    $_SESSION["user"],
-                    "INSERT",
-                    "Added vendor {$vendor_id} with username/email {$v_email}"
-                );
-
-            $subject = "RMU Vendor Registration";
-            $message = "<p>Hi," . $v_name . " </p></br>";
-            $message .= "<p>Your account to access RMU Admissions Portal as a vendor was successful.</p>";
-            $message .= "<p>Find below your Login details.</p></br>";
-            $message .= "<p style='font-weight: bold;'>Username: " . $v_email . "</p>";
-            $message .= "<p style='font-weight: bold;'>Password: " . $password . "</p></br>";
-            $message .= "<div>Please note the following: </div>";
-            $message .= "<ol style='color:red; font-weight:bold;'>";
-            $message .= "<li>Don't let anyone see your login password</li>";
-            $message .= "<li>Access the portal and change your password</li>";
-            $message .= "</ol></br>";
-            $message .= "<p><a href='forms.rmuictonline.com/buy-vendor/'>Click here</a> to access portal.</ol>";
-
-            return $this->expose->sendEmail($v_email, $subject, $message);
-        }
-        return 0;
-    }*/
     public function saveDataFile($fileObj)
     {
         $allowedFileType = [
@@ -1511,10 +1464,6 @@ class AdminController
             $this->dm->getData($query, array(":i" => $app_result["id"]));
             return $qualified;
         }
-    }
-
-    private function admitWASSCELike($data)
-    {
     }
 
     public function admitByCatA($data)
