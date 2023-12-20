@@ -1739,10 +1739,10 @@ class AdminController
 
             // Replace placeholders with actual data
             $applicantData = [
-                '<<Full_Name>>' => 'John Doe',
-                '<<Box_Location>>' => 'Box 123',
-                '<<Box_Address>>' => 'Street 456',
-                '<<Location>>' => 'City ABC',
+                'Full_Name' => 'John Doe',
+                'Box_Location' => 'Box 123',
+                'Box_Address' => 'Street 456',
+                'Location' => 'City ABC',
                 // Add more data as needed
             ];
 
