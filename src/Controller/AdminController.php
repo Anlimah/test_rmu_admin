@@ -1738,10 +1738,16 @@ class AdminController
             $templateProcessor = new TemplateProcessor($templatePath . 'letter_template.docx');
 
             // Replace placeholders with actual data
-            $templateProcessor->setValue('Full_Name', "['full_name']");
-            $templateProcessor->setValue('Box_Location', "['box_location']");
-            $templateProcessor->setValue('Box_Address', "['box_address']");
-            $templateProcessor->setValue('Location', "['location']");
+            $applicantData = [
+                'Full_Name' => 'John Doe',
+                'Box_Location' => 'Box 123',
+                'Box_Address' => 'Street 456',
+                'Location' => 'City ABC',
+                // Add more data as needed
+            ];
+
+            // Set values using the setValues method
+            $templateProcessor->setValues($applicantData);
 
             // Save the modified document
             $templateProcessor->saveAs($templatePath . 'modified_document.docx');
