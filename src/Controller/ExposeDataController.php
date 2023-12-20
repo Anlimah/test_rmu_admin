@@ -301,12 +301,6 @@ class ExposeDataController extends DatabaseMethods
         return $response;
     }
 
-    public function getVendorPhone($vendor_id)
-    {
-        $sql = "SELECT `country_code`, `phone_number` FROM `vendor_details` WHERE `id`=:i";
-        return $this->getData($sql, array(':i' => $vendor_id));
-    }
-
     public function getVendorPhoneByUserID($user_id)
     {
         $sql = "SELECT v.`id`, v.`phone_number` FROM `vendor_details` AS v, `sys_users` AS u 
@@ -318,20 +312,6 @@ class ExposeDataController extends DatabaseMethods
     {
         $str = "SELECT `id` FROM `vendor_details` WHERE `id`=:i";
         return $this->getID($str, array(':i' => $vendor_id));
-    }
-
-    public function verifyVendorLogin($username, $password)
-    {
-        $sql = "SELECT `vendor`, `password` FROM `vendor_login` WHERE `user_name` = :u";
-        $data = $this->getData($sql, array(':u' => sha1($username)));
-        if (!empty($data)) {
-            if (password_verify($password, $data[0]["password"])) {
-                return array("success" => true, "message" => $data[0]["vendor"]);
-            } else {
-                return array("success" => false, "message" => "No match found!");
-            }
-        }
-        return array("success" => false, "message" => "User does not exist!");
     }
 
     public function getApplicationInfo($transaction_id)

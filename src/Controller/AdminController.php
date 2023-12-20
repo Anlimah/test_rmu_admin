@@ -64,7 +64,7 @@ class AdminController
 
     public function getAcademicPeriod($admin_period)
     {
-        $query = "SELECT YEAR(`start_date`) AS start_year, YEAR(`end_date`) AS end_year, info 
+        $query = "SELECT YEAR(`start_date`) AS start_year, YEAR(`end_date`) AS end_year, `info`, `intake`, `active`, `closed` 
                 FROM admission_period WHERE id = :ai";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
@@ -1730,6 +1730,11 @@ class AdminController
         return array("success" => true, "message" => $output);
     }
 
+    public function fetchApplicantPersInfoByAppID($appID): mixed
+    {
+        return $this->dm->getData("SELECT * FROM `personal_information` WHERE id = :i");
+    }
+
     private function generateApplicantAdmissionLetter($appID): mixed
     {
         try {
@@ -1792,7 +1797,7 @@ class AdminController
     {
     }
 
-    private function createStudentIndexNumber($progID): mixed
+    private function createUndergradStudentIndexNumber($appID, $progID): mixed
     {
         $progInfo = $this->fetchAllFromProgramByID($progID)[0];
 
@@ -1815,7 +1820,48 @@ class AdminController
         elseif ($stdCount <= 100000) $numCount = "";
 
         if ($progInfo["dur_format"] == "year") $completionYear = $startYear +  (int) $progInfo["duration"];
-        return array("index_number" => $progInfo["index_code"] . $numCount . $stdCount . $completionYear, "programme" => $progInfo["name"]);
+
+        $index_code = $progInfo["index_code"];
+
+        //check whether it's regular or weekend
+        $stream_admitted = "REGULAR";
+        $wkdReg = $this->getAppProgDetailsByAppID($appID)["study_stream"];
+        if (!empty($wkdReg) && strtolower($wkdReg) == "weekend") {
+            $wkdAvail = $this->fetchAllFromProgramByID($progID)["weekend"];
+            if ($wkdAvail == 1) {
+                $index_code = substr($progInfo["index_code"], 2) . "W";
+                $stream_admitted = "WEEKEND";
+            }
+        }
+
+        $indexNumber = $index_code . $numCount . $stdCount . $completionYear;
+        return array("index_number" => $indexNumber, "programme" => $progInfo["name"], "stream" => $stream_admitted);
+    }
+
+    private function createStudentEmailAddress($appID): mixed
+    {
+        $studentNames = $this->fetchApplicantPersInfoByAppID($appID)[0];
+        $emailID = $studentNames["first_name"] . "." . $studentNames["last_name"];
+        $testEmailAddress = $emailID . "@st.rmu.edu.gh";
+        $emailVerified = $this->verifyStudentEmailAddress($testEmailAddress);
+        if (!empty($emailVerified)) {
+            if (!empty($studentNames["middle_name"])) {
+                $emailID = $studentNames["first_name"] . "." . $studentNames["middle_name"] . "-" . $studentNames["last_name"];
+                $testEmailAddress = $emailID . "@st.rmu.edu.gh";
+                $emailVerified = $this->verifyStudentEmailAddress($testEmailAddress);
+                if (!empty($emailVerified)) {
+                    $emailID = $studentNames["first_name"] . "." . $studentNames["middle_name"] . "-" . $studentNames["last_name"];
+                    $testEmailAddress = $emailID . "@st.rmu.edu.gh";
+                    $emailVerified = $this->verifyStudentEmailAddress($testEmailAddress);
+                }
+            }
+        }
+        return $emailID;
+    }
+
+    private function verifyStudentEmailAddress($emailAddress): mixed
+    {
+        return $this->dm->getData("SELECT `application_number` FROM `enrolled_applicants` WHERE `email_address` = :e");
     }
 
     /**
@@ -1826,28 +1872,30 @@ class AdminController
     public function enrollApplicant($appID, $progID): mixed
     {
         if ($this->updateApplicationStatus($appID, "enrolled", 1)) {
-
             //create index number from program and number of student that exists
-            $indexCreation = $this->createStudentIndexNumber($progID)["index_number"];
+            $indexCreation = $this->createUndergradStudentIndexNumber($appID, $progID);
 
             //create email address from applicant name
+            $emailGenerated = $this->createStudentEmailAddress($appID);
+
             $appDetails = $this->dm->getData(
                 "SELECT * FROM `personal_information` WHERE `app_login` = :a",
                 array(":a" => $appID)
             )[0];
 
+            $term_admitted = $this->getAcademicPeriod($this->getCurrentAdmissionPeriodID())["intake"];
+
             // Save Data
-            $query = "INSERT INTO enrolled_applicants VALUES(`app_id`, `index_number`, `email_address`, `programme`, `first_name`, `middle_name`, `last_name`, `sex`, `dob`, `nationality`, `phone_number`)";
+            $query = "INSERT INTO enrolled_applicants VALUES(`application_number`, `index_number`, `email_address`, `programme`, `first_name`, `middle_name`, `last_name`, `sex`, `dob`, `nationality`, `phone_number`, `term_admitted`, `stream_admitted`)";
             $params = array(
-                $appID, $indexCreation["index_number"], $appDetails["email_addr"], $indexCreation["programme"], $appDetails["first_name"], $appDetails["middle_name"], $appDetails["last_name"],
-                $appDetails["gender"], $appDetails["dob"], $appDetails["nationality"], $appDetails["phone_no1_code"] . $appDetails["phone_no1"]
+                $appID, $indexCreation["index_number"], $emailGenerated, $indexCreation["programme"], $appDetails["first_name"], $appDetails["middle_name"], $appDetails["last_name"],
+                $appDetails["gender"], $appDetails["dob"], $appDetails["nationality"], $appDetails["phone_no1_code"] . $appDetails["phone_no1"], $term_admitted, $indexCreation["stream"]
             );
             $addStudent = $this->dm->inputData($query, $params);
             if (!empty($addStudent)) return array("success" => true, "message" => "Applicant successfully enrolled!");;
         }
         return array("success" => false, "message" => "Failed to enroll applicant!");
     }
-
 
     /**
      * For accounts officers
