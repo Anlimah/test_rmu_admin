@@ -5,6 +5,7 @@ namespace Src\Controller;
 use Src\System\DatabaseMethods;
 use Src\Controller\ExposeDataController;
 use Src\Controller\PaymentController;
+use PhpOffice\PhpWord\TemplateProcessor;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
@@ -1733,22 +1734,17 @@ class AdminController
     {
         try {
             // Load the Word document
-            $phpWordObj = \PhpOffice\PhpWord\IOFactory::createReader("Word2007");
             $templatePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR;
-            $phpWord = $phpWordObj->load($templatePath . 'letter_template.docx');
-            // Clear headers and footers
-            $phpWord->getSettings()->setHideHeadersAndFootersFirstPage(true);
-            $phpWord->getSettings()->setHideHeadersAndFootersSubsequentPages(true);
-
+            $templateProcessor = new TemplateProcessor($templatePath . 'letter_template.docx');
 
             // Replace placeholders with actual data
-            $phpWord->setValue('Full_Name', "['full_name']");
-            $phpWord->setValue('Box_Location', "['box_location']");
-            $phpWord->setValue('Box_Address', "['box_address']");
-            $phpWord->setValue('Location', "['location']");
+            $templateProcessor->setValue('Full_Name', "['full_name']");
+            $templateProcessor->setValue('Box_Location', "['box_location']");
+            $templateProcessor->setValue('Box_Address', "['box_address']");
+            $templateProcessor->setValue('Location', "['location']");
 
             // Save the modified document
-            $phpWord->save($templatePath . 'modified_document.docx');
+            $templateProcessor->saveAs($templatePath . 'modified_document.docx');
             return array("success" => true, "message" => "Admission letter successfully generated!");
         } catch (\Exception $e) {
             return array("success" => false, "message" => $e->getMessage());
