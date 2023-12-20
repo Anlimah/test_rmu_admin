@@ -1734,8 +1734,8 @@ class AdminController
         try {
             // Load the Word document
             $phpWordObj = \PhpOffice\PhpWord\IOFactory::createReader("Word2007");
-            $templatePath = __DIR__ . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR . 'letter_template.docx';
-            $phpWord = $phpWordObj->load($templatePath);
+            //$templatePath = __DIR__ . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR . 'letter_template.docx';
+            $phpWord = $phpWordObj->load(__DIR__ . '/admission_letters/letter_template.docx');
 
             // Replace placeholders with actual data
             $phpWord->setValue('Full_Name', "Francis Anlimah");
