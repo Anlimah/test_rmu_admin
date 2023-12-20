@@ -1734,7 +1734,10 @@ class AdminController
         try {
             // Load the Word document
             $phpWordObj = \PhpOffice\PhpWord\IOFactory::createReader("Word2007");
-            $templatePath = __DIR__ . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR . 'letter_template.docx';
+            // Assuming the script is in the src/Controller directory
+            $filepath = "../../admission_letters/letter_template.docx";
+            // Construct the absolute path
+            $templatePath = __DIR__ . DIRECTORY_SEPARATOR . $filepath;
             return $templatePath;
             $phpWord = $phpWordObj->load(__DIR__ . '/admission_letters/letter_template.docx');
             // Replace placeholders with actual data
