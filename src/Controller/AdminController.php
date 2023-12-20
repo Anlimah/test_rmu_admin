@@ -1757,7 +1757,7 @@ class AdminController
         $progInfo = $this->fetchAllFromProgramByName($progName);
         $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0, `programme_awarded` = :p WHERE `app_login` = :i";
         if ($this->dm->inputData($query, array(":i" => $appID, ":p" => $progInfo[0]["id"]))) {
-            return array("success" => true, "message" => $this->generateApplicantAdmissionLetter($appID));
+            return $this->generateApplicantAdmissionLetter($appID);
             //$this->sendAdmissionLetter($appID);
             return array("success" => true, "message" => "Applicant awarded " . $progName);
         }
