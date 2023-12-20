@@ -1734,14 +1734,17 @@ class AdminController
         try {
             // Load the Word document
             $phpWordObj = \PhpOffice\PhpWord\IOFactory::createReader("Word2007");
-            $templatePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR . 'letter_template.docx';
-            $phpWord = $phpWordObj->load($templatePath);
+            $templatePath = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR;
+            $phpWord = $phpWordObj->load($templatePath . 'letter_template.docx');
 
             // Replace placeholders with actual data
-            $phpWord->setValue('Full_Name', "Francis Anlimah");
+            $phpWord->setValue('Full_Name', "['full_name']");
+            $phpWord->setValue('Box_Location', "['box_location']");
+            $phpWord->setValue('Box_Address', "['box_address']");
+            $phpWord->setValue('Location', "['location']");
 
             // Save the modified document
-            $phpWord->save(__DIR__ . '/modified_document.docx');
+            $phpWord->save($templatePath . 'modified_document.docx');
             return array("success" => true, "message" => "Admission letter successfully generated!");
         } catch (\Exception $e) {
             return array("success" => false, "message" => $e->getMessage());
