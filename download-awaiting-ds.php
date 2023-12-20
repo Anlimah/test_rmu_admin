@@ -3,7 +3,7 @@
 require_once('bootstrap.php');
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+// use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Src\Controller\AdminController;
 
 class Broadsheet
@@ -37,7 +37,6 @@ class Broadsheet
 
             $zip = new ZipArchive();
             $zipFileName = $this->admission_data[0]["info"]; // The name of the zip file you want to create
-
             if ($zip->open($zipFileName, ZipArchive::CREATE) === TRUE) {
 
                 foreach ($this->dataSheet["awaitingAppsGrp"] as $grp) {
@@ -45,12 +44,11 @@ class Broadsheet
                     $sanitizedFileName = preg_replace('/[^A-Za-z0-9_. -]/', '', $sanitizedFileName);
                     $sanitizedFileName = trim($sanitizedFileName);
 
-                    $dateData = $this->admin->getAcademicPeriod($this->admin_period);
-                    $fileName = "{$sanitizedFileName} - Awaiting Results Applicants ({$dateData[0]["start_year"]} - {$dateData[0]["end_year"]})";
-
+                    $fileName = "{$sanitizedFileName} - {$zipFileName}";
                     $spreadsheet = new Spreadsheet();
                     $sheet = $spreadsheet->getActiveSheet();
-                    $writer = new Xlsx($spreadsheet);
+                    //$writer = new Xlsx($spreadsheet);
+                    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xls($spreadsheet);
 
                     //$this->formatSpreadsheet();
                     $sheet->setCellValue('A1', "AdmissionNumber");
@@ -69,21 +67,21 @@ class Broadsheet
                         if ($grp["Program"] == $appData["Program"]) {
                             $sheet->setCellValue("A" . $row, $appData["AdmissionNumber"]);
                             $sheet->setCellValue("B" . $row, $appData["IndexNumber"]);
-                            $sheet->setCellValue("C" . $row, $appData["ExamMonth"]);
+                            $sheet->setCellValue("C" . $row, in_array($appData["ExamMonth"], ["May", "Jun", "Jul", "Aug", "Sep"]) ? 6 : 12);
                             $sheet->setCellValue("D" . $row, $appData["ExamYear"]);
+                            $sheet->getStyle("A" . $row . ":D" . $row)->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
                             $row += 1;
                         }
                     }
 
                     // Save spreadsheet file
-                    $filepath = "awaiting_results/" . $fileName . '.xlsx';
+                    $filepath = "awaiting_results/" . $fileName . '.xls';
                     if (file_exists($filepath)) unlink($filepath);
                     $writer->save($filepath);
                     $spreadsheet->disconnectWorksheets();
 
                     // Add files to the zip archive
                     $zip->addFile($filepath);
-
                     $count += 1;
                 }
             } else {

@@ -619,7 +619,7 @@ class AdminController
         $action2 = $this->dm->inputData($query2, $params2);
         if (!$action2) return array("success" => false, "message" => "Failed to create given roles for the user!");
 
-        $subject = "Regional Maritime University (Test Account) - User Account";
+        $subject = "Regional Maritime University - User Account";
 
         if (strtoupper($user_data["user_role"]) == "VENDORS") {
             if (!$vendor_id) $vendor_id = time();
@@ -643,7 +643,7 @@ class AdminController
 
         // Prepare email
         $message = "<p>Hi " . $user_data["first_name"] . " " . $user_data["last_name"] . ", </p></br>";
-        $message .= "<p>Your account to access Regional Maritime University's Admissions Portal with role as " . $user_data["user_role"] . " was created successfully.</p>";
+        $message .= "<p>Your account to access Regional Maritime University's Admissions Portal as a " . $user_data["user_role"] . " was created successfully.</p>";
         $message .= "<p>Find below your Login details.</p></br>";
         $message .= "<p style='font-weight: bold;'>Username: " . $user_data["user_name"] . "</p>";
         $message .= "<p style='font-weight: bold;'>Password: " . $password . "</p></br>";
@@ -652,7 +652,7 @@ class AdminController
         $message .= "<li>Don't let anyone see your login password</li>";
         $message .= "<li>Access the portal and change your password</li>";
         $message .= "</ol></br>";
-        $message .= "<p><a href='https://test.office.rmuictonline.com'>Click here to access portal</a>.</p>";
+        $message .= "<p><a href='https://office.rmuictonline.com'>Click here to access portal</a>.</p>";
 
         // Send email
         $emailed = $this->expose->sendEmail($user_data["user_name"], $subject, $message);
@@ -714,7 +714,7 @@ class AdminController
             );
 
             return $query_result;
-            $subject = "RMU (Test Account) - System User Account";
+            $subject = "RMU System User";
             $message = "<p>Hi " . $first_name . ", </p></br>";
             $message .= "<p>Find below your Login details.</p></br>";
             $message .= "<p style='font-weight: bold; font-size: 18px'>Username: " . $email_addr . "</p></br>";
