@@ -12,8 +12,12 @@ class VoucherPurchase
 
     public function __construct()
     {
-        $this->expose = new ExposeDataController();
-        $this->dm = new DatabaseMethods();
+        $db   = getenv('DB_ADMISSION_DATABASE');
+        $user = getenv('DB_ADMISSION_USERNAME');
+        $pass = getenv('DB_PASSWORD');
+
+        $this->expose = new ExposeDataController($db, $user, $pass);
+        $this->dm = new DatabaseMethods($db, $user, $pass);
     }
 
     public function logActivity(int $user_id, $operation, $description)

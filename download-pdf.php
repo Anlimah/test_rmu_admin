@@ -18,7 +18,7 @@ use Src\Controller\AdminController;
 
 require_once "./bootstrap.php";
 
-$admin = new AdminController();
+$admin = new AdminController($db, $user, $pass);
 
 $result = array();
 $title_var = "";

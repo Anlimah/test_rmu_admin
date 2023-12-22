@@ -13,11 +13,13 @@ if (!isset($_GET["w"])) {
     }
 }
 
-use Src\Controller\AdminController;
-
 require_once "./bootstrap.php";
 
-$admin = new AdminController();
+use Src\Controller\AdminController;
+
+require_once('../inc/admin-database-con.php');
+
+$admin = new AdminController($db, $user, $pass);
 
 $result = array();
 $title_var = "";

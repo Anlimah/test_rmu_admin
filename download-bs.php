@@ -20,12 +20,16 @@ class Broadsheet
 
     public function __construct($cert_type, $action = "bs")
     {
+        $db   = getenv('LOCAL_DB_ADMISSION_DATABASE');
+        $user = getenv('LOCAL_DB_ADMISSION_USERNAME');
+        $pass = getenv('LOCAL_DB_PASSWORD');
+
         $this->action = $action;
         $this->cert_type = $cert_type;
         $this->spreadsheet = new Spreadsheet();
         $this->sheet = $this->spreadsheet->getActiveSheet();
         $this->writer = new Xlsx($this->spreadsheet);
-        $this->admin = new AdminController();
+        $this->admin = new AdminController($db, $user, $pass);
     }
 
     public function prepareBSData()

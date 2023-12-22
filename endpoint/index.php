@@ -27,8 +27,10 @@ use Src\Controller\DownloadAllExcelDataController;
 use Src\Controller\UploadExcelDataController;
 use Src\Controller\ExposeDataController;
 
-$expose = new ExposeDataController();
-$admin = new AdminController();
+require_once('../inc/admin-database-con.php');
+
+$expose = new ExposeDataController($db, $user, $pass);
+$admin = new AdminController($db, $user, $pass);
 
 $data = [];
 $errors = [];

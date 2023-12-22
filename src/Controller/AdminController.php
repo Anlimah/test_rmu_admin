@@ -6,18 +6,16 @@ use Src\System\DatabaseMethods;
 use Src\Controller\ExposeDataController;
 use Src\Controller\PaymentController;
 use PhpOffice\PhpWord\TemplateProcessor;
-use PhpOffice\PhpSpreadsheet\Spreadsheet;
-use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 class AdminController
 {
     private $dm = null;
     private $expose = null;
 
-    public function __construct()
+    public function __construct($db, $user, $pass)
     {
-        $this->dm = new DatabaseMethods();
-        $this->expose = new ExposeDataController();
+        $this->dm = new DatabaseMethods($db, $user, $pass);
+        $this->expose = new ExposeDataController($db, $user, $pass);
     }
 
     public function processVendorPay($data)

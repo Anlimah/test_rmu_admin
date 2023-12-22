@@ -8,9 +8,9 @@ class DatabaseMethods
 {
     private $conn;
 
-    function __construct()
+    function __construct($db, $user, $pass)
     {
-        $this->conn = (new DatabaseConnector())->getConnection();
+        $this->conn = (new DatabaseConnector($db, $user, $pass))->getConnection();
     }
 
     private function query($str, $params = array())

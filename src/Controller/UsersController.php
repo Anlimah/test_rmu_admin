@@ -12,8 +12,12 @@ class UsersController
 
     public function __construct()
     {
-        $this->dm = new DatabaseMethods();
-        $this->expose = new ExposeDataController();
+        $db   = getenv('DB_ADMISSION_DATABASE');
+        $user = getenv('DB_ADMISSION_USERNAME');
+        $pass = getenv('DB_PASSWORD');
+
+        $this->dm = new DatabaseMethods($db, $user, $pass);
+        $this->expose = new ExposeDataController($db, $user, $pass);
     }
 
     public function verifyEmailAddress($email, $code)

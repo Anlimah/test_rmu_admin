@@ -36,7 +36,9 @@ require_once('bootstrap.php');
 use Src\Controller\AdminController;
 use Src\Controller\UsersController;
 
-$admin = new AdminController();
+require_once('../inc/admin-database-con.php');
+
+$admin = new AdminController($db, $user, $pass);
 $user = new UsersController();
 
 $photo = $user->fetchApplicantPhoto($_GET['q']);
