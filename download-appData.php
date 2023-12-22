@@ -36,7 +36,7 @@ require_once('bootstrap.php');
 use Src\Controller\AdminController;
 use Src\Controller\UsersController;
 
-require_once('../inc/admin-database-con.php');
+require_once('inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
 $user = new UsersController();
