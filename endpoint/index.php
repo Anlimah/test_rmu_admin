@@ -864,13 +864,32 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     }
 
     // admit an applicant to a particular programme and generate admission letter
-    elseif ($_GET["url"] == "admit-individual-applicant") {
-        if (!isset($_POST["app-prog"]) || empty($_POST["app-prog"]))
-            die(json_encode(array("success" => false, "message" => "Please choose a programme!")));
-        if (!isset($_POST["app-login"]) || empty($_POST["app-login"]))
-            die(json_encode(array("success" => false, "message" => "There no match for this applicant in database!")));
+    elseif ($_GET["url"] == "program-availability") {
+        if (!isset($_POST["app-prog-check"]) || empty($_POST["app-prog-check"]))
+            die(json_encode(array("success" => false, "message" => "No program provided!")));
+        if (!isset($_POST["app-stream-check"]) || empty($_POST["app-stream-check"]))
+            die(json_encode(array("success" => false, "message" => "No application stream provided!")));
+        die(json_encode($admin->checkProgramStreamAvailability($_POST["app-prog-check"], $_POST["app-stream-check"])));
+    }
 
-        die(json_encode($admin->admitIndividualApplicant($_POST["app-login"], $_POST["app-prog"])));
+    // admit an applicant to a particular programme and generate admission letter
+    elseif ($_GET["url"] == "admit-individual-applicant") {
+        if (!isset($_POST["app-prog-id-check"]) || empty($_POST["app-prog-id-check"]))
+            die(json_encode(array("success" => false, "message" => "No program provided!")));
+
+        if (!isset($_POST["app-login-check"]) || empty($_POST["app-login-check"]))
+            die(json_encode(array("success" => false, "message" => "No match found for this applicant!")));
+
+        if (!isset($_POST["app-stream-check"]) || empty($_POST["app-stream-check"]))
+            die(json_encode(array("success" => false, "message" => "No stream provide for this applicant!")));
+
+        if (!isset($_POST["app-email-check"]) || empty($_POST["app-email-check"]))
+            die(json_encode(array("success" => false, "message" => "Choose an option to send email to applicant or not!")));
+
+        if (!isset($_POST["app-sms-check"]) || empty($_POST["app-sms-check"]))
+            die(json_encode(array("success" => false, "message" => "Choose an option to send SMS to applicant or not!")));
+
+        die(json_encode($admin->admitIndividualApplicant($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-email-check"], $_POST["app-sms-check"])));
     }
 
     // decline applicant admission

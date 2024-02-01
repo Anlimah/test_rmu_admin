@@ -40,7 +40,7 @@ use Src\Controller\UsersController;
 require_once('../inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
-$user = new UsersController();
+$user = new UsersController($db, $user, $pass);
 
 $photo = $user->fetchApplicantPhoto($_GET['q']);
 $personal = $user->fetchApplicantPersI($_GET['q']);
@@ -562,11 +562,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
 
                                 <div class="col" style="margin-top:100px">
                                     <div style="display: flex; justify-content: space-around">
-                                        <form method="post" id="admit-applicant-form" class="mb-2">
-                                            <input type="hidden" name="app-prog" id="app-prog">
-                                            <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
-                                            <button class="btn btn-success" type="submit" style="min-width: 200px;">Admit</button>
-                                        </form>
+                                        <button class="btn btn-success" id="app-application-check-btn" type="button" style="min-width: 200px;" data-bs-toggle="modal" data-bs-target="#admissionSummary">Admit</button>
                                         <form method="post" id="decline-applicant-form">
                                             <input type="hidden" name="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
                                             <button class="btn btn-danger" type="submit" style="min-width: 200px;">Decline</button>
@@ -597,6 +593,80 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                     </div>
                     <div class="modal-body">
                         <iframe id="pdfFrame" src="" frameborder="0" style="width: 100%; height: 80vh"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="admissionSummary" tabindex="-1" aria-labelledby="admissionSummaryLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="admissionSummaryLabel">Summary</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="admit-applicant-form">
+                            <div class="row mb-3">
+                                <label for="recipient-name" class="col-sm-4 col-form-label"> Application: </label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="app-app-number-check" id="" class="form-control form-control-sm" value="<?= $app_number[0]["app_number"] ?> (<?= $personal_AB[0]["study_stream"] ?>)" style="font-weight: bolder; border: none !important" disabled>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="message-text" class="col-sm-4 col-form-label">Program Applying: </label>
+                                <div class="col-sm-8">
+                                    <input type="text" name="app-prog-check" id="app-prog-check" class="form-control form-control-sm" style="font-weight: bolder; border: none !important" disabled>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="message-text" class="col-sm-4 col-form-label">Stream Availability: </label>
+                                <div class="row col-sm-8">
+                                    <input type="text" name="app-prog-availability-check" id="app-prog-availability-check" class="col-3 form-control form-control-sm" style="font-weight: bolder; border: none !important; width: 10px" disabled>
+                                    <span id="app-prog-availability-check-msg" class="col-9"></span>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="message-text" class="col-sm-4 col-form-label"> Stream Applying: </label>
+                                <div class="col-sm-8">
+                                    <select name="app-stream-check" id="app-stream-check" class="form-select form-select-sm" style="font-weight: bolder; width:150px">
+                                        <option value=" REGULAR" <?= strtolower($personal_AB[0]["study_stream"]) === "regular" ? "selected" : "" ?>>REGULAR</option>
+                                        <option value="WEEKEND" <?= strtolower($personal_AB[0]["study_stream"]) === "weekend" ? "selected" : "" ?>>WEEKEND</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="message-text" class="col-sm-4 col-form-label">Email Admission Letter: </label>
+                                <div class="col-sm-8">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="app-email-check" id="app-email-check-yes" value="1" checked>
+                                        <label class="form-check-label" for="app-email-check-yes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="app-email-check" id="app-email-check-no" value="0">
+                                        <label class="form-check-label" for="app-email-check-no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row mb-3">
+                                <label for="message-text" class="col-sm-4 col-form-label">Notify Applicant (SMS):</label>
+                                <div class="col-sm-8">
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="app-sms-check" id="app-sms-check-yes" value="1" checked>
+                                        <label class="form-check-label" for="app-sms-check-yes">Yes</label>
+                                    </div>
+                                    <div class="form-check form-check-inline">
+                                        <input class="form-check-input" type="radio" name="app-sms-check" id="app-sms-check-no" value="0">
+                                        <label class="form-check-label" for="app-sms-check-no">No</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <input type="hidden" name="app-prog-id-check" id="app-prog-id-check">
+                            <input type="hidden" name="app-login-check" id="app-login-check" value="<?= $personal_AB[0]["app_login"] ?>">
+                        </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-success" style="min-width: 200px;" id="admit-applicant-btn">Admit</button>
                     </div>
                 </div>
             </div>
@@ -661,16 +731,60 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
 
             $(".app-prog-admit").on("click", function() {
                 let prog = $(this).val();
-                $("#app-prog").val(prog);
+                $("#app-prog, #app-prog-check").val(prog);
             });
 
             $("#admit-other-prog").change("blur", function() {
                 let prog = $(this).val();
-                $("#app-prog").val(prog);
+                $("#app-prog, #app-prog-check").val(prog);
+            });
+
+            function checkStreamAvailability(data) {
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/program-availability",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        } else {
+                            $("#app-prog-id-check").val(result.data);
+                            $("#app-prog-availability-check-msg").text(result.message);
+                            $("#app-prog-availability-check").attr("class", result.success ? "col-3 form-control form-control-sm bg-success" : "col-3 form-control form-control-sm bg-danger");
+                            $("#app-prog-availability-check-msg").attr("class", result.success ? "col-9 text-success" : "col-9 text-danger");
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+
+            $("#app-application-check-btn").on("click", function() {
+                data = {
+                    "app-prog-check": $("#app-prog-check").val().trim(),
+                    "app-stream-check": $("#app-stream-check").val().trim()
+                }
+                checkStreamAvailability(data);
+            });
+
+            $("#app-stream-check").change("blur", function() {
+                data = {
+                    "app-prog-check": $("#app-prog-check").val().trim(),
+                    "app-stream-check": $("#app-stream-check").val().trim()
+                }
+                checkStreamAvailability(data);
+            })
+
+            $("#admit-applicant-btn").on("click", function() {
+                $("#admit-applicant-form").submit();
             });
 
             $("#admit-applicant-form").on("submit", function(e) {
                 e.preventDefault();
+
                 var c = confirm("Are you sure you want to admit this applicant?");
                 if (c) {
                     $.ajax({

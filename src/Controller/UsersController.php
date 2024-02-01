@@ -10,12 +10,8 @@ class UsersController
     private $dm;
     private $expose;
 
-    public function __construct()
+    public function __construct($db, $user, $pass)
     {
-        $db   = getenv('DB_ADMISSION_DATABASE');
-        $user = getenv('DB_ADMISSION_USERNAME');
-        $pass = getenv('DB_PASSWORD');
-
         $this->dm = new DatabaseMethods($db, $user, $pass);
         $this->expose = new ExposeDataController($db, $user, $pass);
     }

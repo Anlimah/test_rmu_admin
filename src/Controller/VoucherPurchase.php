@@ -10,12 +10,8 @@ class VoucherPurchase
     private $expose;
     private $dm;
 
-    public function __construct()
+    public function __construct($db, $user, $pass)
     {
-        $db   = getenv('DB_ADMISSION_DATABASE');
-        $user = getenv('DB_ADMISSION_USERNAME');
-        $pass = getenv('DB_PASSWORD');
-
         $this->expose = new ExposeDataController($db, $user, $pass);
         $this->dm = new DatabaseMethods($db, $user, $pass);
     }
