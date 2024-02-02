@@ -455,7 +455,7 @@ class AdminController
         return $this->dm->getData("SELECT * FROM admission_period WHERE `active` = 1");
     }
 
-    public function fetchAdmissionPeriod($adp_id)
+    public function fetchAdmissionPeriodByID($adp_id)
     {
         $query = "SELECT * FROM admission_period WHERE id = :i";
         return $this->dm->inputData($query, array(":i" => $adp_id));
@@ -1792,7 +1792,7 @@ class AdminController
         ];
     }
 
-    private function generateApplicantAdmissionLetter($letter_data, $letter_type = "undergrade", $admission_period = []): mixed
+    private function generateApplicantAdmissionLetter1($letter_data, $letter_type = "undergrade", $admission_period = []): mixed
     {
         try {
             $dir_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR;
@@ -1803,7 +1803,10 @@ class AdminController
             $temp_parent = $dir_path . strtolower($admission_period["intake"]) . DIRECTORY_SEPARATOR;
             if (!is_dir($temp_parent)) mkdir($temp_parent, 0755, true);
 
-            $temp_path = $temp_parent . strtolower($admission_period["academic_year"]) . DIRECTORY_SEPARATOR;
+            $sub_parent = $temp_parent . strtolower($admission_period["academic_year"]) . DIRECTORY_SEPARATOR;
+            if (!is_dir($sub_parent)) mkdir($sub_parent, 0755, true);
+
+            $temp_path = $sub_parent . strtolower($admission_period["semester"]) . DIRECTORY_SEPARATOR;
             if (!is_dir($temp_path)) mkdir($temp_path, 0755, true);
 
             $template_processor->setValues($letter_data);
@@ -1812,6 +1815,34 @@ class AdminController
             return array("success" => true, "message" => "Admission letter successfully generated!");
         } catch (\Exception $e) {
             return array("success" => false, "message" => $e->getMessage());
+        }
+    }
+
+    private function generateApplicantAdmissionLetter($letter_data, $letter_type = "undergrade", $admission_period = [], $program): array
+    {
+        try {
+            $dir_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR;
+
+            // Create directories recursively
+            $academic_year_path = $dir_path . strtolower($admission_period["academic_year"]) . DIRECTORY_SEPARATOR;
+            $intake_path = $academic_year_path . strtolower($admission_period["intake"]) . DIRECTORY_SEPARATOR;
+            $program_category = $intake_path . strtolower($letter_data['Program_Type']) . DIRECTORY_SEPARATOR;
+            $stream_applied = $program_category . strtolower($letter_data['Program_Stream']) . DIRECTORY_SEPARATOR;
+            $program_applied = $stream_applied . strtolower($program) . DIRECTORY_SEPARATOR;
+
+            foreach ([$academic_year_path, $intake_path, $program_category, $stream_applied, $program_applied] as $path) {
+                if (!is_dir($path)) mkdir($path, 0755, true);
+            }
+
+            $template_processor = new TemplateProcessor($dir_path . $letter_type . '_template.docx');
+            $output_path = $program_applied . "{$letter_data['app_number']}.docx";
+
+            $template_processor->setValues($letter_data);
+            $template_processor->saveAs($output_path);
+
+            return ["success" => true, "message" => "Admission letter successfully generated!"];
+        } catch (\Exception $e) {
+            return ["success" => false, "message" => $e->getMessage()];
         }
     }
 
@@ -1829,23 +1860,28 @@ class AdminController
             case 'BSC':
             case 'DIPLOMA':
 
+                $program_name = ($prog_info["category"] === "DIPLOMA") ? str_replace(["diploma in ", "diploma "], "", strtolower($prog_info["name"])) : $prog_info["name"];
+                $program_name = ($prog_info["category"] === "DEGREE") ? str_replace(["b.sc ", "b.sc. ", "b.s.c ", "b.s.c. "], "", strtolower($prog_info["name"])) : $prog_info["name"];
+                $program_name = str_replace(['\\', '/', ':', '*', '?', '"', '<', '>', '|'], " ", $program_name);
+
                 $letter_data = [
                     "success" => true,
                     "type" => "undergrade",
                     "period" => $admission_period,
+                    "program" => $program_name,
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
                         'Full_Name' => ucwords(strtolower(!empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] . " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"])),
-                        'Box_Location' => ucwords(strtolower($app_pers_info["postal_town"] . $app_pers_info["postal_spr"])),
+                        'Box_Location' => ucwords(strtolower($app_pers_info["postal_town"] . " - " . $app_pers_info["postal_spr"])),
                         'Box_Address' => ucwords(strtolower($app_pers_info["postal_addr"])),
                         'Location' => ucwords(strtolower($app_pers_info["postal_country"])),
 
                         'Year_of_Admission' => $admission_period["academic_year"],
 
-                        'Program_Length_1' => $prog_info["duration"] . "-" . $prog_info["dur_format"],
-                        'Program_Offered_1' => ucwords(strtolower($prog_info["name"])),
+                        'Program_Length_1' => strtoupper(strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"])),
+                        'Program_Offered_1' => strtoupper(strtolower($prog_info["name"])),
                         'Program_Length_2' => strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"]),
-                        'Program_Offered_2' => ucwords(strtolower($prog_info["name"])),
+                        'Program_Offered_2' => (($prog_info["category"] === "DEGREE") ? "B.Sc " : "") . ucwords(strtolower($program_name)),
                         'Program_Type' => ucwords(strtolower($prog_info["category"])),
                         'Program_Stream' => strtolower($stream_applied),
                         'No_of_Semesters' => $prog_info["num_of_semesters"] . " semesters",
@@ -1867,38 +1903,43 @@ class AdminController
 
             case 'MSC':
             case 'MA':
+
+                $program_name = ($prog_info["category"] === "MASTERS") ? str_replace(["m.sc ", "m.sc. ", "m.s.c ", "m.s.c. ", "m.a ", "m.a. "], "", strtolower($prog_info["name"])) : $prog_info["name"];
+                $program_name = str_replace(['\\', '/', ':', '*', '?', '"', '<', '>', '|'], " ", $program_name);
+
                 $letter_data = [
                     "success" => true,
                     "type" => "postgrade",
                     "period" => $admission_period,
+                    "program" => $program_name,
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
-                        'Full_Name' => !empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] .  " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"],
-                        'Box_Location' => $app_pers_info["postal_town"] . " " . $app_pers_info["postal_spr"],
-                        'Box_Address' => $app_pers_info["postal_addr"],
-                        'Location' => $app_pers_info["postal_country"],
+                        'Full_Name' => ucwords(strtolower(!empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] . " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"])),
+                        'Box_Location' => ucwords(strtolower($app_pers_info["postal_town"] . " - " . $app_pers_info["postal_spr"])),
+                        'Box_Address' => ucwords(strtolower($app_pers_info["postal_addr"])),
+                        'Location' => ucwords(strtolower($app_pers_info["postal_country"])),
 
                         'Year_of_Admission' => $admission_period["academic_year"],
 
-                        'Program_Length_1' => $prog_info["duration"] . "-" . $prog_info["dur_format"],
-                        'Program_Offered_1' => $prog_info["name"],
-                        'Program_Length_2' => $prog_info["duration"] . "-" . $prog_info["dur_format"],
-                        'Program_Offered_2' => ucwords($prog_info["name"]),
-                        'Program_Type' => ucwords($prog_info["form_type"]),
+                        'Program_Length_1' => strtoupper(strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"])),
+                        'Program_Offered_1' => strtoupper(strtolower($prog_info["name"])),
+                        'Program_Length_2' => strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"]),
+                        'Program_Offered_2' => (($prog_info["program_code"] === "MSC") ? "M.Sc " : "M.A ") . ucwords(strtolower($program_name)),
+                        'Program_Type' => ucwords(strtolower($prog_info["category"])),
                         'Program_Stream' => strtolower($stream_applied),
                         'No_of_Semesters' => $prog_info["num_of_semesters"] . " semesters",
 
-                        'Commencement_Date' => (new \DateTime($letter_data["commencement_date"]))->format("l F j, Y"),
-                        'Initial_Fees_in_Words' => $letter_data["initial_fees_in_words"],
-                        'Initial_Fees_in_Figures' => $letter_data["initial_fees_in_figures"],
-                        'Tel_Number_1' => $letter_data["tel_number_1"],
-                        'Tel_Number_2' => $letter_data["tel_number_2"],
-                        'Closing_Date' => (new \DateTime($letter_data["closing_date"]))->format("l F j, Y"),
-                        'Orientation_Date' => (new \DateTime($letter_data["orientation_date"]))->format("l F j, Y"),
-                        'Deadline_Date' => (new \DateTime($letter_data["deadline_date"]))->format("l F j, Y"),
-                        'Registration_Fees_in_Words' => $letter_data["registration_fees_in_words"],
-                        'Registration_Fees_in_Figures' => $letter_data["registration_fees_in_figures"],
-                        'University_Registrar' => $letter_data["university_registrar"]
+                        'Commencement_Date' => (new \DateTime($static_letter_data["commencement_date"]))->format("l F j, Y"),
+                        'Initial_Fees_in_Words' => $static_letter_data["initial_fees_in_words"],
+                        'Initial_Fees_in_Figures' => $static_letter_data["initial_fees_in_figures"],
+                        'Tel_Number_1' => $static_letter_data["tel_number_1"],
+                        'Tel_Number_2' => $static_letter_data["tel_number_2"],
+                        'Closing_Date' => (new \DateTime($static_letter_data["closing_date"]))->format("l F j, Y"),
+                        'Orientation_Date' => (new \DateTime($static_letter_data["orientation_date"]))->format("l F j, Y"),
+                        'Deadline_Date' => (new \DateTime($static_letter_data["deadline_date"]))->format("l F j, Y"),
+                        'Registration_Fees_in_Words' => $static_letter_data["registration_fees_in_words"],
+                        'Registration_Fees_in_Figures' => $static_letter_data["registration_fees_in_figures"],
+                        'University_Registrar' => $static_letter_data["university_registrar"]
                     ]
                 ];
                 break;
@@ -1974,7 +2015,7 @@ class AdminController
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied);
         if (!$l_res["success"]) return $l_res;
 
-        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"]);
+        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
         if (!$g_res["success"]) return $g_res;
 
         $u_res = $this->updateAppicantAdmissionStatus($appID, $prog_id);
@@ -2460,7 +2501,7 @@ class AdminController
     public function verifyTransactionStatus($payMethod, $transID)
     {
         if ($payMethod == "CASH") return $this->verifyTransactionStatusFromDB($transID);
-        else return (new PaymentController())->verifyTransactionStatusFromOrchard($transID);
+        else return $this->pay->verifyTransactionStatusFromOrchard($transID);
     }
 
     public function prepareDownloadQuery($data)

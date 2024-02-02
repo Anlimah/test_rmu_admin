@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (!isset($_GET["adp_key"]) || empty($_GET["adp_key"])) {
             die(json_encode(array("success" => false, "message" => "Missing input field")));
         }
-        $rslt = $admin->fetchAdmissionPeriod($_GET["adp_key"]);
+        $rslt = $admin->fetchAdmissionPeriodByID($_GET["adp_key"]);
         if (!$rslt) die(json_encode(array("success" => false, "message" => "Error fetching admissions information!")));
         die(json_encode(array("success" => true, "message" => $rslt)));
     }
@@ -883,10 +883,10 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (!isset($_POST["app-stream-check"]) || empty($_POST["app-stream-check"]))
             die(json_encode(array("success" => false, "message" => "No stream provide for this applicant!")));
 
-        if (!isset($_POST["app-email-check"]) || empty($_POST["app-email-check"]))
+        if (!isset($_POST["app-email-check"]))
             die(json_encode(array("success" => false, "message" => "Choose an option to send email to applicant or not!")));
 
-        if (!isset($_POST["app-sms-check"]) || empty($_POST["app-sms-check"]))
+        if (!isset($_POST["app-sms-check"]))
             die(json_encode(array("success" => false, "message" => "Choose an option to send SMS to applicant or not!")));
 
         die(json_encode($admin->admitIndividualApplicant($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-email-check"], $_POST["app-sms-check"])));

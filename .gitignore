@@ -2,3 +2,4 @@
 .env
 endpoint/.htaccess
 /assets
+/admission_letters
