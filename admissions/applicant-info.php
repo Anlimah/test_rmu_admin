@@ -226,6 +226,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                         ?>
                                                     </td>
                                                 </tr>
+
                                                 <tr>
                                                     <td style="width: 100px; padding: 4px 8px !important"><b>PROGRAMME:</b> </td>
                                                     <td style="padding: 4px 8px !important">
@@ -241,25 +242,29 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                     </td>
                                                 </tr>
                                             </table>
+
                                             <div style="flex-grow: 4;">
                                                 <div style="display: flex; flex-direction:column; justify-content: flex-start;">
-                                                    <form method="post" style="width:100px;" id="enrollAppForm">
-                                                        <button class="btn btn-outline-success btn-xs" id="enroll-app-check" style="width:100%;" type="submit">
-                                                            <span class="bi bi-check2-square"></span> <b id="enrollAppBtn-text">Enroll</b>
-                                                        </button>
-                                                        <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
-                                                        <input type="hidden" name="app-prog" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
-                                                    </form>
-                                                    <form method="post" style="width:100px; margin-top: 10px" id="sendFilesForm">
-                                                        <input type="file" name="send-files" id="send-files" multiple style="display: none;">
-                                                        <label class="btn btn-outline-dark btn-xs" id="send-files-check" style="width:100%" for="send-files">
-                                                            <span class="bi bi-file-text"></span> <b id="sendBtn-text">Send Files</b>
-                                                        </label>
-                                                        <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
-                                                        <input type="hidden" name="programme-awarded" id="programme-awarded" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
-                                                    </form>
+                                                    <?php if (!empty($app_statuses) && $app_statuses[0]["admitted"]) { ?>
+                                                        <form method="post" style="width:100px;" id="enrollAppForm">
+                                                            <button class="btn btn-outline-success btn-xs" id="enroll-app-check" style="width:100%;" type="submit">
+                                                                <span class="bi bi-check2-square"></span> <b id="enrollAppBtn-text">Enroll</b>
+                                                            </button>
+                                                            <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
+                                                            <input type="hidden" name="app-prog" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
+                                                        </form>
+                                                        <form method="post" style="width:100px; margin-top: 10px" id="sendFilesForm">
+                                                            <input type="file" name="send-files" id="send-files" multiple style="display: none;">
+                                                            <label class="btn btn-outline-dark btn-xs" id="send-files-check" style="width:100%" for="send-files">
+                                                                <span class="bi bi-file-text"></span> <b id="sendBtn-text">Send Files</b>
+                                                            </label>
+                                                            <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
+                                                            <input type="hidden" name="programme-awarded" id="programme-awarded" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
+                                                        </form>
+                                                    <?php } ?>
                                                 </div>
                                             </div>
+
                                         </div>
                                         <div style="display: flex; justify-content: flex-end; padding: 15px; border-radius:15px">
                                             <a style="width: 100px" class="btn btn-primary btn-sm" target="_blank" href="../download-appData.php?<?= "t=" . $_GET["t"] . "&q=" . $_GET["q"] ?>">
@@ -287,6 +292,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                 <div class="col">
                                     <div style="display: flex;">
                                         <div style="display: flex; flex-direction: column">
+                                            <!-- Personal Information -->
                                             <div class="col">
                                                 <h3>Personal Information</h3>
                                                 <div>
@@ -361,7 +367,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                 </div>
                                             </div>
 
-
+                                            <!-- Guardian/Parent Information -->
                                             <div class="col" style="margin-top: 25px">
                                                 <h3>Guardian/Parent Information</h3>
                                                 <div>
@@ -598,6 +604,8 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
             </div>
         </div>
 
+
+        <!-- Admission Summary Modal -->
         <div class="modal fade" id="admissionSummary" tabindex="-1" aria-labelledby="admissionSummaryLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
                 <div class="modal-content">
@@ -691,7 +699,6 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                 return vars;
             }
 
-            //Use a default value when param is missing
             function getUrlParam(parameter, defaultvalue) {
                 var urlparameter = defaultvalue;
                 if (window.location.href.indexOf(parameter) > -1) {

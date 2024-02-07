@@ -400,6 +400,11 @@ class AdminController
         return $this->dm->getData("SELECT * FROM programs WHERE `id` = :i", array(":i" => $prog_id));
     }
 
+    public function fetchAllFromProgramByCode($prog_code)
+    {
+        return $this->dm->getData("SELECT * FROM programs WHERE `category` = :c", array(":c" => $prog_code));
+    }
+
     public function addProgramme($prog_name, $prog_type, $prog_wkd, $prog_grp)
     {
         $query = "INSERT INTO programs (`name`, `type`, `weekend`, `group`) VALUES(:n, :t, :w, :g)";
@@ -1221,12 +1226,9 @@ class AdminController
     {
         $in_query = "";
         if ($cert_type != "All") $in_query = "AND ab.cert_type = '$cert_type'";
-        $query = "SELECT p.`first_name`, p.`middle_name`, p.`last_name`, fs.first_prog_qualified, fs.second_prog_qualified, 
-                    pi.first_prog, pi.second_prog, pi.application_term, pi.study_stream, pd.`form_id`, a.id 
-                FROM `personal_information` AS p, `applicants_login` AS a, form_sections_chek AS fs, 
-                    academic_background AS ab, program_info AS pi, purchase_detail AS pd 
-                WHERE p.app_login = a.id AND ab.app_login = a.id AND fs.app_login = a.id AND 
-                    pd.id = a.purchase_id AND pi.app_login = a.id AND fs.admitted = 1 $in_query";
+        $query = "SELECT p.`first_name`, p.`middle_name`, p.`last_name`, fs.application_term, pi.study_stream, a.id AS app_id 
+                FROM `personal_information` AS p, `applicants_login` AS a, form_sections_chek AS fs 
+                WHERE p.app_login = a.id AND fs.app_login = a.id AND fs.admitted = 1 $in_query";
         return $this->dm->getData($query);
     }
 
@@ -1340,23 +1342,56 @@ class AdminController
         return $store;
     }
 
-    public function fetchAllAdmittedApplicantsData($cert_type)
+    public function fetchAllAdmittedApplicantsData1($cert_type)
     {
         $allAppData = $this->getAllAdmitedApplicants($cert_type);
         if (empty($allAppData)) return 0;
-
         $store = $this->bundleApplicantsData($allAppData);
         return $store;
+    }
+
+    public function fetchAllAdmittedApplicantsData($cert_type, $prog_type)
+    {
+        $in_query = "";
+        if ($cert_type == "MASTERS") $in_query = "WHERE pg.category = 'MASTERS'";
+        else if ($cert_type == "UPGRADERS") $in_query = "WHERE pg.category = 'UPGRADE'";
+        else if ($cert_type == "DEGREE") $in_query = "WHERE pg.category = 'BSC'";
+        else if ($cert_type == "DIPLOMA") $in_query = "WHERE pg.category = 'DIPLOMA'";
+        else if ($cert_type == "SHORT") $in_query = "WHERE pg.category = 'SHORT'";
+        else return array("success" => false, "message" => "No match found for this certificate type [{$cert_type}]");
+
+        if (!empty($prog_type)) {
+            $in_query = "AND fs.programme_awarded IN (SELECT pg.id, pg.category FROM programs AS pg WHERE pg.id = $prog_type";
+        }
+
+        $query = "SELECT 
+        CONCAT(ps.first_name, ' ', IFNULL(ps.middle_name, ''), ' ', ps.last_name) AS full_name, 
+        pi.application_term AS term, 
+        pi.study_stream AS stream, 
+        ap.id AS app_id 
+        FROM 
+        `form_sections_chek` AS fs, 
+        `personal_information` AS ps, 
+        `program_info` AS pi, 
+        `applicants_login` AS ap 
+        WHERE 
+        ap.id = ps.app_login AND ap.id = pi.app_login AND ap.id = fs.app_login AND 
+        fs.`admitted` = 1 ";
+
+        $result = $this->dm->getData($query);
+        if (empty($result)) return array("success" => false, "message" => "No result found!");
+        return array("success" => true, "message" => $result);
     }
 
     public function fetchAllSubmittedApplicantsData($cert_type)
     {
         if ($cert_type == "MASTERS") $in_query = "WHERE pg.program_code IN ('MSC', 'MA')";
-        else if ($cert_type == "UPDRADERS") $in_query = "WHERE pg.program_code = 'UPGRADE'";
+        else if ($cert_type == "UPGRADERS") $in_query = "WHERE pg.program_code = 'UPGRADE'";
         else if ($cert_type == "DEGREE") $in_query = "WHERE pg.program_code = 'BSC'";
         else if ($cert_type == "DIPLOMA") $in_query = "WHERE pg.program_code = 'DIPLOMA'";
         else if ($cert_type == "MEM") $in_query = "WHERE pg.name = 'MARINE ENGINE MECHANICS'";
         else if ($cert_type == "CDADILT") $in_query = "WHERE pg.name = 'CILT, DILT AND ADILT'";
+        else return array("success" => false, "message" => "No match found for this certificate type [{$cert_type}]");
 
         $query = "SELECT 
                     a.`id`, CONCAT(p.first_name, ' ', IFNULL(p.middle_name, ''), ' ', p.last_name) AS full_name, 
@@ -1367,7 +1402,7 @@ class AdminController
                                 WHEN ab.`cert_type` = 'OTHER' THEN ab.`other_cert_type`
                                 ELSE ab.`cert_type`
                             END,
-                            ', ',
+                            ' - ',
                             ab.`school_name`,
                             ' (',
                             ab.`year_completed`,
@@ -2093,6 +2128,7 @@ class AdminController
         $emailID = $studentNames["first_name"] . "." . $studentNames["last_name"];
         $testEmailAddress = $emailID . "@st.rmu.edu.gh";
         $emailVerified = $this->verifyStudentEmailAddress($testEmailAddress);
+
         if (!empty($emailVerified)) {
             if (!empty($studentNames["middle_name"])) {
                 $emailID = $studentNames["first_name"] . "." . $studentNames["middle_name"] . "-" . $studentNames["last_name"];
@@ -2120,29 +2156,32 @@ class AdminController
      */
     public function enrollApplicant($appID, $progID): mixed
     {
-        if ($this->updateApplicationStatus($appID, "enrolled", 1)) {
-            //create index number from program and number of student that exists
-            $indexCreation = $this->createUndergradStudentIndexNumber($appID, $progID);
+        //create index number from program and number of student that exists
+        $indexCreation = $this->createUndergradStudentIndexNumber($appID, $progID);
 
-            //create email address from applicant name
-            $emailGenerated = $this->createStudentEmailAddress($appID);
+        //create email address from applicant name
+        $emailGenerated = $this->createStudentEmailAddress($appID);
 
-            $appDetails = $this->dm->getData(
-                "SELECT * FROM `personal_information` WHERE `app_login` = :a",
-                array(":a" => $appID)
-            )[0];
+        $appDetails = $this->dm->getData(
+            "SELECT * FROM `personal_information` WHERE `app_login` = :a",
+            array(":a" => $appID)
+        )[0];
 
-            $term_admitted = $this->getAcademicPeriod($this->getCurrentAdmissionPeriodID())["intake"];
+        $term_admitted = $this->getAcademicPeriod($this->getCurrentAdmissionPeriodID())["intake"];
 
-            // Save Data
-            $query = "INSERT INTO enrolled_applicants VALUES(`application_number`, `index_number`, `email_address`, `programme`, `first_name`, `middle_name`, `last_name`, `sex`, `dob`, `nationality`, `phone_number`, `term_admitted`, `stream_admitted`)";
-            $params = array(
-                $appID, $indexCreation["index_number"], $emailGenerated, $indexCreation["programme"], $appDetails["first_name"], $appDetails["middle_name"], $appDetails["last_name"],
-                $appDetails["gender"], $appDetails["dob"], $appDetails["nationality"], $appDetails["phone_no1_code"] . $appDetails["phone_no1"], $term_admitted, $indexCreation["stream"]
-            );
-            $addStudent = $this->dm->inputData($query, $params);
-            if (!empty($addStudent)) return array("success" => true, "message" => "Applicant successfully enrolled!");;
-        }
+        // Save Data
+        $query = "INSERT INTO enrolled_applicants VALUES(`application_number`, `index_number`, `email_address`, `programme`, `first_name`, `middle_name`, `last_name`, `sex`, `dob`, `nationality`, `phone_number`, `term_admitted`, `stream_admitted`)";
+        $params = array(
+            $appID, $indexCreation["index_number"], $emailGenerated, $indexCreation["programme"], $appDetails["first_name"], $appDetails["middle_name"], $appDetails["last_name"],
+            $appDetails["gender"], $appDetails["dob"], $appDetails["nationality"], $appDetails["phone_no1_code"] . $appDetails["phone_no1"], $term_admitted, $indexCreation["stream"]
+        );
+
+        $addStudent = $this->dm->inputData($query, $params);
+
+        if (!empty($addStudent))
+            if ($this->updateApplicationStatus($appID, "enrolled", 1))
+                return array("success" => true, "message" => "Applicant successfully enrolled!");
+
         return array("success" => false, "message" => "Failed to enroll applicant!");
     }
 

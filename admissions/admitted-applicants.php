@@ -81,26 +81,21 @@ require_once('../inc/page-data.php');
                         <div class="card-body">
                             <h5 class="card-title">Admitted Applicants</h5>
                             <form id="fetchDataForm" class="mb-4">
-                                <div class="row">
+                                <div class="row" style="justify-content: baseline; align-items: center">
                                     <div class="col-3">
-                                        <label for="cert-type" class="form-label">Certificate Type</label>
-                                        <select name="cert-type" id="cert-type" class="form-select">
-                                            <option value="" hidden>Choose</option>
-                                            <option value="WASSCE">WASSCE</option>
-                                            <option value="SSSCE">SSSCE</option>
-                                            <option value="GBCE">GBCE</option>
-                                            <option value="NECO">NECO</option>
-                                            <option value="DIPLOMA">DIPLOMA</option>
-                                            <option value="DEGREE">DEGREE</option>
+                                        <select name="cert-type" id="cert-type" data-id="cert" class="form-select">
+                                            <option value="" hidden>Choose Category</option>
                                             <option value="MASTERS">MASTERS</option>
-                                            <option value="BACCALAUREATE">BACCALAUREATE</option>
-                                            <option value="O LEVEL">O LEVEL</option>
-                                            <option value="A LEVEL">A LEVEL</option>
-                                            <option value="OTHER">OTHER</option>
+                                            <option value="DEGREE">DEGREE</option>
+                                            <option value="DIPLOMA">DIPLOMA</option>
+                                            <option value="UPGRADE">UPGRADERS</option>
+                                            <option value="SHORT">SHORT/OTHER COURSES</option>
                                         </select>
                                     </div>
-                                    <div class="col-2">
-                                        <button type="submit" class="btn mb-4 btn-primary" style="margin-top: 30px;" id="submitBtn">Fetch Data</button>
+                                    <div class="col-3" id="bs-masters-prog">
+                                        <select name="prog-type" id="prog-type" data-id="prog" class="form-select">
+                                            <option value="" hidden>Choose Program</option>
+                                        </select>
                                     </div>
                                 </div>
                             </form>
@@ -135,6 +130,34 @@ require_once('../inc/page-data.php');
     <script>
         $(document).ready(function() {
 
+            var fetchPrograms = function(data) {
+                $.ajax({
+                    type: "GET",
+                    url: "../endpoint/programsByCategory",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
+
+                        if (result.success) {
+                            $("#prog-type").html('<option value="" hidden>Choose Programme</option>');
+                            $.each(result.message, function(index, value) {
+                                $("#prog-type").append(
+                                    '<option value="' + value.id + '">' + value.name + '</option>'
+                                );
+                            });
+                        } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+
             var fetchBroadsheet = function() {
                 data = {
                     "cert-type": $("#cert-type").val(),
@@ -152,11 +175,9 @@ require_once('../inc/page-data.php');
                             $("tbody").html('');
                             $.each(result.message, function(index, value) {
                                 let programme;
-                                if (value.first_prog_qualified == 1) {
-                                    programme = value.first_prog;
-                                } else if (value.second_prog_qualified == 1) {
-                                    programme = value.second_prog;
-                                }
+                                if (value.first_prog_qualified == 1) programme = value.first_prog;
+                                else if (value.second_prog_qualified == 1) programme = value.second_prog;
+
                                 $("tbody").append(
                                     '<tr>' +
                                     '<th scope="row">' + (index + 1) + '</th>' +
@@ -165,7 +186,8 @@ require_once('../inc/page-data.php');
                                     '<td>' + value.application_term + '</td>' +
                                     '<td>' + value.study_stream + '</td>' +
                                     '<td><b><a href="applicant-info.php?t=' + value.form_id + '&q=' + value.id + '">Open</a></b></td>' +
-                                    '</tr>');
+                                    '</tr>'
+                                );
                             });
                             $("#info-output").hide();
 
@@ -189,6 +211,15 @@ require_once('../inc/page-data.php');
                 e.preventDefault();
                 triggeredBy = 1;
                 fetchBroadsheet();
+            });
+
+            $("#cert-type, #prog-type").change("blur", function() {
+                if (this.dataset.id === "cert") {
+                    fetchPrograms({
+                        "cert-type": $("#cert-type").val()
+                    });
+                }
+                $("#fetchDataForm").submit();
             });
 
             $(document).on({

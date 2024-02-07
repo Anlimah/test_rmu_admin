@@ -97,6 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (!$rslt) die(json_encode(array("success" => false, "message" => "Error fetching user account information!")));
         die(json_encode(array("success" => true, "message" => $rslt)));
     }
+    //
+    elseif ($_GET["url"] == "programsByCategory") {
+        if (!isset($_GET["cert-type"]) || empty($_GET["cert-type"])) {
+            die(json_encode(array("success" => false, "message" => "Missing input field")));
+        }
+        $rslt = $admin->fetchAllFromProgramByCode($_GET["cert-type"]);
+        if (!$rslt) die(json_encode(array("success" => false, "message" => "Failed to fetch programs for this certificate category [{$_GET["cert-type"]}]!")));
+        die(json_encode(array("success" => true, "message" => $rslt)));
+    }
 
     // All POST request will be sent here
 } elseif ($_SERVER['REQUEST_METHOD'] == "POST") {
@@ -309,12 +318,13 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     //
     elseif ($_GET["url"] == "getAllAdmittedApplicants") {
 
-        if (!isset($_POST["cert-type"]))
+        if (!isset($_POST["cert-type"]) || !isset($_POST["prog-type"]))
             die(json_encode(array("success" => false, "message" => "Invalid input field")));
         if (empty($_POST["cert-type"]))
             die(json_encode(array("success" => false, "message" => "Missing input field")));
 
-        $result = $admin->getAllAdmittedApplicantsAllAll($_POST["cert-type"]);
+        //$result = $admin->getAllAdmittedApplicantsAllAll($_POST["cert-type"]);
+        $result = $admin->fetchAllAdmittedApplicantsData($_POST["cert-type"], $_POST["prog-type"]);
         if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found!")));
         die(json_encode(array("success" => true, "message" => $result)));
     }

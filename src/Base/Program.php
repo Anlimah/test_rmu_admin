@@ -43,6 +43,11 @@ class Program
         return $this->dm->getData("SELECT * FROM programs WHERE `id` = :i", array(":i" => $prog_id));
     }
 
+    public function fetchAllFromProgramByCode($prog_code)
+    {
+        return $this->dm->getData("SELECT * FROM programs WHERE `program_code` = :c", array(":c" => $prog_code));
+    }
+
     public function addProgramme($prog_name, $prog_type, $prog_wkd, $prog_grp)
     {
         $query = "INSERT INTO programs (`name`, `type`, `weekend`, `group`) VALUES(:n, :t, :w, :g)";

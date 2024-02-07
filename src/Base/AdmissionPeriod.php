@@ -35,6 +35,13 @@ class AdmissionPeriod
         return $this->dm->inputData($query, array(":i" => $adp_id));
     }
 
+    public function getAcademicPeriod($admin_period)
+    {
+        $query = "SELECT YEAR(`start_date`) AS start_year, YEAR(`end_date`) AS end_year, `info`, `intake`, `active`, `closed` 
+                FROM admission_period WHERE id = :ai";
+        return $this->dm->getData($query, array(":ai" => $admin_period));
+    }
+
     public function addAdmissionPeriod($adp_start, $adp_end, $adp_info, $intake)
     {
         $query = "INSERT INTO admission_period (`start_date`, `end_date`, `info`, `intake`) 

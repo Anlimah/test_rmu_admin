@@ -39,7 +39,7 @@ if (isset($_GET["w"]) && $_GET["w"] == 'pdfFileDownload') $result = $admin->exec
                 <span><b>Vendor:</b> <?= $_SESSION["downloadQueryStmt"]["data"]["report-by"] == "PayMethod" ? "Payment Menthod" : $_SESSION["downloadQueryStmt"]["data"]["report-by"] ?></span>
                 <span><b>Date:</b> <?= $_SESSION["downloadQueryStmt"]["data"]["from-date"] . " - " . $_SESSION["downloadQueryStmt"]["data"]["to-date"]  ?></span>
             <?php } else if (isset($_GET["p"]) && $_GET["p"] == "daily-transactions") { ?>
-                <span><b>Admission Period:</b> <?= isset($_SESSION["downloadQueryStmt"]["data"]["admission-period"]) && !empty($_SESSION["downloadQueryStmt"]["data"]["admission-period"]) ? $admin->fetchAdmissionPeriod($_SESSION["downloadQueryStmt"]["data"]["admission-period"])[0]["info"] : "" ?></span>
+                <span><b>Admission Period:</b> <?= isset($_SESSION["downloadQueryStmt"]["data"]["admission-period"]) && !empty($_SESSION["downloadQueryStmt"]["data"]["admission-period"]) ? $admin->fetchAdmissionPeriodByID($_SESSION["downloadQueryStmt"]["data"]["admission-period"])[0]["info"] : "" ?></span>
                 <span><b>Date:</b> <?= $_SESSION["downloadQueryStmt"]["data"]["from-date"] . " - " . $_SESSION["downloadQueryStmt"]["data"]["to-date"]  ?></span>
                 <span><b>Form Type:</b> <?= isset($_SESSION["downloadQueryStmt"]["data"]["form-type"]) && !empty($_SESSION["downloadQueryStmt"]["data"]["form-type"]) ? $admin->getFormByFormID($_SESSION["downloadQueryStmt"]["data"]["form-type"])[0]["name"] : "" ?></span>
                 <span><b>Purchase Status:</b> <?= $_SESSION["downloadQueryStmt"]["data"]["purchase-status"] ?></span>

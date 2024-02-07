@@ -39,7 +39,7 @@ use Src\Controller\UsersController;
 require_once('inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
-$user = new UsersController();
+$user = new UsersController($db, $user, $pass);
 
 $photo = $user->fetchApplicantPhoto($_GET['q']);
 $personal = $user->fetchApplicantPersI($_GET['q']);
