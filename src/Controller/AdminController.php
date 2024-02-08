@@ -2168,6 +2168,9 @@ class AdminController
         )[0];
 
         $term_admitted = $this->getAcademicPeriod($this->getCurrentAdmissionPeriodID())["intake"];
+        return $indexCreation;
+        return $emailGenerated;
+        return $term_admitted;
 
         // Save Data
         $query = "INSERT INTO enrolled_applicants VALUES(`application_number`, `index_number`, `email_address`, `programme`, `first_name`, `middle_name`, `last_name`, `sex`, `dob`, `nationality`, `phone_number`, `term_admitted`, `stream_admitted`)";
@@ -2176,7 +2179,9 @@ class AdminController
             $appDetails["gender"], $appDetails["dob"], $appDetails["nationality"], $appDetails["phone_no1_code"] . $appDetails["phone_no1"], $term_admitted, $indexCreation["stream"]
         );
 
-        $addStudent = $this->dm->inputData($query, $params);
+        // connect to student mgt db
+        $st_mgt_db = new DatabaseMethods(1, 2, 3);
+        $addStudent = $st_mgt_db->run($query, $params)->add();
 
         if (!empty($addStudent))
             if ($this->updateApplicationStatus($appID, "enrolled", 1))

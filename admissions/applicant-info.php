@@ -255,9 +255,9 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                         </form>
                                                         <form method="post" style="width:100px; margin-top: 10px" id="sendFilesForm">
                                                             <input type="file" name="send-files" id="send-files" multiple style="display: none;">
-                                                            <label class="btn btn-outline-dark btn-xs" id="send-files-check" style="width:100%" for="send-files">
+                                                            <button class="btn btn-outline-dark btn-xs" id="send-files-check" style="width:100%" for="send-files">
                                                                 <span class="bi bi-file-text"></span> <b id="sendBtn-text">Send Files</b>
-                                                            </label>
+                                                            </button>
                                                             <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
                                                             <input type="hidden" name="programme-awarded" id="programme-awarded" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
                                                         </form>
@@ -928,14 +928,12 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                             return;
                         }
                         alert(result.message);
+                        $("#enrollAppBtn-text").text("Enroll");
                     },
                     error: function(error) {
                         console.log(error);
                     }
                 });
-                setTimeout(function() {
-                    $("#sendBtn-text").text("Enroll");
-                }, 1000);
             })
 
         });
