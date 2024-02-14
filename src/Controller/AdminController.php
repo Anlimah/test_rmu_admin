@@ -979,6 +979,10 @@ class AdminController
             case 'apps-awaiting':
                 $result = $this->fetchAllAwaitingApplication($admin_period, $SQL_COND);
                 break;
+
+            case 'apps-enrolled':
+                $result = $this->fetchAllEnrolledApplication($admin_period, $SQL_COND);
+                break;
         }
         return $result;
     }
@@ -1085,6 +1089,23 @@ class AdminController
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
+    public function fetchAllEnrolledApplication($admin_period, $SQL_COND)
+    {
+        $query = "SELECT 
+                    al.id, CONCAT(p.first_name, ' ', IFNULL(p.middle_name, ''), ' ', p.last_name) AS fullname, 
+                    p.nationality, ft.name AS app_type, pi.first_prog, pi.second_prog, fs.declaration, fs.printed,
+                    p.phone_no1_code, p.phone_no1, pd.country_code, pd.phone_number  
+                FROM 
+                    personal_information AS p, applicants_login AS al, 
+                    forms AS ft, purchase_detail AS pd, program_info AS pi, 
+                    form_sections_chek AS fs, admission_period AS ap 
+                WHERE 
+                    p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND 
+                    ap.id = :ai AND fs.declaration = 1 AND fs.enrolled = 1 AND fs.declined = 0$SQL_COND";
+        return $this->dm->getData($query, array(":ai" => $admin_period));
+    }
+
     // fetch data by form type and admission period
 
     public function fetchTotalAppsByProgCodeAndAdmisPeriod($prog_code = "", $admin_period = 0): mixed
@@ -1116,7 +1137,7 @@ class AdminController
             $query = "SELECT 
                     COUNT(*) AS total 
                 FROM 
-                    purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                    purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE 
                     ap.id = pd.admission_period AND ap.active = 1 AND fc.app_login = al.id AND al.purchase_id = pd.id 
                     AND pd.form_id = ft.id";
@@ -1125,7 +1146,7 @@ class AdminController
             $query = "SELECT 
                     COUNT(*) AS total 
                 FROM 
-                    purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                    purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE 
                     ap.id = pd.admission_period AND fc.app_login = al.id AND al.purchase_id = pd.id 
                     AND pd.form_id = ft.id AND ft.id = :f AND ap.id = :a";
@@ -1150,13 +1171,13 @@ class AdminController
     {
         if ($form_id == 100) {
             $query = "SELECT COUNT(*) AS total 
-                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id 
                     AND pd.form_id = ft.id";
             return $this->dm->getData($query, array(":ai" => $admin_period));
         } else {
             $query = "SELECT COUNT(*) AS total 
-                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id 
                     AND pd.form_id = ft.id AND ft.id = :f";
             return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
@@ -1166,7 +1187,7 @@ class AdminController
     public function fetchTotalSubmittedApps($admin_period, int $form_id)
     {
         $query = "SELECT COUNT(*) AS total 
-                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id 
                 AND pd.form_id = ft.id AND fc.declaration = 1 AND fc.admitted = 0  AND fc.declined = 0 AND ft.id = :f";
         return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
@@ -1175,7 +1196,7 @@ class AdminController
     public function fetchTotalUnsubmittedApps($admin_period, int $form_id)
     {
         $query = "SELECT COUNT(*) AS total 
-                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id 
                 AND pd.form_id = ft.id AND fc.declaration = 0 AND fc.admitted = 0  AND fc.declined = 0 AND ft.id = :f";
         return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
@@ -1184,7 +1205,7 @@ class AdminController
     public function fetchTotalAdmittedApplicants($admin_period, int $form_id)
     {
         $query = "SELECT COUNT(*) AS total 
-                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id AND 
                 pd.form_id = ft.id AND fc.declaration = 1 AND fc.admitted = 1 AND fc.declined = 0 AND ft.id = :f";
         return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
@@ -1193,9 +1214,18 @@ class AdminController
     public function fetchTotalUnadmittedApplicants($admin_period, int $form_id)
     {
         $query = "SELECT COUNT(*) AS total 
-                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft
+                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id AND 
                 pd.form_id = ft.id AND fc.declaration = 1 AND fc.admitted = 0 AND fc.declined = 0 AND ft.id = :f";
+        return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
+    }
+
+    public function fetchTotalEnrolledApplicants($admin_period, int $form_id)
+    {
+        $query = "SELECT COUNT(*) AS total 
+                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
+                WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id AND 
+                pd.form_id = ft.id AND fc.declaration = 1 AND fc.enrolled = 1 AND ft.id = :f";
         return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
     }
 
@@ -1353,30 +1383,25 @@ class AdminController
     public function fetchAllAdmittedApplicantsData($cert_type, $prog_type)
     {
         $in_query = "";
-        if ($cert_type == "MASTERS") $in_query = "WHERE pg.category = 'MASTERS'";
-        else if ($cert_type == "UPGRADERS") $in_query = "WHERE pg.category = 'UPGRADE'";
-        else if ($cert_type == "DEGREE") $in_query = "WHERE pg.category = 'BSC'";
-        else if ($cert_type == "DIPLOMA") $in_query = "WHERE pg.category = 'DIPLOMA'";
-        else if ($cert_type == "SHORT") $in_query = "WHERE pg.category = 'SHORT'";
+        if ($cert_type == "MASTERS") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'MASTERS')";
+        else if ($cert_type == "UPGRADERS") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'UPGRADE')";
+        else if ($cert_type == "DEGREE") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'DEGREE')";
+        else if ($cert_type == "DIPLOMA") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'DIPLOMA')";
+        else if ($cert_type == "SHORT") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'SHORT')";
         else return array("success" => false, "message" => "No match found for this certificate type [{$cert_type}]");
 
         if (!empty($prog_type)) {
-            $in_query = "AND fs.programme_awarded IN (SELECT pg.id, pg.category FROM programs AS pg WHERE pg.id = $prog_type";
+            $in_query = "AND fs.programme_awarded = (SELECT id FROM programs WHERE id = $prog_type";
         }
 
         $query = "SELECT 
         CONCAT(ps.first_name, ' ', IFNULL(ps.middle_name, ''), ' ', ps.last_name) AS full_name, 
-        pi.application_term AS term, 
-        pi.study_stream AS stream, 
-        ap.id AS app_id 
+        pi.application_term AS term, pi.study_stream AS stream, ap.id AS app_id 
         FROM 
-        `form_sections_chek` AS fs, 
-        `personal_information` AS ps, 
-        `program_info` AS pi, 
-        `applicants_login` AS ap 
+        `form_sections_chek` AS fs, `personal_information` AS ps, `program_info` AS pi, `applicants_login` AS ap 
         WHERE 
         ap.id = ps.app_login AND ap.id = pi.app_login AND ap.id = fs.app_login AND 
-        fs.`admitted` = 1 ";
+        fs.`admitted` = 1 $in_query";
 
         $result = $this->dm->getData($query);
         if (empty($result)) return array("success" => false, "message" => "No result found!");
@@ -1804,7 +1829,7 @@ class AdminController
     {
         $prog_info = $this->fetchApplicantProgInfoByProgName($progName)[0];
 
-        if ($prog_info["weekend"] === 0) {
+        if ($prog_info["weekend"] == 0) {
             if (strtolower($stream_applied) === "weekend") {
                 return [
                     "success" => false,
@@ -1814,7 +1839,7 @@ class AdminController
             }
         }
 
-        if ($prog_info["regular"] === 0) {
+        if ($prog_info["regular"] == 0) {
             if (strtolower($stream_applied) === "regular") {
                 return [
                     "success" => false,
@@ -2083,8 +2108,9 @@ class AdminController
 
     public function fetchAllFromProgramWithDepartByProgID($prog_id)
     {
-        return $this->dm->getData("SELECT pg.*, dp.`name` AS department_name FROM `programs` AS pg, `departments` AS dp 
-        WHERE pg.`id` = :i AND pg.`department` = dp.`id`", array(":i" => $prog_id));
+        $query = "SELECT pg.*, dp.`id` AS department_id, dp.`name` AS department_name 
+        FROM `programs` AS pg, `department` AS dp WHERE pg.`id` = :i AND pg.`department` = dp.`id`";
+        return $this->dm->getData($query, array(":i" => $prog_id));
     }
 
     public function sendAdmissionFiles($appID, $fileObj): mixed
@@ -2099,23 +2125,23 @@ class AdminController
         );
     }
 
-    private function getTotalEnrolledApplicantsByProgID($prog_name, $academic_year)
+    private function getTotalEnrolledApplicants($prog_id, $academic_year_id, $stream): mixed
     {
         return $this->dm->getData(
-            "SELECT COUNT(program) AS total FROM enrolled_applicants WHERE program = :p AND academic_year_admitted = :a",
-            array(":p" => $prog_name, ":a" => $academic_year)
+            "SELECT COUNT(app_number) AS total FROM `student` AS s, `academic_year` AS a, `programs` AS p 
+            WHERE p.`id` = s.`fk_program` AND a.`id` = s.`fk_academic_year` AND 
+            s.`fk_program` = :p AND s.`fk_academic_year` = :a AND s.`stream_admitted` = :s",
+            array(":p" => $prog_id, ":a" => $academic_year_id, ":s" => $stream)
         );
     }
 
     private function createUndergradStudentIndexNumber($appID, $progID): mixed
     {
         $progInfo = $this->fetchAllFromProgramWithDepartByProgID($progID)[0];
-
         $adminPeriodYear = $this->getAdmissionPeriodYearsByID($_SESSION["admin_period"]);
+        $stream = $this->getAppProgDetailsByAppID($appID)[0]["study_stream"];
 
-        $startYear = (int) substr($adminPeriodYear[0]["sYear"], -2);
-
-        $stdCount = $this->getTotalEnrolledApplicantsByProgID($progID, $adminPeriodYear[0]["academic_year"])[0]["total"] + 1;
+        $stdCount = $this->getTotalEnrolledApplicants($progInfo["id"], $adminPeriodYear[0]["id"], $stream)[0]["total"] + 1;
 
         if ($stdCount <= 10) $numCount = "0000";
         elseif ($stdCount <= 100) $numCount = "000";
@@ -2123,28 +2149,22 @@ class AdminController
         elseif ($stdCount <= 10000) $numCount = "0";
         elseif ($stdCount <= 100000) $numCount = "";
 
+        $startYear = (int) substr($adminPeriodYear[0]["sYear"], -2);
         if ($progInfo["dur_format"] == "year") $completionYear = $startYear +  (int) $progInfo["duration"];
 
         $index_code = $progInfo["index_code"];
 
         //check whether it's regular or weekend
-        $stream_admitted = "REGULAR";
-        $wkdReg = $this->getAppProgDetailsByAppID($appID)[0]["study_stream"];
-        if (!empty($wkdReg) && strtolower($wkdReg) === "weekend") {
-            $wkdAvail = $this->fetchAllFromProgramByID($progID)[0]["weekend"];
-            if (!empty($wkdAvail)) {
-                $index_code = substr($progInfo["index_code"], 2) . "W";
-                $stream_admitted = "WEEKEND";
-            }
-        }
+        if (strtolower($stream) === "weekend") $index_code = substr($progInfo["index_code"], 0, 2) . "W";
 
         $indexNumber = $index_code . $numCount . $stdCount . $completionYear;
+
         return array(
             "index_number" => $indexNumber,
-            "program" => $progInfo["name"],
-            "department" => $progInfo["department_name"],
-            "stream" => $stream_admitted,
-            "academic_year" => $adminPeriodYear[0]["academic_year"]
+            "program" => $progInfo["id"],
+            "department" => $progInfo["department_id"],
+            "stream" => $stream,
+            "academic_year" => $adminPeriodYear[0]["fk_academic_year"]
         );
     }
 
@@ -2180,19 +2200,21 @@ class AdminController
     private function verifyStudentEmailAddress($emailAddress): mixed
     {
         return $this->dm->getData(
-            "SELECT `app_number` FROM `enrolled_applicants` WHERE `email` = :e",
+            "SELECT `app_number` FROM `student` WHERE `email` = :e",
             array(":e" => $emailAddress)
         );
     }
 
     public function addNewStudent($data)
     {
-        $query = "INSERT INTO student (`index_number`, `app_number`, `email`, `password`, `phone_number`, 
-                `prefix`, `first_name`, `middle_name`, `last_name`, `suffix`, `gender`, `dob`, `nationality`, 
-                `photo`, `marital_status`, `disability`, `date_admitted`, `term_admitted`, `stream_admitted`, 
-                `academic_year_admitted`, `program`, `department`) 
-                VALUES (:ix, :an, :ea, :pw, :pn, :px, :fn, :mn, :ln, :sx, :gd, :db, :nt, :pt, :ms, :ds, :da, :ta, :sa, :ay, :pg, :dt)";
-        $params = array(
+        $date_admitted = date("Y-m-d");
+
+        $query2 = "INSERT INTO `student` (`index_number`, `app_number`, `email`, `password`, `phone_number`, 
+                    `prefix`, `first_name`, `middle_name`, `last_name`, `suffix`, `gender`, `dob`, `nationality`, 
+                    `photo`, `marital_status`, `disability`, `date_admitted`, `term_admitted`, `stream_admitted`, 
+                    `fk_academic_year`, `fk_program`, `fk_department`) 
+                    VALUES (:ix, :an, :ea, :pw, :pn, :px, :fn, :mn, :ln, :sx, :gd, :db, :nt, :pt, :ms, :ds, :da, :ta, :sa, :fkay, :fkpg, :fkdt)";
+        $params2 = array(
             ":ix" => $data["index_number"],
             ":an" => $data["app_number"],
             ":ea" => $data["email_generated"],
@@ -2209,21 +2231,17 @@ class AdminController
             ":pt" => $data["photo"],
             ":ms" => $data["marital_status"],
             ":ds" => $data["disability"],
-            ":da" => date("Y-m-d"),
+            ":da" => $date_admitted,
             ":ta" => $data["term"],
             ":sa" => $data["stream"],
-            ":ay" => $data["academic_year"],
-            ":pg" => $data["program"],
-            ":dt" => $data["department"]
+            ":fkay" => $data["academic_year"],
+            ":fkpg" => $data["program"],
+            ":fkdt" => $data["department"]
         );
 
-        // connect to student mgt db
-        $LOCAL_DB_STUDENT_DATABASE = "rmu_student_mgt_db";
-        $LOCAL_DB_STUDENT_USERNAME = "root";
-        $LOCAL_DB_STUDENT_PASSWORD = "";
-
-        $st_mgt_db = new DatabaseMethods($LOCAL_DB_STUDENT_DATABASE, $LOCAL_DB_STUDENT_USERNAME, $LOCAL_DB_STUDENT_PASSWORD);
-        return $st_mgt_db->inputData($query, $params);
+        $student = $this->dm->inputData($query2, $params2);
+        if (empty($student)) return array("success" => false, "message" => "Failed to create a student account for applicant!");
+        return array("success" => true);
     }
 
     /**
@@ -2257,11 +2275,16 @@ class AdminController
         //return $data;
 
         // Save Data
-        $student = $this->addNewStudent($data);
-        if (empty($student)) return array("success" => false, "message" => "Failed to enroll applicant!");
+        $add_student_result = $this->addNewStudent($data);
+        if (!$add_student_result["success"]) return $add_student_result;
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
         return array("success" => true, "message" => "Applicant successfully enrolled!");
+    }
+
+    public function getEnrolledApplicantDetailsByAppNum($app_number): mixed
+    {
+        return $this->dm->getData("SELECT * FROM `student` WHERE `app_number` = :a", array(":a" => $app_number));
     }
 
     /**

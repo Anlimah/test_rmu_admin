@@ -213,23 +213,46 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                     <td style="padding: 4px 8px !important">
                                                         <?php
                                                         if (!empty($app_statuses)) {
-                                                            if ($app_statuses[0]["declined"]) { ?>
-                                                                <span class="badge rounded-pill text-bg-danger">DECLINED</span>
+                                                            if ($app_statuses[0]["enrolled"]) { ?>
+                                                                <span class="badge rounded-pill text-bg-primary">ENROLLED</span>
                                                             <?php } else if ($app_statuses[0]["admitted"]) { ?>
                                                                 <span class="badge rounded-pill text-bg-success">ADMITTED</span>
+                                                            <?php } else if ($app_statuses[0]["declined"]) { ?>
+                                                                <span class="badge rounded-pill text-bg-danger">DECLINED</span>
                                                             <?php } else if ($app_statuses[0]["reviewed"]) { ?>
                                                                 <span class="badge rounded-pill text-bg-warning">REVIEWED</span>
-                                                            <?php } else if ($app_statuses[0]["reviewed"]) { ?>
-                                                                <span class="badge rounded-pill text-bg-primary">ENROLLED</span>
                                                         <?php }
                                                         }
                                                         ?>
+                                                    </td>
+                                                    <td style="padding: 4px 8px !important; display:flex; justify-content:flex-end;">
+                                                        <?php if (!empty($app_statuses) && $app_statuses[0]["admitted"]) { ?>
+                                                            <?php if (!$app_statuses[0]["enrolled"]) { ?>
+                                                                <form method="post" style="width:100px;" id="enrollAppForm">
+                                                                    <button class="btn btn-outline-success btn-xs" id="enroll-app-check" style="width:100%;" type="submit">
+                                                                        <span class="bi bi-check2-square"></span> <b id="enrollAppBtn-text">Enroll</b>
+                                                                    </button>
+                                                                    <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
+                                                                    <input type="hidden" name="app-prog" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
+                                                                </form>
+                                                            <?php } ?>
+                                                            <?php if ($app_statuses[0]["enrolled"]) { ?>
+                                                                <form method="post" style="width:100px;" id="sendFilesForm">
+                                                                    <input type="file" name="send-files" id="send-files" multiple style="display: none;">
+                                                                    <button class="btn btn-outline-dark btn-xs" id="send-files-check" style="width:100%" for="send-files">
+                                                                        <span class="bi bi-file-text"></span> <b id="sendBtn-text">Send Files</b>
+                                                                    </button>
+                                                                    <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
+                                                                    <input type="hidden" name="programme-awarded" id="programme-awarded" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
+                                                                </form>
+                                                            <?php } ?>
+                                                        <?php } ?>
                                                     </td>
                                                 </tr>
 
                                                 <tr>
                                                     <td style="width: 100px; padding: 4px 8px !important"><b>PROGRAMME:</b> </td>
-                                                    <td style="padding: 4px 8px !important">
+                                                    <td style="padding: 4px 8px !important" colspan="2">
                                                         <?php
                                                         if (!empty($app_statuses)) {
                                                             if ($app_statuses[0]["programme_awarded"]) { ?>
@@ -241,30 +264,22 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                         ?>
                                                     </td>
                                                 </tr>
+
+                                                <?php if (!empty($app_statuses) && $app_statuses[0]["enrolled"]) { ?>
+                                                    <tr>
+                                                        <td style="width: 100px; padding: 4px 8px !important"><b>INDEX No.:</b> </td>
+                                                        <td style="padding: 4px 8px !important" colspan="2">
+                                                            <?php
+                                                            $student = $admin->getEnrolledApplicantDetailsByAppNum($app_number[0]["app_number"]);
+                                                            if (!empty($student)) { ?>
+                                                                <span><?= $student[0]["index_number"] ?></span>
+                                                            <?php } else { ?>
+                                                                <span>N/A</span>
+                                                            <?php } ?>
+                                                        </td>
+                                                    </tr>
+                                                <?php } ?>
                                             </table>
-
-                                            <div style="flex-grow: 4;">
-                                                <div style="display: flex; flex-direction:column; justify-content: flex-start;">
-                                                    <?php if (!empty($app_statuses) && $app_statuses[0]["admitted"]) { ?>
-                                                        <form method="post" style="width:100px;" id="enrollAppForm">
-                                                            <button class="btn btn-outline-success btn-xs" id="enroll-app-check" style="width:100%;" type="submit">
-                                                                <span class="bi bi-check2-square"></span> <b id="enrollAppBtn-text">Enroll</b>
-                                                            </button>
-                                                            <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
-                                                            <input type="hidden" name="app-prog" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
-                                                        </form>
-                                                        <form method="post" style="width:100px; margin-top: 10px" id="sendFilesForm">
-                                                            <input type="file" name="send-files" id="send-files" multiple style="display: none;">
-                                                            <button class="btn btn-outline-dark btn-xs" id="send-files-check" style="width:100%" for="send-files">
-                                                                <span class="bi bi-file-text"></span> <b id="sendBtn-text">Send Files</b>
-                                                            </button>
-                                                            <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
-                                                            <input type="hidden" name="programme-awarded" id="programme-awarded" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
-                                                        </form>
-                                                    <?php } ?>
-                                                </div>
-                                            </div>
-
                                         </div>
                                         <div style="display: flex; justify-content: flex-end; padding: 15px; border-radius:15px">
                                             <a style="width: 100px" class="btn btn-primary btn-sm" target="_blank" href="../download-appData.php?<?= "t=" . $_GET["t"] . "&q=" . $_GET["q"] ?>">
@@ -757,6 +772,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                             window.location.href = "?logout=true";
                             return;
                         } else {
+                            result.success ? $("#admit-applicant-btn").fadeIn(1000) : $("#admit-applicant-btn").fadeOut(1000)
                             $("#app-prog-id-check").val(result.data);
                             $("#app-prog-availability-check-msg").text(result.message);
                             $("#app-prog-availability-check").attr("class", result.success ? "col-3 form-control form-control-sm bg-success" : "col-3 form-control form-control-sm bg-danger");
@@ -803,8 +819,13 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                         processData: false,
                         success: function(result) {
                             console.log(result);
-                            if (result.message == "logout") window.location.href = "?logout=true";
-                            else alert(result.message);
+                            if (!result.success && result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            } else {
+                                alert(result.message);
+                                if (result.success) window.location.reload();
+                            }
                         },
                         error: function(error) {
                             console.log(error);
@@ -923,12 +944,14 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                     processData: false,
                     success: function(result) {
                         console.log(result);
-                        if (result.message == "logout") {
+                        if (!result.success && result.message == "logout") {
                             window.location.href = "?logout=true";
                             return;
+                        } else {
+                            alert(result.message);
+                            $("#enrollAppBtn-text").text("Enroll");
+                            if (result.success) window.location.reload();
                         }
-                        alert(result.message);
-                        $("#enrollAppBtn-text").text("Enroll");
                     },
                     error: function(error) {
                         console.log(error);

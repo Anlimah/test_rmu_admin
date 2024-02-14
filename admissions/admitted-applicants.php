@@ -158,11 +158,8 @@ require_once('../inc/page-data.php');
                 });
             }
 
-            var fetchBroadsheet = function() {
-                data = {
-                    "cert-type": $("#cert-type").val(),
-                    "prog-type": $("#prog-type").val(),
-                }
+            var fetchBroadsheet = function(data) {
+                console.log(data);
 
                 $.ajax({
                     type: "POST",
@@ -207,19 +204,17 @@ require_once('../inc/page-data.php');
 
             let triggeredBy = 0;
 
-            $("#fetchDataForm").on("submit", function(e) {
-                e.preventDefault();
-                triggeredBy = 1;
-                fetchBroadsheet();
-            });
-
             $("#cert-type, #prog-type").change("blur", function() {
+                let data = {
+                    "cert-type": $("#cert-type").val()
+                };
                 if (this.dataset.id === "cert") {
-                    fetchPrograms({
-                        "cert-type": $("#cert-type").val()
-                    });
+                    fetchPrograms(data);
+                    data["prog-type"] = "";
                 }
-                $("#fetchDataForm").submit();
+                if (this.dataset.id === "prog") data["prog-type"] = $("#prog-type").val();
+
+                fetchBroadsheet(data);
             });
 
             $(document).on({

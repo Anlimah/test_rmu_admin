@@ -2,7 +2,7 @@
 
 namespace Src\System;
 
-use Exception;
+use PDOException;
 use Src\System\DatabaseConnector;
 
 class DatabaseMethods
@@ -10,6 +10,7 @@ class DatabaseMethods
     private $conn;
     private $stmt;
     private $query;
+    private $params;
 
     function __construct($db, $user, $pass)
     {
@@ -18,57 +19,18 @@ class DatabaseMethods
 
     private function query($str, $params = array())
     {
-        $this->query = $str;
-        $stmt = $this->conn->prepare($str);
-        $stmt->execute($params);
-        if (explode(' ', $str)[0] == 'SELECT' || explode(' ', $str)[0] == 'CALL') {
-            return $stmt->fetchAll();
-        } elseif (explode(' ', $str)[0] == 'INSERT' || explode(' ', $str)[0] == 'UPDATE' || explode(' ', $str)[0] == 'DELETE') {
-            return 1;
-        }
-    }
-
-    public function run($query, $params = [])
-    {
         try {
-            $stmt = $this->conn->prepare($query);
+            $this->query = $str;
+            $stmt = $this->conn->prepare($str);
             $stmt->execute($params);
-            return $this->stmt;
-        } catch (Exception $e) {
-            throw $e;
+            if (explode(' ', $str)[0] == 'SELECT' || explode(' ', $str)[0] == 'CALL') {
+                return $stmt->fetchAll();
+            } elseif (explode(' ', $str)[0] == 'INSERT' || explode(' ', $str)[0] == 'UPDATE' || explode(' ', $str)[0] == 'DELETE') {
+                return 1;
+            }
+        } catch (PDOException $e) {
+            exit(json_encode(array("error" => $e->getMessage())));
         }
-    }
-
-    public function all()
-    {
-        if (explode(' ', $this->query)[0] == 'SELECT') return $this->stmt->fetchAll();
-    }
-
-    public function one()
-    {
-        if (explode(' ', $this->query)[0] == 'SELECT') return $this->stmt->fetch();
-    }
-
-    public function add($autoIncrementColumn = null, $primaryKeyValue = null)
-    {
-        if (explode(' ', $this->query)[0] == 'INSERT') {
-            if ($autoIncrementColumn) return $this->conn->lastInsertId($autoIncrementColumn);
-            else if ($primaryKeyValue !== null) return $primaryKeyValue;
-            else return true;
-        }
-        return false;
-    }
-
-    public function remove()
-    {
-        if (explode(' ', $this->query)[0] == 'DELETE') return $this->stmt->rowCount();
-        return false;
-    }
-
-    public function edit()
-    {
-        if (explode(' ', $this->query)[0] == 'UPDATE') return $this->stmt->rowCount();
-        return false;
     }
 
     //Get raw data from db
@@ -105,5 +67,56 @@ class DatabaseMethods
         } catch (\Exception $e) {
             echo $e->getMessage();
         }
+    }
+
+    public function run($query, $params = [])
+    {
+        $this->query = $query;
+        $this->params = $params;
+
+        try {
+            $this->stmt = $this->conn->prepare($this->query);
+            $this->stmt->execute($this->params);
+            return $this->stmt;
+        } catch (PDOException $e) {
+            exit(json_encode(array("error" => $e->getMessage())));
+        }
+    }
+
+    private function type(): mixed
+    {
+        return explode(' ', $this->query)[0];
+    }
+
+    public function all()
+    {
+        if ($this->type() == 'SELECT') return $this->stmt->fetchAll();
+    }
+
+    public function one()
+    {
+        if ($this->type() == 'SELECT') return $this->stmt->fetch();
+    }
+
+    public function add($autoIncrementColumn = null, $primaryKeyValue = null)
+    {
+        if ($this->type() == 'INSERT') {
+            if ($autoIncrementColumn) return $this->conn->lastInsertId($autoIncrementColumn);
+            else if ($primaryKeyValue) return $primaryKeyValue;
+            else return true;
+        }
+        return false;
+    }
+
+    public function remove()
+    {
+        if ($this->type() == 'DELETE') return $this->stmt->rowCount();
+        return false;
+    }
+
+    public function edit()
+    {
+        if ($this->type() == 'UPDATE') return $this->stmt->rowCount();
+        return false;
     }
 }

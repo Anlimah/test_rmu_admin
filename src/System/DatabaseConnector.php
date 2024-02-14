@@ -13,14 +13,13 @@ class DatabaseConnector
     {
         $host = getenv('DB_HOST');
         $port = getenv('DB_PORT');
-
+        $dsn = "mysql:host=$host;port=$port;charset=utf8mb4;dbname=$db";
         try {
-            $this->conn = new PDO("mysql:host=$host;port=$port;charset=utf8mb4;dbname=$db", $user, $pass, [
-                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC
+            $this->conn = new PDO($dsn, $user, $pass, [
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC, PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION
             ]);
-            $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
         } catch (PDOException $e) {
-            exit($e->getMessage());
+            exit(json_encode(array("error" => $e->getMessage())));
         }
     }
 
