@@ -316,7 +316,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     }
 
     //
-    elseif ($_GET["url"] == "getAllAdmittedApplicants") {
+    elseif ($_GET["url"] == "getAllEnrolledApplicants") {
 
         if (!isset($_POST["cert-type"]) || !isset($_POST["prog-type"]))
             die(json_encode(array("success" => false, "message" => "Invalid input field")));
@@ -324,7 +324,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Missing input field")));
 
         //$result = $admin->getAllAdmittedApplicantsAllAll($_POST["cert-type"]);
-        $result = $admin->fetchAllAdmittedApplicantsData($_POST["cert-type"], $_POST["prog-type"]);
+        $result = $admin->fetchAllEnrolledApplicantsData($_POST["cert-type"], $_POST["prog-type"]);
         if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found!")));
         die(json_encode(array("success" => true, "message" => $result)));
     }

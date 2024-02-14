@@ -187,26 +187,26 @@ $adminSetup = true;
                             </div>
                         </div><!-- End Broadsheets Card -->
 
-                        <!-- Admitted Applicants -->
+                        <!-- Enrolled Applicants -->
                         <div class="col-xxl-3 col-md-3">
                             <div class="card info-card">
                                 <div class="card-body">
-                                    <a href="admitted-applicants.php" style="text-decoration: none;">
-                                        <h5 class="card-title">Admitted Applicants</h5>
+                                    <a href="enrolled-applicants.php" style="text-decoration: none;">
+                                        <h5 class="card-title">Enrolled Applicants</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">List of all admitted applicants</span>
+                                                <span class="text-muted small pt-2 ps-1">List of enrolled applicants</span>
                                             </div>
                                         </div>
                                     </a>
                                 </div>
                             </div>
-                        </div><!-- End Admitted Applicants -->
+                        </div><!-- End Enrolled Applicants -->
 
-                        <!-- Admitted Applicants -->
+                        <!-- Declined Applicants -->
                         <div class="col-xxl-3 col-md-3">
                             <div class="card info-card">
                                 <div class="card-body">
@@ -223,9 +223,9 @@ $adminSetup = true;
                                     </a>
                                 </div>
                             </div>
-                        </div><!-- End Admitted Applicants -->
+                        </div><!-- End Declined Applicants -->
 
-                        <!-- Admitted Students Card -->
+                        <!-- Broadsheet Card -->
                         <div class="col-xxl-3 col-md-3">
                             <div class="card info-card text-success">
                                 <div class="card-body">
@@ -243,9 +243,9 @@ $adminSetup = true;
                                 </div>
                             </div>
                         </div>
-                        <!-- End Admitted Students Card -->
+                        <!-- End Broadsheet Card -->
 
-                        <!-- Applications Card -->
+                        <!-- Settings Card -->
                         <div class="col-xxl-3 col-md-3">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
@@ -262,7 +262,7 @@ $adminSetup = true;
                                     </a>
                                 </div>
                             </div>
-                        </div><!-- End Applications Card -->
+                        </div><!-- End Settings Card -->
 
                     </div>
                 </div><!-- Forms Sales Card  -->

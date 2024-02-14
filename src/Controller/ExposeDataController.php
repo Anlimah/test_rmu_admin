@@ -248,14 +248,14 @@ class ExposeDataController extends DatabaseMethods
         return $this->getData("SELECT * FROM `halls`");
     }
 
-    public function sendEmail($recipient_email, $subject, $message)
+    public function sendEmail($recipient_email, $subject, $message, $file_path = [])
     {
         //PHPMailer Object
         $mail = new PHPMailer(true); //Argument true in constructor enables exceptions
 
         //From email address and name
         $mail->From = "rmuicton@rmuictonline.com";
-        $mail->FromName = "rmuicton";
+        $mail->FromName = "RMU";
 
         //To address and name
         $mail->addAddress($recipient_email);
@@ -265,6 +265,13 @@ class ExposeDataController extends DatabaseMethods
 
         $mail->Subject = $subject;
         $mail->Body = $message;
+
+        // Add attachment if file path is provided
+        if (!empty($file_path)) {
+            foreach ($file_path as $path) {
+                $mail->addAttachment($path);
+            }
+        }
 
         try {
             if ($mail->send()) return 1;

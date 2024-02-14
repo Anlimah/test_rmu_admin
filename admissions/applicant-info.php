@@ -750,7 +750,6 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                 }
             });
 
-
             $(".app-prog-admit").on("click", function() {
                 let prog = $(this).val();
                 $("#app-prog, #app-prog-check").val(prog);

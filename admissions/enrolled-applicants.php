@@ -54,11 +54,11 @@ require_once('../inc/page-data.php');
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Admitted Applicants</h1>
+            <h1>Enrolled Applicants</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Admitted Applicants</li>
+                    <li class="breadcrumb-item active">Enrolled Applicants</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
@@ -73,13 +73,13 @@ require_once('../inc/page-data.php');
 
                         <div class="filter">
                             <span id="dbs-progress"></span>
-                            <a class="icon" id="download-bs" href="javascript:void()" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Download Broadsheets">
+                            <a class="icon" id="download-bs" href="javascript:void(0)" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Download Broadsheets">
                                 <i class="bi bi-download"></i>
                             </a>
                         </div>
 
                         <div class="card-body">
-                            <h5 class="card-title">Admitted Applicants</h5>
+                            <h5 class="card-title">Enrolled Applicants</h5>
                             <form id="fetchDataForm" class="mb-4">
                                 <div class="row" style="justify-content: baseline; align-items: center">
                                     <div class="col-3">
@@ -104,6 +104,7 @@ require_once('../inc/page-data.php');
                                 <thead>
                                     <tr class="table-dark">
                                         <th scope="col">#</th>
+                                        <th scope="col">Index No.</th>
                                         <th scope="col">Full Name</th>
                                         <th scope="col">Programme</th>
                                         <th scope="col">Application Term</th>
@@ -129,6 +130,8 @@ require_once('../inc/page-data.php');
 
     <script>
         $(document).ready(function() {
+
+            var data;
 
             var fetchPrograms = function(data) {
                 $.ajax({
@@ -163,7 +166,7 @@ require_once('../inc/page-data.php');
 
                 $.ajax({
                     type: "POST",
-                    url: "../endpoint/getAllAdmittedApplicants",
+                    url: "../endpoint/getAllEnrolledApplicants",
                     data: data,
                     success: function(result) {
                         console.log(result);
@@ -171,18 +174,15 @@ require_once('../inc/page-data.php');
                         if (result.success) {
                             $("tbody").html('');
                             $.each(result.message, function(index, value) {
-                                let programme;
-                                if (value.first_prog_qualified == 1) programme = value.first_prog;
-                                else if (value.second_prog_qualified == 1) programme = value.second_prog;
-
                                 $("tbody").append(
                                     '<tr>' +
                                     '<th scope="row">' + (index + 1) + '</th>' +
-                                    '<td>' + value.first_name + ' ' + value.last_name + '</td>' +
-                                    '<td>' + programme + '</td>' +
-                                    '<td>' + value.application_term + '</td>' +
-                                    '<td>' + value.study_stream + '</td>' +
-                                    '<td><b><a href="applicant-info.php?t=' + value.form_id + '&q=' + value.id + '">Open</a></b></td>' +
+                                    '<td>' + value.index_number + '</td>' +
+                                    '<td>' + value.full_name + '</td>' +
+                                    '<td>' + value.program_name + '</td>' +
+                                    '<td>' + value.term_admitted + '</td>' +
+                                    '<td>' + value.stream_admitted + '</td>' +
+                                    '<td><b><a href="applicant-info.php?t=' + value.program_type + '&c=' + data["cert-type"] + '&q=' + value.fk_applicant + '">Open</a></b></td>' +
                                     '</tr>'
                                 );
                             });
@@ -193,7 +193,7 @@ require_once('../inc/page-data.php');
                                 window.location.href = "?logout=true";
                                 return;
                             }
-                            $("tbody").html("<tr style='text-align: center'><td colspan='5'>No entries found</td></tr>");
+                            $("tbody").html("<tr style='text-align: center'><td colspan='7'>No entries found</td></tr>");
                         }
                     },
                     error: function(error) {
@@ -205,7 +205,7 @@ require_once('../inc/page-data.php');
             let triggeredBy = 0;
 
             $("#cert-type, #prog-type").change("blur", function() {
-                let data = {
+                data = {
                     "cert-type": $("#cert-type").val()
                 };
                 if (this.dataset.id === "cert") {

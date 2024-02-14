@@ -2,6 +2,8 @@
 
 namespace Src\Controller;
 
+use Dompdf\Dompdf;
+use PhpOffice\PhpWord\IOFactory;
 use Src\System\DatabaseMethods;
 use Src\Controller\ExposeDataController;
 use Src\Controller\PaymentController;
@@ -1380,32 +1382,22 @@ class AdminController
         return $store;
     }
 
-    public function fetchAllAdmittedApplicantsData($cert_type, $prog_type)
+    public function fetchAllEnrolledApplicantsData($cert_type, $prog_type)
     {
-        $in_query = "";
-        if ($cert_type == "MASTERS") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'MASTERS')";
-        else if ($cert_type == "UPGRADERS") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'UPGRADE')";
-        else if ($cert_type == "DEGREE") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'DEGREE')";
-        else if ($cert_type == "DIPLOMA") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'DIPLOMA')";
-        else if ($cert_type == "SHORT") $in_query = "AND fs.programme_awarded IN (SELECT id FROM programs WHERE category = 'SHORT')";
-        else return array("success" => false, "message" => "No match found for this certificate type [{$cert_type}]");
-
         if (!empty($prog_type)) {
-            $in_query = "AND fs.programme_awarded = (SELECT id FROM programs WHERE id = $prog_type";
+            $query = "SELECT s.*, 
+            CONCAT(s.first_name, ' ', IF(s.middle_name <> '', CONCAT(s.middle_name, ' '), ''), s.last_name) AS full_name, 
+            p.`id` AS program_id, p.`name` AS program_name, p.`category` AS program_category, p.`type` AS program_type  
+            FROM `student` AS s, `programs` AS p WHERE s.`fk_program` = p.`id` AND p.`id` = :p";
+            $params = array(":p" => $prog_type);
+        } else if (!empty($cert_type)) {
+            $query = "SELECT s.*, 
+            CONCAT(s.first_name, ' ', IF(s.middle_name <> '', CONCAT(s.middle_name, ' '), ''), s.last_name) AS full_name, 
+            p.`id` AS program_id, p.`name` AS program_name, p.`category` AS program_category, p.`type` AS program_type  
+            FROM `student` AS s, `programs` AS p WHERE s.`fk_program` = p.`id` AND p.`category` = :c";
+            $params = array(":c" => $cert_type);
         }
-
-        $query = "SELECT 
-        CONCAT(ps.first_name, ' ', IFNULL(ps.middle_name, ''), ' ', ps.last_name) AS full_name, 
-        pi.application_term AS term, pi.study_stream AS stream, ap.id AS app_id 
-        FROM 
-        `form_sections_chek` AS fs, `personal_information` AS ps, `program_info` AS pi, `applicants_login` AS ap 
-        WHERE 
-        ap.id = ps.app_login AND ap.id = pi.app_login AND ap.id = fs.app_login AND 
-        fs.`admitted` = 1 $in_query";
-
-        $result = $this->dm->getData($query);
-        if (empty($result)) return array("success" => false, "message" => "No result found!");
-        return array("success" => true, "message" => $result);
+        return $this->dm->getData($query, $params);
     }
 
     public function fetchAllSubmittedApplicantsData($cert_type)
@@ -1899,12 +1891,22 @@ class AdminController
             }
 
             $template_processor = new TemplateProcessor($dir_path . $letter_type . '_template.docx');
-            $output_path = $program_applied . "{$letter_data['app_number']}.docx";
+            $word_output_path = $program_applied . "{$letter_data['app_number']}.docx";
 
             $template_processor->setValues($letter_data);
-            $template_processor->saveAs($output_path);
+            $template_processor->saveAs($word_output_path);
 
-            return ["success" => true, "message" => "Admission letter successfully generated!"];
+            // Convert the Word document to PDF
+            // $pdf_output_path = $program_applied . "{$letter_data['app_number']}.pdf";
+            // $phpWord = IOFactory::load($word_output_path);
+            // $phpWord->save($pdf_output_path, 'PDF');
+
+            return [
+                "success" => true,
+                "message" => "Admission letter successfully generated!",
+                "acceptance_form_path" => $dir_path . "acceptance_form.docx",
+                "letter_word_path" => $word_output_path
+            ];
         } catch (\Exception $e) {
             return ["success" => false, "message" => $e->getMessage()];
         }
@@ -1933,6 +1935,8 @@ class AdminController
                     "type" => "undergrade",
                     "period" => $admission_period,
                     "program" => $program_name,
+                    "phone_number" => $app_pers_info["phone_no1_code"] . $app_pers_info["phone_no1"],
+                    "email_address" => $app_pers_info["email_addr"],
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
                         'Full_Name' => ucwords(strtolower(!empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] . " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"])),
@@ -1976,6 +1980,8 @@ class AdminController
                     "type" => "postgrade",
                     "period" => $admission_period,
                     "program" => $program_name,
+                    "phone_number" => $app_pers_info["phone_no1_code"] . $app_pers_info["phone_no1"],
+                    "email_address" => $app_pers_info["email_addr"],
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
                         'Full_Name' => ucwords(strtolower(!empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] . " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"])),
@@ -2013,6 +2019,8 @@ class AdminController
                     "success" => true,
                     "type" => "upgrade",
                     "period" => $admission_period,
+                    "phone_number" => $app_pers_info["phone_no1_code"] . $app_pers_info["phone_no1"],
+                    "email_address" => $app_pers_info["email_addr"],
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
                         'Full_Name' => !empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] .  " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"],
@@ -2055,39 +2063,52 @@ class AdminController
         return $letter_data;
     }
 
-    private function updateAppicantAdmissionStatus($app_id, $prog_id): mixed
+    private function updateApplicantAdmissionStatus($app_id, $prog_id, $extras = []): mixed
     {
-        $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0, `programme_awarded` = :p WHERE `app_login` = :i";
+        $extras_query = "`emailed_letter` = 1, `notified_sms` = 1, ";
+        if (!empty($extras)) {
+            if (isset($extras["emailed_letter"]) && !empty($extras["emailed_letter"])) $extras_query .= "`emailed_letter` = 1, ";
+            if (isset($extras["notified_sms"]) && !empty($extras["notified_sms"])) $extras_query .= "`notified_sms` = 1, ";
+        }
+        $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0,{$extras} `programme_awarded` = :p WHERE `app_login` = :i";
         return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id)));
     }
 
-    private function sendAdmissionLetterViaEmail(): void
+    private function sendAdmissionLetterViaEmail($data, $file_paths = []): int
     {
+        $email = $data["email_address"];
+        $subject = "Your Admission to Regional Maritime University";
+        $message = "Admission ready";
+        $response = json_decode($this->expose->sendEmail($email, $subject, $message, $file_paths));
+        if (!empty($response) && is_int($response)) return 1;
+        return 0;
     }
 
-    private function notifyApplicantViaSMS(): void
+    private function notifyApplicantViaSMS($data): int
     {
+        $to = $data["phone_number"];
+        $message = "Admission ready";
+        $response = json_decode($this->expose->sendSMS($to, $message));
+        if (!$response->status) return 1;
+        return 0;
     }
 
     public function admitIndividualApplicant($appID, $prog_id, $stream_applied, bool $email_letter = false, bool $sms_notify = false)
     {
-        // if (!$continue) {
-        //     $a_res = $this->checkProgramStreamAvailability($appID, $progName);
-        //     if (!$a_res["success"]) return $a_res;
-        // }
-
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied);
         if (!$l_res["success"]) return $l_res;
 
         $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
         if (!$g_res["success"]) return $g_res;
 
-        $u_res = $this->updateAppicantAdmissionStatus($appID, $prog_id);
+        $file_paths = [];
+        array_push($file_paths, $g_res["letter_pdf_path"], $g_res["acceptance_form_path"]);
+        $status_update_extras = [];
+        //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
+
+        $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $status_update_extras);
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
-
-        if ($email_letter) $this->sendAdmissionLetterViaEmail($appID);
-        if ($sms_notify) $this->notifyApplicantViaSMS($appID);
-
         return array("success" => true, "message" => "Successfully admitted applicant!");
     }
 
