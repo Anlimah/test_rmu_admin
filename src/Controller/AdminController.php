@@ -3,7 +3,9 @@
 namespace Src\Controller;
 
 use Dompdf\Dompdf;
+use Dompdf\Options;
 use PhpOffice\PhpWord\IOFactory;
+use PhpOffice\PhpWord\Settings;
 use Src\System\DatabaseMethods;
 use Src\Controller\ExposeDataController;
 use Src\Controller\PaymentController;
@@ -30,7 +32,7 @@ class AdminController
     public function fetchVendorUsernameByUserID(int $user_id)
     {
         $query = "SELECT user_name FROM sys_users AS su, vendor_details AS vd WHERE su.id = vd.user_id AND vd.id = :ui";
-        return $this->dm->run($query, array(':ui' => $user_id))->one();
+        return $this->dm->getData($query, array(':ui' => $user_id));
     }
 
     public function resetUserPassword($user_id, $password)
@@ -38,7 +40,7 @@ class AdminController
         // Hash password
         $hashed_pw = password_hash($password, PASSWORD_DEFAULT);
         $query = "UPDATE sys_users SET `password` = :pw WHERE id = :id";
-        $query_result = $this->dm->run($query, array(":id" => $user_id, ":pw" => $hashed_pw))->update();
+        $query_result = $this->dm->getData($query, array(":id" => $user_id, ":pw" => $hashed_pw));
 
         if ($query_result) {
             $this->logActivity(
@@ -1874,7 +1876,7 @@ class AdminController
         }
     }
 
-    private function generateApplicantAdmissionLetter($letter_data, $letter_type = "undergrade", $admission_period = [], $program): array
+    private function generateApplicantAdmissionLetter($letter_data, $letter_type = "undergrade", $admission_period = [], $program): mixed
     {
         try {
             $dir_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR;
@@ -1897,15 +1899,20 @@ class AdminController
             $template_processor->saveAs($word_output_path);
 
             // Convert the Word document to PDF
-            // $pdf_output_path = $program_applied . "{$letter_data['app_number']}.pdf";
-            // $phpWord = IOFactory::load($word_output_path);
-            // $phpWord->save($pdf_output_path, 'PDF');
+            $vendor_path = ".." . DIRECTORY_SEPARATOR . "vendor" . DIRECTORY_SEPARATOR . 'dompdf' . DIRECTORY_SEPARATOR . 'dompdf';
+            Settings::setPdfRenderer(Settings::PDF_RENDERER_DOMPDF, $vendor_path);
+
+            $phpWord = IOFactory::load($word_output_path);
+            $pdf_output_path = $program_applied . "{$letter_data['app_number']}.pdf";
+            $pdfWriter = IOFactory::createWriter($phpWord, 'PDF');
+            $pdfWriter->save($pdf_output_path);
 
             return [
                 "success" => true,
                 "message" => "Admission letter successfully generated!",
                 "acceptance_form_path" => $dir_path . "acceptance_form.docx",
-                "letter_word_path" => $word_output_path
+                "letter_word_path" => $word_output_path,
+                "letter_pdf_path" => $pdf_output_path
             ];
         } catch (\Exception $e) {
             return ["success" => false, "message" => $e->getMessage()];
@@ -1951,7 +1958,7 @@ class AdminController
                         'Program_Length_2' => strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"]),
                         'Program_Offered_2' => (($prog_info["category"] === "DEGREE") ? "B.Sc " : "") . ucwords(strtolower($program_name)),
                         'Program_Type' => ucwords(strtolower($prog_info["category"])),
-                        'Program_Stream' => strtolower($stream_applied),
+                        'Program_Stream' => trim(strtolower($stream_applied)),
                         'No_of_Semesters' => $prog_info["num_of_semesters"] . " semesters",
 
                         'Commencement_Date' => (new \DateTime($static_letter_data["commencement_date"]))->format("l F j, Y"),
@@ -2070,7 +2077,7 @@ class AdminController
             if (isset($extras["emailed_letter"]) && !empty($extras["emailed_letter"])) $extras_query .= "`emailed_letter` = 1, ";
             if (isset($extras["notified_sms"]) && !empty($extras["notified_sms"])) $extras_query .= "`notified_sms` = 1, ";
         }
-        $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0,{$extras} `programme_awarded` = :p WHERE `app_login` = :i";
+        $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p WHERE `app_login` = :i";
         return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id)));
     }
 
@@ -2099,10 +2106,10 @@ class AdminController
         if (!$l_res["success"]) return $l_res;
 
         $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
-        if (!$g_res["success"]) return $g_res;
-
+        //if (!$g_res["success"]) return $g_res;
+        //return $g_res;
         $file_paths = [];
-        array_push($file_paths, $g_res["letter_pdf_path"], $g_res["acceptance_form_path"]);
+        array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
         $status_update_extras = [];
         //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);

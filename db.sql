@@ -1,3 +1,6 @@
+DROP TABLE IF EXISTS `course`;
+DROP TABLE IF EXISTS `student`;
+DROP TABLE IF EXISTS `department`;
 -- -----------------------------------------------------
 -- Table `academic_year`
 -- -----------------------------------------------------
@@ -29,7 +32,7 @@ DROP TABLE IF EXISTS `semester`;
 CREATE TABLE IF NOT EXISTS `semester` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `active` TINYINT(1) DEFAULT 1,
-  `name` VARCHAR(20) NOT NULL,
+  `name` INT NOT NULL,
   `course_registration_opened` TINYINT(1) DEFAULT 0,
   `archived` TINYINT(1) DEFAULT 0,
   `fk_academic_year` INT NULL,
@@ -48,12 +51,12 @@ INSERT INTO `semester` (`name`, `course_registration_opened`, `fk_academic_year`
 DROP TABLE IF EXISTS `department`;
 CREATE TABLE IF NOT EXISTS `department` (
   `id` INT NOT NULL AUTO_INCREMENT,
-  `name` VARCHAR(255) NOT NULL UNIQUE,
+  `name` VARCHAR(255) NOT NULL,
   `archived` TINYINT(1) DEFAULT 0,
   PRIMARY KEY (`id`)
 );
-CREATE INDEX department_name_idx1 ON `department` (`name`);
 CREATE INDEX department_archived_idx1 ON `department` (`archived`);
+INSERT INTO `department`(`name`) VALUES ('ICT'), ('MARINE'), ('NAUTICAL'), ('ELECTRICAL'), ('TRANSPORT');
 
 -- -----------------------------------------------------
 -- Table `course`
@@ -63,6 +66,8 @@ CREATE TABLE IF NOT EXISTS `course` (
   `code` VARCHAR(10) NOT NULL,
   `name` VARCHAR(255) NOT NULL,
   `credit_hours` INT DEFAULT 0,
+  `semester` INT NOT NULL,
+  `year` INT NOT NULL,
   `archived` TINYINT(1) DEFAULT 0,
   `fk_department` INT NULL,
   PRIMARY KEY (`code`),
@@ -70,6 +75,8 @@ CREATE TABLE IF NOT EXISTS `course` (
 );
 CREATE INDEX course_name_idx1 ON `course` (`name`);
 CREATE INDEX course_credit_hours_idx1 ON `course` (`credit_hours`);
+CREATE INDEX course_semester_idx1 ON `course` (`semester`);
+CREATE INDEX course_year_idx1 ON `course` (`year`);
 CREATE INDEX course_archived_idx1 ON `course` (`archived`);
 
 -- -----------------------------------------------------
@@ -130,11 +137,13 @@ CREATE TABLE IF NOT EXISTS `student` (
   `stream_admitted` VARCHAR(15) NOT NULL,
   `archived` TINYINT(1) DEFAULT 0,
   `fk_academic_year` INT NULL,
-  `fk_department` INT NOT NULL,
-  `fk_program` INT NOT NULL,
+  `fk_applicant` INT NULL,
+  `fk_department` INT NULL,
+  `fk_program` INT NULL,
   `fk_class` VARCHAR(10) NULL,
   PRIMARY KEY (`index_number`),
   CONSTRAINT `fk_student_academic_year1` FOREIGN KEY (`fk_academic_year`) REFERENCES `academic_year` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
+  CONSTRAINT `fk_student_applicant1` FOREIGN KEY (`fk_applicant`) REFERENCES `applicants_login` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
   CONSTRAINT `fk_student_department1` FOREIGN KEY (`fk_department`) REFERENCES `department` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
   CONSTRAINT `fk_student_program1` FOREIGN KEY (`fk_program`) REFERENCES `programs` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
   CONSTRAINT `fk_student_class1` FOREIGN KEY (`fk_class`) REFERENCES `class` (`code`) ON DELETE NO ACTION ON UPDATE CASCADE
