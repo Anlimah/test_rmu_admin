@@ -1229,7 +1229,7 @@ class AdminController
         $query = "SELECT COUNT(*) AS total 
                 FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id AND 
-                pd.form_id = ft.id AND fc.declaration = 1 AND fc.enrolled = 1 AND ft.id = :f";
+                pd.form_id = ft.id AND fc.declaration = 1 AND fc.admitted = 1 AND fc.enrolled = 1 AND ft.id = :f";
         return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
     }
 
@@ -2160,7 +2160,7 @@ class AdminController
             WHERE p.`id` = s.`fk_program` AND a.`id` = s.`fk_academic_year` AND 
             s.`fk_program` = :p AND s.`fk_academic_year` = :a AND s.`stream_admitted` = :s",
             array(":p" => $prog_id, ":a" => $academic_year_id, ":s" => $stream)
-        );
+        )[0]["total"];
     }
 
     private function createUndergradStudentIndexNumber($appID, $progID): mixed
@@ -2168,8 +2168,7 @@ class AdminController
         $progInfo = $this->fetchAllFromProgramWithDepartByProgID($progID)[0];
         $adminPeriodYear = $this->getAdmissionPeriodYearsByID($_SESSION["admin_period"]);
         $stream = $this->getAppProgDetailsByAppID($appID)[0]["study_stream"];
-
-        $stdCount = $this->getTotalEnrolledApplicants($progInfo["id"], $adminPeriodYear[0]["id"], $stream)[0]["total"] + 1;
+        $stdCount = $this->getTotalEnrolledApplicants($progInfo["id"], $adminPeriodYear[0]["fk_academic_year"], $stream) + 1;
 
         if ($stdCount <= 10) $numCount = "0000";
         elseif ($stdCount <= 100) $numCount = "000";
