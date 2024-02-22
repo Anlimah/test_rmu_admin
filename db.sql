@@ -165,7 +165,9 @@ CREATE TABLE IF NOT EXISTS `student` (
   CONSTRAINT `fk_student_program1` FOREIGN KEY (`fk_program`) REFERENCES `programs` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
   CONSTRAINT `fk_student_class1` FOREIGN KEY (`fk_class`) REFERENCES `class` (`code`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
-ALTER TABLE `student` ADD COLUMN `level_admitted` INT DEFAULT 100 AFTER `stream_admitted`;
+ALTER TABLE `student` 
+ADD COLUMN `level_admitted` INT DEFAULT 100 AFTER `stream_admitted`, 
+ADD COLUMN `default_password` TINYINT(1) DEFAULT 1 AFTER `level_admitted`;
 CREATE INDEX `student_phone_number_idx1` ON `student` (`phone_number`);
 CREATE INDEX `student_first_name_idx1` ON `student` (`first_name`);
 CREATE INDEX `student_last_name_idx1` ON `student` (`last_name`);
@@ -178,7 +180,7 @@ CREATE INDEX `student_date_admitted_idx1` ON `student` (`date_admitted`);
 CREATE INDEX `student_term_admitted_idx1` ON `student` (`term_admitted`);
 CREATE INDEX `student_stream_admitted_idx1` ON `student` (`stream_admitted`);
 CREATE INDEX `student_level_admitted_idx1` ON `student` (`level_admitted`);
-CREATE INDEX `student_academic_year_admitted_idx1` ON `student` (`academic_year_admitted`);
+CREATE INDEX `student_default_password_idx1` ON `student` (`default_password`);
 CREATE INDEX `student_archived_idx1` ON `student` (`archived`);
 
 -- -----------------------------------------------------
@@ -240,7 +242,9 @@ CREATE TABLE IF NOT EXISTS `course_registration` (
   CONSTRAINT `fk_course_registration_student1` FOREIGN KEY (`fk_student`) REFERENCES `student` (`index_number`) ON DELETE NO ACTION ON UPDATE CASCADE,
   CONSTRAINT `fk_course_registration_semester1` FOREIGN KEY (`fk_semester`) REFERENCES `semester` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
+ALTER TABLE `course_registration` ADD COLUMN `registered` TINYINT(1) DEFAULT 0 AFTER `fk_semester`;
 CREATE INDEX course_registration_archived_idx1 ON `course_registration` (`archived`);
+CREATE INDEX course_registration_registered_idx1 ON `course_registration` (`registered`);
 
 -- -----------------------------------------------------
 -- Table `staff`
