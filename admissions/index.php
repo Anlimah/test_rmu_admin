@@ -1,32 +1,6 @@
 <?php
 session_start();
 
-if (!isset($_SESSION["adminLogSuccess"]) || $_SESSION["adminLogSuccess"] == false || !isset($_SESSION["user"]) || empty($_SESSION["user"])) {
-    header("Location: ../index.php");
-}
-
-$isUser = false;
-if (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "developers") $isUser = true;
-
-if (isset($_GET['logout']) || !$isUser) {
-    session_destroy();
-    $_SESSION = array();
-    if (ini_get("session.use_cookies")) {
-        $params = session_get_cookie_params();
-        setcookie(
-            session_name(),
-            '',
-            time() - 42000,
-            $params["path"],
-            $params["domain"],
-            $params["secure"],
-            $params["httponly"]
-        );
-    }
-
-    header('Location: ../index.php');
-}
-
 $_SESSION["lastAccessed"] = time();
 
 require_once('../bootstrap.php');
