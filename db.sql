@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS `semester` (
   PRIMARY KEY (`id`),
   CONSTRAINT `fk_semester_academic_year1` FOREIGN KEY (`fk_academic_year`) REFERENCES `academic_year` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
+ALTER TABLE `semester` ADD COLUMN `registration_end` DATE DEFAULT CURRENT_DATE();
 CREATE INDEX semester_active_idx1 ON `semester` (`active`);
 CREATE INDEX semester_name_idx1 ON `semester` (`name`);
 CREATE INDEX semester_course_registration_opened_idx1 ON `semester` (`course_registration_opened`);
@@ -59,6 +60,19 @@ CREATE INDEX department_archived_idx1 ON `department` (`archived`);
 INSERT INTO `department`(`name`) VALUES ('ICT'), ('MARINE'), ('NAUTICAL'), ('ELECTRICAL'), ('TRANSPORT');
 
 -- -----------------------------------------------------
+-- Table `course_category`
+-- -----------------------------------------------------
+DROP TABLE IF EXISTS `course_category`;
+CREATE TABLE IF NOT EXISTS `course_category` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(25) NOT NULL UNIQUE,
+  `archived` TINYINT(1) DEFAULT 0,
+  PRIMARY KEY (`id`)
+);
+CREATE INDEX course_category_archived_idx1 ON `course_category` (`archived`);
+INSERT INTO `course_category`(`name`) VALUES ('compulsory'), ('elective');
+
+-- -----------------------------------------------------
 -- Table `course`
 -- -----------------------------------------------------
 DROP TABLE IF EXISTS `course`;
@@ -67,16 +81,19 @@ CREATE TABLE IF NOT EXISTS `course` (
   `name` VARCHAR(255) NOT NULL,
   `credit_hours` INT DEFAULT 0,
   `semester` INT NOT NULL,
-  `year` INT NOT NULL,
+  `level` INT NOT NULL,
   `archived` TINYINT(1) DEFAULT 0,
+  `fk_category` INT ,
   `fk_department` INT NULL,
   PRIMARY KEY (`code`),
   CONSTRAINT `fk_course_department1` FOREIGN KEY (`fk_department`) REFERENCES `department` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
+ALTER TABLE `course` ADD COLUMN `fk_category` INT AFTER `archived`,
+ADD CONSTRAINT `fk_course_category1` FOREIGN KEY (`fk_category`) REFERENCES `course_category` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 CREATE INDEX course_name_idx1 ON `course` (`name`);
 CREATE INDEX course_credit_hours_idx1 ON `course` (`credit_hours`);
 CREATE INDEX course_semester_idx1 ON `course` (`semester`);
-CREATE INDEX course_year_idx1 ON `course` (`year`);
+CREATE INDEX course_level_idx1 ON `course` (`level`);
 CREATE INDEX course_archived_idx1 ON `course` (`archived`);
 
 -- -----------------------------------------------------
@@ -148,6 +165,7 @@ CREATE TABLE IF NOT EXISTS `student` (
   CONSTRAINT `fk_student_program1` FOREIGN KEY (`fk_program`) REFERENCES `programs` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE,
   CONSTRAINT `fk_student_class1` FOREIGN KEY (`fk_class`) REFERENCES `class` (`code`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
+ALTER TABLE `student` ADD COLUMN `level_admitted` INT DEFAULT 100 AFTER `stream_admitted`;
 CREATE INDEX `student_phone_number_idx1` ON `student` (`phone_number`);
 CREATE INDEX `student_first_name_idx1` ON `student` (`first_name`);
 CREATE INDEX `student_last_name_idx1` ON `student` (`last_name`);
@@ -159,6 +177,7 @@ CREATE INDEX `student_disability_idx1` ON `student` (`disability`);
 CREATE INDEX `student_date_admitted_idx1` ON `student` (`date_admitted`);
 CREATE INDEX `student_term_admitted_idx1` ON `student` (`term_admitted`);
 CREATE INDEX `student_stream_admitted_idx1` ON `student` (`stream_admitted`);
+CREATE INDEX `student_level_admitted_idx1` ON `student` (`level_admitted`);
 CREATE INDEX `student_academic_year_admitted_idx1` ON `student` (`academic_year_admitted`);
 CREATE INDEX `student_archived_idx1` ON `student` (`archived`);
 
