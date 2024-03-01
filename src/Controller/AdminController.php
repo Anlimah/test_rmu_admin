@@ -2179,23 +2179,34 @@ class AdminController
 
     private function createUndergradStudentIndexNumber($appID, $progID): mixed
     {
-        $progInfo = $this->fetchAllFromProgramWithDepartByProgID($progID)[0];
+        $prog_data = $this->fetchAllFromProgramWithDepartByProgID($progID);
+        if (empty($prog_data)) return array(
+            "success" => false,
+            "message" => "Process terminated! Couldn't fetch applicant's program data"
+        );
+
         $adminPeriodYear = $this->getAdmissionPeriodYearsByID($_SESSION["admin_period"]);
 
         $startYear = (int) substr($adminPeriodYear[0]["sYear"], -2);
-        if ($progInfo["dur_format"] == "year") $completionYear = $startYear +  (int) $progInfo["duration"];
+        if ($prog_data[0]["dur_format"] == "year") $completionYear = $startYear +  (int) $prog_data[0]["duration"];
 
-        $class_code = $progInfo["index_code"] . $completionYear;
+        $class_code = $prog_data[0]["index_code"] . $completionYear;
         $class = $this->resolveClassByProgram($progID, $class_code);
         if (!$class["success"]) return $class;
 
-        $stream = $this->getAppProgDetailsByAppID($appID)[0]["study_stream"];
-        $index_code = $progInfo["index_code"];
+        $stream_data = $this->getAppProgDetailsByAppID($appID);
+        if (empty($stream)) return array(
+            "success" => false,
+            "message" => "Process terminated! Couldn't fetch applicant's stream data."
+        );
+
+        $stream = $stream_data[0]["study_stream"];
+        $index_code = $prog_data[0]["index_code"];
 
         //check whether it's regular or weekend
-        if (strtolower($stream) === "weekend") $index_code = substr($progInfo["index_code"], 0, 2) . "W";
+        if (strtolower($stream) === "weekend") $index_code = substr($prog_data[0]["index_code"], 0, 2) . "W";
 
-        $stdCount = $this->getTotalEnrolledApplicants($progInfo["id"], $adminPeriodYear[0]["fk_academic_year"], $stream) + 1;
+        $stdCount = $this->getTotalEnrolledApplicants($prog_data[0]["id"], $adminPeriodYear[0]["fk_academic_year"], $stream) + 1;
 
         if ($stdCount <= 10) $numCount = "0000";
         elseif ($stdCount <= 100) $numCount = "000";
@@ -2208,8 +2219,8 @@ class AdminController
         return array(
             "index_number" => $indexNumber,
             "class" => $class_code,
-            "program" => $progInfo["id"],
-            "department" => $progInfo["department_id"],
+            "program" => $prog_data[0]["id"],
+            "department" => $prog_data[0]["department_id"],
             "stream" => $stream,
             "academic_year" => $adminPeriodYear[0]["fk_academic_year"]
         );
