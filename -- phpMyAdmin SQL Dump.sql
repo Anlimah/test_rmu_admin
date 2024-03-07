@@ -46,7 +46,7 @@ CREATE TABLE `academic_background` (
   `awaiting_result` tinyint(4) DEFAULT 0,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `app_login` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `academic_background`
@@ -1159,7 +1159,7 @@ CREATE TABLE `activity_logs` (
   `operation` enum('INSERT','UPDATE','DELETE') NOT NULL,
   `description` text NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `activity_logs`
@@ -2465,7 +2465,7 @@ CREATE TABLE `admission_period` (
   `active` tinyint(4) DEFAULT 0,
   `fk_academic_year` int(11) DEFAULT NULL,
   `closed` tinyint(4) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `admission_period`
@@ -2487,7 +2487,7 @@ CREATE TABLE `api_request_logs` (
   `route` varchar(255) DEFAULT NULL,
   `added_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `api_user` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `api_request_logs`
@@ -2727,7 +2727,7 @@ CREATE TABLE `api_users` (
   `password` varchar(255) NOT NULL,
   `vendor_id` int(11) NOT NULL,
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `api_users`
@@ -2751,7 +2751,7 @@ CREATE TABLE `applicants_login` (
   `deleted` tinyint(1) DEFAULT 1,
   `added_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `purchase_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `applicants_login`
@@ -3807,7 +3807,7 @@ CREATE TABLE `applicant_uploads` (
   `linked_to` int(11) DEFAULT NULL,
   `app_login` int(11) NOT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `applicant_uploads`
@@ -5603,7 +5603,7 @@ CREATE TABLE `broadsheets` (
   `total_elective_score` int(11) NOT NULL,
   `total_score` int(11) NOT NULL,
   `program_choice` varchar(15) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 -- --------------------------------------------------------
 
@@ -5775,7 +5775,7 @@ INSERT INTO `department` (`id`, `name`, `archived`) VALUES
 CREATE TABLE `downloaded_awaiting_results` (
   `id` int(11) NOT NULL,
   `admission_number` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `downloaded_awaiting_results`
@@ -5940,7 +5940,7 @@ CREATE TABLE `fail_payment_logs` (
   `log_data` text DEFAULT NULL,
   `error_message` text DEFAULT NULL,
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `fail_payment_logs`
@@ -5962,7 +5962,7 @@ CREATE TABLE `forms` (
   `form_category` int(11) NOT NULL,
   `name` varchar(120) DEFAULT NULL,
   `amount` decimal(6,2) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `forms`
@@ -5984,7 +5984,7 @@ INSERT INTO `forms` (`id`, `form_category`, `name`, `amount`) VALUES
 CREATE TABLE `form_categories` (
   `id` int(11) NOT NULL,
   `name` varchar(50) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `form_categories`
@@ -6017,7 +6017,7 @@ CREATE TABLE `form_sections_chek` (
   `emailed_letter` tinyint(1) DEFAULT 0,
   `programme_awarded` int(11) DEFAULT NULL,
   `app_login` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `form_sections_chek`
@@ -7067,7 +7067,7 @@ CREATE TABLE `grades` (
   `id` int(11) NOT NULL,
   `grade` varchar(2) NOT NULL,
   `type` varchar(15) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `grades`
@@ -7115,7 +7115,7 @@ CREATE TABLE `halls` (
   `id` int(11) NOT NULL,
   `name` varchar(255) NOT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `halls`
@@ -7136,7 +7136,7 @@ CREATE TABLE `heard_about_us` (
   `medium` varchar(50) NOT NULL,
   `description` varchar(50) DEFAULT NULL,
   `app_login` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `heard_about_us`
@@ -8187,7 +8187,7 @@ CREATE TABLE `high_school_results` (
   `subject` varchar(100) NOT NULL,
   `grade` varchar(2) NOT NULL,
   `acad_back_id` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `high_school_results`
@@ -11552,7 +11552,7 @@ CREATE TABLE `high_sch_subjects` (
   `id` int(11) NOT NULL,
   `type` varchar(10) NOT NULL,
   `subject` varchar(25) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `high_sch_subjects`
@@ -11625,7 +11625,7 @@ CREATE TABLE `high_shcool_courses` (
   `id` int(11) NOT NULL,
   `type` varchar(10) DEFAULT NULL,
   `course` varchar(25) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `high_shcool_courses`
@@ -11662,7 +11662,7 @@ CREATE TABLE `lecture` (
 CREATE TABLE `payment_method` (
   `id` int(11) NOT NULL,
   `name` varchar(15) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `payment_method`
@@ -11723,7 +11723,7 @@ CREATE TABLE `personal_information` (
   `e_contact_email` varchar(200) DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `app_login` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `personal_information`
@@ -12791,7 +12791,7 @@ CREATE TABLE `previous_uni_records` (
   `reasons` text DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `app_login` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `previous_uni_records`
@@ -13855,7 +13855,7 @@ CREATE TABLE `programs` (
   `group` char(1) DEFAULT NULL,
   `archived` tinyint(1) DEFAULT 0,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `programs`
@@ -13925,7 +13925,7 @@ CREATE TABLE `program_info` (
   `study_stream` varchar(15) DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `app_login` int(11) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `program_info`
@@ -14995,7 +14995,7 @@ CREATE TABLE `purchase_detail` (
   `deleted` tinyint(1) DEFAULT 0,
   `sms_sent` tinyint(1) DEFAULT 0,
   `email_sent` tinyint(1) DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `purchase_detail`
@@ -17010,7 +17010,7 @@ CREATE TABLE `semester` (
   `course_registration_opened` tinyint(1) DEFAULT 0,
   `archived` tinyint(1) DEFAULT 0,
   `fk_academic_year` int(11) DEFAULT NULL,
-  `registration_end` date DEFAULT curdate()
+  `registration_end` date DEFAULT CURRENT_DATE()
 );
 
 --
@@ -17125,7 +17125,7 @@ CREATE TABLE `success_payment_logs` (
   `category` varchar(50) NOT NULL,
   `log_data` text DEFAULT NULL,
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `success_payment_logs`
@@ -17675,7 +17675,7 @@ CREATE TABLE `sys_users` (
   `role` varchar(20) NOT NULL,
   `type` varchar(5) DEFAULT 'user',
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `sys_users`
@@ -17785,7 +17785,7 @@ CREATE TABLE `sys_users_privileges` (
   `update` tinyint(1) NOT NULL DEFAULT 0,
   `delete` tinyint(1) NOT NULL DEFAULT 0,
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `sys_users_privileges`
@@ -17896,7 +17896,7 @@ CREATE TABLE `ussd_activity_logs` (
   `ussd_body` varchar(255) DEFAULT NULL,
   `nw_code` varchar(2) DEFAULT NULL,
   `timestamp` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `ussd_activity_logs`
@@ -20823,7 +20823,7 @@ CREATE TABLE `ussd_request_logs` (
   `id` int(11) NOT NULL,
   `request` text DEFAULT NULL,
   `added_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `ussd_request_logs`
@@ -22055,7 +22055,7 @@ CREATE TABLE `vendor_details` (
   `added_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `user_id` int(11) DEFAULT NULL,
   `api_user` int(11) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+);
 
 --
 -- Dumping data for table `vendor_details`
