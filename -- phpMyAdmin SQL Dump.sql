@@ -17010,7 +17010,7 @@ CREATE TABLE `semester` (
   `course_registration_opened` tinyint(1) DEFAULT 0,
   `archived` tinyint(1) DEFAULT 0,
   `fk_academic_year` int(11) DEFAULT NULL,
-  `registration_end` date DEFAULT CURRENT_DATE()
+  `registration_end` date GENERATED ALWAYS AS (DATE(CURRENT_TIMESTAMP())) STORED
 );
 
 --
