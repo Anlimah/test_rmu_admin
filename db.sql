@@ -259,7 +259,10 @@ CREATE TABLE IF NOT EXISTS `course_registration` (
   CONSTRAINT `fk_course_registration_student1` FOREIGN KEY (`fk_student`) REFERENCES `student` (`index_number`) ON DELETE NO ACTION ON UPDATE CASCADE,
   CONSTRAINT `fk_course_registration_semester1` FOREIGN KEY (`fk_semester`) REFERENCES `semester` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
-ALTER TABLE `course_registration` ADD COLUMN `registered` TINYINT(1) DEFAULT 0 AFTER `fk_semester`;
+ALTER TABLE `course_registration` 
+ADD COLUMN `registered` TINYINT(1) DEFAULT 0 AFTER `fk_semester`,
+ADD COLUMN `fk_semester_registered` INT AFTER `fk_semester`,
+ADD CONSTRAINT `fk_course_registration_semester2` FOREIGN KEY (`fk_semester_registered`) REFERENCES `semester` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 CREATE INDEX course_registration_archived_idx1 ON `course_registration` (`archived`);
 CREATE INDEX course_registration_registered_idx1 ON `course_registration` (`registered`);
 

@@ -255,14 +255,13 @@ class ExposeDataController extends DatabaseMethods
 
         //From email address and name
         $mail->From = "rmuicton@rmuictonline.com";
-        $mail->FromName = "RMU";
+        $mail->FromName = "Regional Maritime University";
 
         //To address and name
         $mail->addAddress($recipient_email);
 
         //Send HTML or Plain Text email
         $mail->isHTML(true);
-
         $mail->Subject = $subject;
         $mail->Body = $message;
 

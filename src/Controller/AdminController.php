@@ -2072,26 +2072,34 @@ class AdminController
 
     private function updateApplicantAdmissionStatus($app_id, $prog_id, $extras = []): mixed
     {
-        $extras_query = "`emailed_letter` = 1, `notified_sms` = 1, ";
+        $extras_query = "";
         if (!empty($extras)) {
-            if (isset($extras["emailed_letter"]) && !empty($extras["emailed_letter"])) $extras_query .= "`emailed_letter` = 1, ";
-            if (isset($extras["notified_sms"]) && !empty($extras["notified_sms"])) $extras_query .= "`notified_sms` = 1, ";
+            $extras_query = "`emailed_letter` = 1, `notified_sms` = 1, ";
+        } else {
+            if (isset($extras["emailed_letter"])) {
+                if (empty($extras["emailed_letter"])) $extras_query .= "`emailed_letter` = 0, ";
+                else $extras_query .= "`emailed_letter` = 1, ";
+            }
+            if (isset($extras["notified_sms"])) {
+                if (empty($extras["notified_sms"])) $extras_query .= "`notified_sms` = 0, ";
+                else $extras_query .= "`notified_sms` = 1, ";
+            }
         }
         $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p WHERE `app_login` = :i";
         return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id)));
     }
 
-    private function sendAdmissionLetterViaEmail($data, $file_paths = []): int
+    private function sendAdmissionLetterViaEmail($data, $file_paths = []): mixed
     {
         $email = $data["email_address"];
         $subject = "Your Admission to Regional Maritime University";
-        $message = "Admission ready";
-        $response = json_decode($this->expose->sendEmail($email, $subject, $message, $file_paths));
+        $message = "Congratulations! Admission ready";
+        $response = $this->expose->sendEmail($email, $subject, $message, $file_paths);
         if (!empty($response) && is_int($response)) return 1;
         return 0;
     }
 
-    private function notifyApplicantViaSMS($data): int
+    private function notifyApplicantViaSMS($data): mixed
     {
         $to = $data["phone_number"];
         $message = "Admission ready";
@@ -2111,7 +2119,8 @@ class AdminController
         $file_paths = [];
         array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
         $status_update_extras = [];
-        //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        return array("success" => true, "message" => $status_update_extras["emailed_letter"]);
         if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $status_update_extras);
@@ -2195,7 +2204,7 @@ class AdminController
         if (!$class["success"]) return $class;
 
         $stream_data = $this->getAppProgDetailsByAppID($appID);
-        if (empty($stream)) return array(
+        if (empty($stream_data)) return array(
             "success" => false,
             "message" => "Process terminated! Couldn't fetch applicant's stream data."
         );
@@ -2217,12 +2226,15 @@ class AdminController
         $indexNumber = $index_code . $numCount . $stdCount . $completionYear;
 
         return array(
-            "index_number" => $indexNumber,
-            "class" => $class_code,
-            "program" => $prog_data[0]["id"],
-            "department" => $prog_data[0]["department_id"],
-            "stream" => $stream,
-            "academic_year" => $adminPeriodYear[0]["fk_academic_year"]
+            "success" => true,
+            "message" => array(
+                "index_number" => $indexNumber,
+                "class" => $class_code,
+                "program" => $prog_data[0]["id"],
+                "department" => $prog_data[0]["department_id"],
+                "stream" => $stream,
+                "academic_year" => $adminPeriodYear[0]["fk_academic_year"]
+            )
         );
     }
 
@@ -2247,12 +2259,18 @@ class AdminController
                     $testEmailAddress = strtolower($emailID . "@st.rmu.edu.gh");
                     $emailVerified = $this->verifyStudentEmailAddress($testEmailAddress);
                     if (!empty($emailVerified)) {
-                        return 0;
+                        return array(
+                            "success" => false,
+                            "message" => "Failed to create a student email address! Please contact the administrator."
+                        );
                     }
                 }
             }
         }
-        return $testEmailAddress;
+        return array(
+            "success" => true,
+            "message" => $testEmailAddress
+        );
     }
 
     private function verifyStudentEmailAddress($emailAddress): mixed
@@ -2310,15 +2328,21 @@ class AdminController
     public function enrollApplicant($appID, $progID): mixed
     {
         //create index number from program and number of student that exists
-        $indexCreation = $this->createUndergradStudentIndexNumber($appID, $progID);
+        $index_creation_rslt = $this->createUndergradStudentIndexNumber($appID, $progID);
         //return $indexCreation;
+        if (!$index_creation_rslt["success"]) return $index_creation_rslt;
+        $indexCreation = $index_creation_rslt["message"];
 
         //create email address from applicant name
-        $emailGenerated = $this->createStudentEmailAddress($appID);
+        $email_generated_rslt = $this->createStudentEmailAddress($appID);
         //return $emailGenerated;
+        if (!$email_generated_rslt["success"]) return $email_generated_rslt;
+        $emailGenerated = $email_generated_rslt["message"];
 
         $appDetails = $this->getApplicantContactInfo($appID)[0];
         //return $appDetails;
+        if (!$appDetails) return array("success" => false, "message" => "Failed to fetch applicant's background information!");
+        //$appDetails = $app_details_rslt["message"];
 
         $term_admitted = $this->getAdmissionPeriodYearsByID($this->getCurrentAdmissionPeriodID())[0]["intake"];
         //return $term_admitted;
