@@ -2232,7 +2232,8 @@ class AdminController
                 "program" => $prog_data[0]["id"],
                 "department" => $prog_data[0]["department_id"],
                 "stream" => $stream,
-                "academic_year" => $adminPeriodYear[0]["fk_academic_year"]
+                "academic_year" => $adminPeriodYear[0]["fk_academic_year"],
+                "prog_details" => $prog_data
             )
         );
     }
@@ -2319,6 +2320,35 @@ class AdminController
         return array("success" => true);
     }
 
+    private function emailApplicantEnrollmentStatus($data): mixed
+    {
+        $email = $data["email_address"];
+        $subject = "Enrollment to Regional Maritime University";
+        $message = "<p>Hello {$data["prefix"]} {$data["first_name"]} {$data["last_name"]},</p>";
+        $message = "<p>Your enrollment to Regional Maritime University to pursue {$data["four"]} {$data["4"]} {$data["years"]}";
+        $message = "{$data["Bachelor of Science"]} ({$data["B.Sc."]}) programme in {$data["Renewable Energy Engineering"]} was completed.</p>";
+        $message .= "<p>Your student account details:</p>";
+        $message .= "Student ID: <strong>{$data["app_number"]}</strong>";
+        $message .= "Index Number: <strong>{$data["index_number"]}</strong>";
+        $message .= "Password: <strong>123@Password</strong> <span style='color: red'>(default)</span>";
+        $message .= "<p>Do not hesitate to contact <a href='mailto:admission@rmu.edu.gh'>admission@rmu.edu.gh</a> for any clarification.</p>";
+        $message .= "<p>Congratulations on your admission to the Regional Maritime University.</p>";
+        $message .= "<p>Thank you and warm regards.</p>";
+        $response = $this->expose->sendEmail($email, $subject, $message);
+        if (!empty($response) && is_int($response)) return 1;
+        return 0;
+    }
+
+    public function smsApplicantEnrollmentStatus($data): mixed
+    {
+        $to = $data["phone_number"];
+        $message = "Congratulations! Your enrollment to Regional Maritime University has been completed!";
+        $message .= "Kindly check your mail box more details.";
+        $response = json_decode($this->expose->sendSMS($to, $message));
+        if (!$response->status) return 1;
+        return 0;
+    }
+
     /**
      * @param int $appID
      * @param int $progID
@@ -2358,6 +2388,9 @@ class AdminController
         // Save Data
         $add_student_result = $this->addNewStudent($data);
         if (!$add_student_result["success"]) return $add_student_result;
+
+        $this->emailApplicantEnrollmentStatus($data);
+        $this->smsApplicantEnrollmentStatus($data);
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
         return array("success" => true, "message" => "Applicant successfully enrolled!");
