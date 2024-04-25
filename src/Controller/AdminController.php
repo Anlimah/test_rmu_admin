@@ -2322,11 +2322,24 @@ class AdminController
 
     private function emailApplicantEnrollmentStatus($data): mixed
     {
-        $email = $data["email_address"];
+        /*$email = $data["email_address"];
         $subject = "Enrollment to Regional Maritime University";
         $message = "<p>Hello {$data["prefix"]} {$data["first_name"]} {$data["last_name"]},</p>";
         $message = "<p>Your enrollment to Regional Maritime University to pursue {$data["four"]} {$data["4"]} {$data["years"]}";
         $message = "{$data["Bachelor of Science"]} ({$data["B.Sc."]}) programme in {$data["Renewable Energy Engineering"]} was completed.</p>";
+        $message .= "<p>Your student account details:</p>";
+        $message .= "Student ID: <strong>{$data["app_number"]}</strong>";
+        $message .= "Index Number: <strong>{$data["index_number"]}</strong>";
+        $message .= "Password: <strong>123@Password</strong> <span style='color: red'>(default)</span>";
+        $message .= "<p>Do not hesitate to contact <a href='mailto:admission@rmu.edu.gh'>admission@rmu.edu.gh</a> for any clarification.</p>";
+        $message .= "<p>Congratulations on your admission to the Regional Maritime University.</p>";
+        $message .= "<p>Thank you and warm regards.</p>";*/
+
+        $email = $data["email_address"];
+        $subject = "Enrollment to Regional Maritime University";
+        $message = "<p>Hello Mr Francis Anlimah,</p>";
+        $message = "<p>Your enrollment to Regional Maritime University to pursue four (4) years";
+        $message = "Bachelor of Science (B.Sc.) programme in Computer Engineering was completed.</p>";
         $message .= "<p>Your student account details:</p>";
         $message .= "Student ID: <strong>{$data["app_number"]}</strong>";
         $message .= "Index Number: <strong>{$data["index_number"]}</strong>";
