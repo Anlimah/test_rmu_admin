@@ -2149,7 +2149,7 @@ class AdminController
     private function notifyApplicantViaSMS($data): mixed
     {
         $to = $data["phone_number"];
-        $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$data["data"]["Program_Offered_2"]}!";
+        $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$data["data"]["Program_Offered_2"]}. ";
         $message .= "Kindly check your mail box for more details.";
         $response = json_decode($this->expose->sendSMS($to, $message));
         if (!$response->status) return 1;
@@ -2413,7 +2413,7 @@ class AdminController
     public function smsApplicantEnrollmentStatus($data): mixed
     {
         $to = $data["phone_number"];
-        $message = "Congratulations! Your enrollment to Regional Maritime University to pursue {$data["p"][0]["name"]} is completed.";
+        $message = "Congratulations! Your enrollment to Regional Maritime University to pursue {$data["p"][0]["name"]} is completed. ";
         $message .= "Kindly check your mail box for more details.";
         $response = json_decode($this->expose->sendSMS($to, $message));
         if (!$response->status) return 1;
