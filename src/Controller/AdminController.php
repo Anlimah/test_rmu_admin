@@ -1946,13 +1946,15 @@ class AdminController
                     "email_address" => $app_pers_info["email_addr"],
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
+                        'Prefix' => ucwords(strtolower($app_pers_info["prefix"])),
+                        'First_Name' => ucwords(strtolower($app_pers_info["first_name"])),
+                        'Middle_Name' => ucwords(strtolower($app_pers_info["middle_name"])),
+                        'Last_Name' => ucwords(strtolower($app_pers_info["last_name"])),
                         'Full_Name' => ucwords(strtolower(!empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] . " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"])),
                         'Box_Location' => ucwords(strtolower($app_pers_info["postal_town"] . " - " . $app_pers_info["postal_spr"])),
                         'Box_Address' => ucwords(strtolower($app_pers_info["postal_addr"])),
                         'Location' => ucwords(strtolower($app_pers_info["postal_country"])),
-
                         'Year_of_Admission' => $admission_period["academic_year"],
-
                         'Program_Length_1' => strtoupper(strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"])),
                         'Program_Offered_1' => strtoupper(strtolower($prog_info["name"])),
                         'Program_Length_2' => strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"]),
@@ -1960,7 +1962,6 @@ class AdminController
                         'Program_Type' => ucwords(strtolower($prog_info["category"])),
                         'Program_Stream' => trim(strtolower($stream_applied)),
                         'No_of_Semesters' => $prog_info["num_of_semesters"] . " semesters",
-
                         'Commencement_Date' => (new \DateTime($static_letter_data["commencement_date"]))->format("l F j, Y"),
                         'Initial_Fees_in_Words' => $static_letter_data["initial_fees_in_words"],
                         'Initial_Fees_in_Figures' => $static_letter_data["initial_fees_in_figures"],
@@ -1971,7 +1972,12 @@ class AdminController
                         'Deadline_Date' => (new \DateTime($static_letter_data["deadline_date"]))->format("l F j, Y"),
                         'Registration_Fees_in_Words' => $static_letter_data["registration_fees_in_words"],
                         'Registration_Fees_in_Figures' => $static_letter_data["registration_fees_in_figures"],
-                        'University_Registrar' => $static_letter_data["university_registrar"]
+                        'University_Registrar' => $static_letter_data["university_registrar"],
+                        'Program_Code' => $prog_info["code"],
+                        'Program_Faculty' => $prog_info["faculty"],
+                        'Program_Merit' => $prog_info["merit"],
+                        'Program_Duration' => $prog_info["duration"],
+                        'Program_Dur_Format' => $prog_info["dur_format"]
                     ]
                 ];
                 break;
@@ -1991,13 +1997,14 @@ class AdminController
                     "email_address" => $app_pers_info["email_addr"],
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
+                        'First_Name' => ucwords(strtolower($app_pers_info["first_name"])),
+                        'Middle_Name' => ucwords(strtolower($app_pers_info["middle_name"])),
+                        'Last_Name' => ucwords(strtolower($app_pers_info["last_name"])),
                         'Full_Name' => ucwords(strtolower(!empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] . " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"])),
                         'Box_Location' => ucwords(strtolower($app_pers_info["postal_town"] . " - " . $app_pers_info["postal_spr"])),
                         'Box_Address' => ucwords(strtolower($app_pers_info["postal_addr"])),
                         'Location' => ucwords(strtolower($app_pers_info["postal_country"])),
-
                         'Year_of_Admission' => $admission_period["academic_year"],
-
                         'Program_Length_1' => strtoupper(strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"])),
                         'Program_Offered_1' => strtoupper(strtolower($prog_info["name"])),
                         'Program_Length_2' => strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"]),
@@ -2005,7 +2012,6 @@ class AdminController
                         'Program_Type' => ucwords(strtolower($prog_info["category"])),
                         'Program_Stream' => strtolower($stream_applied),
                         'No_of_Semesters' => $prog_info["num_of_semesters"] . " semesters",
-
                         'Commencement_Date' => (new \DateTime($static_letter_data["commencement_date"]))->format("l F j, Y"),
                         'Initial_Fees_in_Words' => $static_letter_data["initial_fees_in_words"],
                         'Initial_Fees_in_Figures' => $static_letter_data["initial_fees_in_figures"],
@@ -2016,7 +2022,11 @@ class AdminController
                         'Deadline_Date' => (new \DateTime($static_letter_data["deadline_date"]))->format("l F j, Y"),
                         'Registration_Fees_in_Words' => $static_letter_data["registration_fees_in_words"],
                         'Registration_Fees_in_Figures' => $static_letter_data["registration_fees_in_figures"],
-                        'University_Registrar' => $static_letter_data["university_registrar"]
+                        'University_Registrar' => $static_letter_data["university_registrar"],
+                        'Program_Faculty' => $prog_info["faculty"],
+                        'Program_Merit' => $prog_info["merit"],
+                        'Program_Duration' => $prog_info["duration"],
+                        'Program_Dur_Format' => $prog_info["dur_format"]
                     ]
                 ];
                 break;
@@ -2030,13 +2040,14 @@ class AdminController
                     "email_address" => $app_pers_info["email_addr"],
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
+                        'First_Name' => ucwords(strtolower($app_pers_info["first_name"])),
+                        'Middle_Name' => ucwords(strtolower($app_pers_info["middle_name"])),
+                        'Last_Name' => ucwords(strtolower($app_pers_info["last_name"])),
                         'Full_Name' => !empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] .  " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"],
                         'Box_Location' => $app_pers_info["postal_town"] . " " . $app_pers_info["postal_spr"],
                         'Box_Address' => $app_pers_info["postal_addr"],
                         'Location' => $app_pers_info["postal_country"],
-
                         'Year_of_Admission' => $admission_period["academic_year"],
-
                         'Program_Length_1' => $prog_info["duration"] . "-" . $prog_info["dur_format"],
                         'Program_Offered_1' => $prog_info["name"],
                         'Program_Length_2' => $prog_info["duration"] . "-" . $prog_info["dur_format"],
@@ -2044,7 +2055,6 @@ class AdminController
                         'Program_Type' => ucwords($prog_info["form_type"]),
                         'Program_Stream' => strtolower($stream_applied),
                         'No_of_Semesters' => $prog_info["num_of_semesters"] . " semesters",
-
                         'Commencement_Date' => (new \DateTime($letter_data["commencement_date"]))->format("l F j, Y"),
                         'Initial_Fees_in_Words' => $letter_data["initial_fees_in_words"],
                         'Initial_Fees_in_Figures' => $letter_data["initial_fees_in_figures"],
@@ -2055,7 +2065,11 @@ class AdminController
                         'Deadline_Date' => (new \DateTime($letter_data["deadline_date"]))->format("l F j, Y"),
                         'Registration_Fees_in_Words' => $letter_data["registration_fees_in_words"],
                         'Registration_Fees_in_Figures' => $letter_data["registration_fees_in_figures"],
-                        'University_Registrar' => $letter_data["university_registrar"]
+                        'University_Registrar' => $letter_data["university_registrar"],
+                        'Program_Faculty' => $prog_info["faculty"],
+                        'Program_Merit' => $prog_info["merit"],
+                        'Program_Duration' => $prog_info["duration"],
+                        'Program_Dur_Format' => $prog_info["dur_format"]
                     ]
                 ];
                 break;
@@ -2091,9 +2105,42 @@ class AdminController
 
     private function sendAdmissionLetterViaEmail($data, $file_paths = []): mixed
     {
+        //return $data;
+        $pmd = match ($data["data"]["Program_Code"]) {
+            "BSC" => ["Bachelor of Science", "B.Sc."],
+            "DIPLOMA" => ["Diploma", "Diploma"],
+            "MSC" => ["Master of Science", "M.Sc."],
+            "MA" => ["Master of Art", "M.A."]
+        };
+
+        $dur_word = match ($data["data"]["Program_Duration"]) {
+            '1' => 'One',
+            '2' => 'Two',
+            '3' => 'Three',
+            '4' => 'Four',
+            '5' => 'Five',
+            '6' => 'Six',
+            '7' => 'Seven',
+            '8' => 'Eight',
+            '9' => 'Nine',
+            '10' => 'Ten'
+        };
+
         $email = $data["email_address"];
-        $subject = "Your Admission to Regional Maritime University";
-        $message = "Congratulations! Admission ready";
+        $subject = "Admission to Regional Maritime University";
+        $message = "<p>Dear " . $data["data"]["Prefix"] . " " . $data["data"]["First_Name"] . " " . $data["data"]["Last_Name"] . ",</p>";
+        $message .= "<p>Compliments from the School of Undergraduate Studies (SUS)";
+        $message .= "<p>The School of Undergraduate Studies on behalf of the Academic Council of the University is pleased to offer ";
+        $message .= "<p>admission to pursue a {$dur_word} ({$data["data"]["Program_Duration"]}) {$data["data"]["Program_Dur_Format"]} ,strong>{$data["data"]["Program_Stream"]}}</strong> ";
+        $message .= "{$pmd[0]} ({$pmd[1]}) programme in {$data["data"]["Program_Merit"]} in the Faculty of </p>";
+        $message .= "{$data["data"]["Program_Faculty"]} of the University. </p>";
+        $message .= "<p>Kindly find attached a copy of your admission letter, alongside the fees payment details and a copy of the acceptance form. ";
+        $message .= "The Original copy of the attached documents are available at the University's Registry Office for collection ";
+        $message .= "from <strong>Monday to Friday between the hours of 9a.m. to 3p.m.</strong></p>";
+        $message .= "<p>Do not hesitate to contact <a href='mailto:admission@rmu.edu.gh'>admission@rmu.edu.gh</a> for any clarification.</p>";
+        $message .= "<p>Congratulations on your enrollment to the Regional Maritime University.</p>";
+        $message .= "<p>Thank you and warm regards.</p>";
+        return $message;
         $response = $this->expose->sendEmail($email, $subject, $message, $file_paths);
         if (!empty($response) && is_int($response)) return 1;
         return 0;
@@ -2102,7 +2149,8 @@ class AdminController
     private function notifyApplicantViaSMS($data): mixed
     {
         $to = $data["phone_number"];
-        $message = "Admission ready";
+        $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$data["Program_Offered_2"]}!";
+        $message .= "Kindly check your mail box for more details.";
         $response = json_decode($this->expose->sendSMS($to, $message));
         if (!$response->status) return 1;
         return 0;
@@ -2113,15 +2161,17 @@ class AdminController
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied);
         if (!$l_res["success"]) return $l_res;
 
-        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
-        //if (!$g_res["success"]) return $g_res;
+        // $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
+        // //if (!$g_res["success"]) return $g_res;
         //return $g_res;
         $file_paths = [];
-        array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
-        $status_update_extras = [];
-        if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        //return array("success" => true, "message" => $status_update_extras["emailed_letter"]);
+        // array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
+        // $status_update_extras = [];
+
+        //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
+
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $status_update_extras);
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
         return array("success" => true, "message" => "Successfully admitted applicant!");
@@ -2173,12 +2223,9 @@ class AdminController
 
     private function resolveClassByProgram($prog_id, $class_code = ''): mixed
     {
-        $class = $this->dm->getData(
-            "SELECT `code` FROM `class` WHERE `code` = :c",
-            array(":c" => $class_code)
-        );
-        if (!empty($class)) return array("success" => true, "message" => $class_code);
         if (empty($class_code)) return array("success" => false, "message" => "Couldn't resolve student class!");
+        $class = $this->dm->getData("SELECT `code` FROM `class` WHERE `code` = :c", array(":c" => $class_code));
+        if (!empty($class)) return array("success" => true, "message" => $class_code);
         $query = "INSERT INTO `class` (`code`, `fk_program`) VALUES (:c, :fkp)";
         $added = $this->dm->inputData($query, array(':c' => $class_code, ':fkp' => $prog_id));
         if (empty($added)) return  array("success" => false, "message" => "Couldn't add/create a new class for student!");
@@ -2233,7 +2280,7 @@ class AdminController
                 "department" => $prog_data[0]["department_id"],
                 "stream" => $stream,
                 "academic_year" => $adminPeriodYear[0]["fk_academic_year"],
-                "prog_details" => $prog_data
+                "pi" => $prog_data
             )
         );
     }
@@ -2322,31 +2369,42 @@ class AdminController
 
     private function emailApplicantEnrollmentStatus($data): mixed
     {
-        /*$email = $data["email_address"];
-        $subject = "Enrollment to Regional Maritime University";
-        $message = "<p>Hello {$data["prefix"]} {$data["first_name"]} {$data["last_name"]},</p>";
-        $message = "<p>Your enrollment to Regional Maritime University to pursue {$data["four"]} {$data["4"]} {$data["years"]}";
-        $message = "{$data["Bachelor of Science"]} ({$data["B.Sc."]}) programme in {$data["Renewable Energy Engineering"]} was completed.</p>";
-        $message .= "<p>Your student account details:</p>";
-        $message .= "Student ID: <strong>{$data["app_number"]}</strong>";
-        $message .= "Index Number: <strong>{$data["index_number"]}</strong>";
-        $message .= "Password: <strong>123@Password</strong> <span style='color: red'>(default)</span>";
-        $message .= "<p>Do not hesitate to contact <a href='mailto:admission@rmu.edu.gh'>admission@rmu.edu.gh</a> for any clarification.</p>";
-        $message .= "<p>Congratulations on your admission to the Regional Maritime University.</p>";
-        $message .= "<p>Thank you and warm regards.</p>";*/
+        //return $data;
+        $pmd = match ($data["pi"][0]["code"]) {
+            "BSC" => ["Bachelor of Science", "B.Sc."],
+            "DIPLOMA" => ["Diploma", "Diploma"],
+            "MSC" => ["Master of Science", "M.Sc."],
+            "MA" => ["Master of Art", "M.A."]
+        };
 
-        $email = $data["email_address"];
+        $dur_word = match ($data["pi"][0]["duration"]) {
+            1 => 'One',
+            2 => 'Two',
+            3 => 'Three',
+            4 => 'Four',
+            5 => 'Five',
+            6 => 'Six',
+            7 => 'Seven',
+            8 => 'Eight',
+            9 => 'Nine',
+            10 => 'Ten'
+        };
+
+        $email = $data["email_addr"];
         $subject = "Enrollment to Regional Maritime University";
-        $message = "<p>Hello Mr Francis Anlimah,</p>";
-        $message = "<p>Your enrollment to Regional Maritime University to pursue four (4) years";
-        $message = "Bachelor of Science (B.Sc.) programme in Computer Engineering was completed.</p>";
-        $message .= "<p>Your student account details:</p>";
-        $message .= "Student ID: <strong>{$data["app_number"]}</strong>";
-        $message .= "Index Number: <strong>{$data["index_number"]}</strong>";
-        $message .= "Password: <strong>123@Password</strong> <span style='color: red'>(default)</span>";
+        $message = "<p>Dear " . ucfirst(strtolower($data["prefix"])) . " " . ucfirst(strtolower($data["first_name"])) . " " . ucfirst(strtolower($data["last_name"])) . ",</p>";
+        $message .= "<p>Your to Regional Maritime University to pursue ";
+        $message .= "a {$dur_word} ({$data["pi"][0]["duration"]}) {$data["pi"][0]["dur_format"]} ";
+        $message .= "{$pmd[0]} ({$pmd[1]}) programme in {$data["pi"][0]["merit"]} in the Faculty of </p>";
+        $message .= "{$data["pi"][0]["faculty"]} of the University was successful. </p>";
+        $message .= "<p>Your student account details: </p>";
+        $message .= "<div>Index Number: <strong>{$data["index_number"]}</strong></div>";
+        $message .= "<div>Password: <strong>123@Password</strong> <span style='color: red'>(default)</span></div>";
+        $message .= "<p>Kindly visit the <a href='https://student.rmuictonline.com'><strong>Student Portal</strong></a> to register your courses for the semester.</p>";
         $message .= "<p>Do not hesitate to contact <a href='mailto:admission@rmu.edu.gh'>admission@rmu.edu.gh</a> for any clarification.</p>";
         $message .= "<p>Congratulations on your admission to the Regional Maritime University.</p>";
         $message .= "<p>Thank you and warm regards.</p>";
+
         $response = $this->expose->sendEmail($email, $subject, $message);
         if (!empty($response) && is_int($response)) return 1;
         return 0;
@@ -2355,8 +2413,8 @@ class AdminController
     public function smsApplicantEnrollmentStatus($data): mixed
     {
         $to = $data["phone_number"];
-        $message = "Congratulations! Your enrollment to Regional Maritime University has been completed!";
-        $message .= "Kindly check your mail box more details.";
+        $message = "Congratulations! Your enrollment to Regional Maritime University to pursue {$data["p"][0]["name"]} is completed.";
+        $message .= "Kindly check your mail box for more details.";
         $response = json_decode($this->expose->sendSMS($to, $message));
         if (!$response->status) return 1;
         return 0;
@@ -2371,15 +2429,15 @@ class AdminController
     {
         //create index number from program and number of student that exists
         $index_creation_rslt = $this->createUndergradStudentIndexNumber($appID, $progID);
-        //return $indexCreation;
         if (!$index_creation_rslt["success"]) return $index_creation_rslt;
         $indexCreation = $index_creation_rslt["message"];
+        //return $indexCreation;
 
         //create email address from applicant name
         $email_generated_rslt = $this->createStudentEmailAddress($appID);
-        //return $emailGenerated;
         if (!$email_generated_rslt["success"]) return $email_generated_rslt;
         $emailGenerated = $email_generated_rslt["message"];
+        //return $emailGenerated;
 
         $appDetails = $this->getApplicantContactInfo($appID)[0];
         //return $appDetails;
@@ -2390,13 +2448,12 @@ class AdminController
         //return $term_admitted;
 
         $password = password_hash("123@Password", PASSWORD_BCRYPT);
-
         $data = array_merge(
             ["email_generated" => $emailGenerated, "term" => $term_admitted, "password" => $password],
             $indexCreation,
             $appDetails
         );
-        //return $data;
+        // return $data;
 
         // Save Data
         $add_student_result = $this->addNewStudent($data);
