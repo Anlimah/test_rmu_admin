@@ -2131,7 +2131,7 @@ class AdminController
         $message = "<p>Dear " . $data["data"]["Prefix"] . " " . $data["data"]["First_Name"] . " " . $data["data"]["Last_Name"] . ",</p>";
         $message .= "<p>Compliments from the School of Undergraduate Studies (SUS)";
         $message .= "<p>The School of Undergraduate Studies on behalf of the Academic Council of the University is pleased to offer ";
-        $message .= "<p>admission to pursue a {$dur_word} ({$data["data"]["Program_Duration"]}) {$data["data"]["Program_Dur_Format"]} ,strong>{$data["data"]["Program_Stream"]}}</strong> ";
+        $message .= "you admission to pursue a {$dur_word} ({$data["data"]["Program_Duration"]}) {$data["data"]["Program_Dur_Format"]} ,<strong>{$data["data"]["Program_Stream"]}</strong> ";
         $message .= "{$pmd[0]} ({$pmd[1]}) programme in {$data["data"]["Program_Merit"]} in the Faculty of </p>";
         $message .= "{$data["data"]["Program_Faculty"]} of the University. </p>";
         $message .= "<p>Kindly find attached a copy of your admission letter, alongside the fees payment details and a copy of the acceptance form. ";
@@ -2393,10 +2393,10 @@ class AdminController
         $email = $data["email_addr"];
         $subject = "Enrollment to Regional Maritime University";
         $message = "<p>Dear " . ucfirst(strtolower($data["prefix"])) . " " . ucfirst(strtolower($data["first_name"])) . " " . ucfirst(strtolower($data["last_name"])) . ",</p>";
-        $message .= "<p>Your to Regional Maritime University to pursue ";
+        $message .= "<p>You have been enrolled to Regional Maritime University to pursue ";
         $message .= "a {$dur_word} ({$data["pi"][0]["duration"]}) {$data["pi"][0]["dur_format"]} ";
         $message .= "{$pmd[0]} ({$pmd[1]}) programme in {$data["pi"][0]["merit"]} in the Faculty of </p>";
-        $message .= "{$data["pi"][0]["faculty"]} of the University was successful. </p>";
+        $message .= "{$data["pi"][0]["faculty"]} of the University. </p>";
         $message .= "<p>Your student account details: </p>";
         $message .= "<div>Index Number: <strong>{$data["index_number"]}</strong></div>";
         $message .= "<div>Password: <strong>123@Password</strong> <span style='color: red'>(default)</span></div>";
