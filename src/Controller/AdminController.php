@@ -2397,9 +2397,9 @@ class AdminController
         $message = "<p>Dear " . ucfirst(strtolower($data["prefix"])) . " " . ucfirst(strtolower($data["first_name"])) . " " . ucfirst(strtolower($data["last_name"])) . ",</p>";
         $message .= "<p>You have been enrolled to Regional Maritime University to pursue ";
         $message .= "a {$dur_word} ({$data["pi"][0]["duration"]}) {$data["pi"][0]["dur_format"]} ";
-        $message .= "{$pmd[0]} ({$pmd[1]}) programme in {$data["pi"][0]["merit"]} in the Faculty of </p>";
-        $message .= "{$data["pi"][0]["faculty"]} of the University. </p>";
-        $message .= "<p>Your student account details: </p>";
+        $message .= "{$pmd[0]} ({$pmd[1]}) programme in " . ucfirst(strtolower($data["pi"][0]["merit"])) . " in the Faculty of </p>";
+        $message .= ucfirst(strtolower($data["pi"][0]["faculty"])) . " of the University. </p>";
+        $message .= "<p><u><strong>Your student account details</strong></u></p>";
         $message .= "<div>Index Number: <strong>{$data["index_number"]}</strong></div>";
         $message .= "<div>Password: <strong>123@Password</strong> <span style='color: red'>(default)</span></div>";
         $message .= "<p>Kindly visit the <a href='https://student.rmuictonline.com'><strong>Student Portal</strong></a> to register your courses for the semester.</p>";
