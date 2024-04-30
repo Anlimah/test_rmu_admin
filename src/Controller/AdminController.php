@@ -2161,15 +2161,15 @@ class AdminController
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied);
         if (!$l_res["success"]) return $l_res;
 
-        // $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
-        // if (!$g_res["success"]) return $g_res;
+        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
+        if (!$g_res["success"]) return $g_res;
         //return $g_res;
         $file_paths = [];
-        // array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
-        // $status_update_extras = [];
+        array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
+        $status_update_extras = [];
 
-        //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        //return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $status_update_extras);
