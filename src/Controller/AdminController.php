@@ -1974,10 +1974,10 @@ class AdminController
                         'Registration_Fees_in_Figures' => $static_letter_data["registration_fees_in_figures"],
                         'University_Registrar' => $static_letter_data["university_registrar"],
                         'Program_Code' => $prog_info["code"],
-                        'Program_Faculty' => $prog_info["faculty"],
-                        'Program_Merit' => $prog_info["merit"],
+                        'Program_Faculty' => ucwords(strtolower($prog_info["faculty"])),
+                        'Program_Merit' => ucwords(strtolower($prog_info["merit"])),
                         'Program_Duration' => $prog_info["duration"],
-                        'Program_Dur_Format' => $prog_info["dur_format"]
+                        'Program_Dur_Format' => ucwords(strtolower($prog_info["dur_format"]))
                     ]
                 ];
                 break;
@@ -2023,10 +2023,11 @@ class AdminController
                         'Registration_Fees_in_Words' => $static_letter_data["registration_fees_in_words"],
                         'Registration_Fees_in_Figures' => $static_letter_data["registration_fees_in_figures"],
                         'University_Registrar' => $static_letter_data["university_registrar"],
-                        'Program_Faculty' => $prog_info["faculty"],
-                        'Program_Merit' => $prog_info["merit"],
+                        'Program_Code' => $prog_info["code"],
+                        'Program_Faculty' => ucwords(strtolower($prog_info["faculty"])),
+                        'Program_Merit' => ucwords(strtolower($prog_info["merit"])),
                         'Program_Duration' => $prog_info["duration"],
-                        'Program_Dur_Format' => $prog_info["dur_format"]
+                        'Program_Dur_Format' => ucwords(strtolower($prog_info["dur_format"]))
                     ]
                 ];
                 break;
@@ -2066,10 +2067,11 @@ class AdminController
                         'Registration_Fees_in_Words' => $letter_data["registration_fees_in_words"],
                         'Registration_Fees_in_Figures' => $letter_data["registration_fees_in_figures"],
                         'University_Registrar' => $letter_data["university_registrar"],
-                        'Program_Faculty' => $prog_info["faculty"],
-                        'Program_Merit' => $prog_info["merit"],
+                        'Program_Code' => $prog_info["code"],
+                        'Program_Faculty' => ucwords(strtolower($prog_info["faculty"])),
+                        'Program_Merit' => ucwords(strtolower($prog_info["merit"])),
                         'Program_Duration' => $prog_info["duration"],
-                        'Program_Dur_Format' => $prog_info["dur_format"]
+                        'Program_Dur_Format' => ucwords(strtolower($prog_info["dur_format"]))
                     ]
                 ];
                 break;
@@ -2131,7 +2133,7 @@ class AdminController
         $message = "<p>Dear " . $data["data"]["Prefix"] . " " . $data["data"]["First_Name"] . " " . $data["data"]["Last_Name"] . ",</p>";
         $message .= "<p>Compliments from the School of Undergraduate Studies (SUS)";
         $message .= "<p>The School of Undergraduate Studies on behalf of the Academic Council of the University is pleased to offer ";
-        $message .= "you admission to pursue a {$dur_word} ({$data["data"]["Program_Duration"]}) {$data["data"]["Program_Dur_Format"]} ,<strong>{$data["data"]["Program_Stream"]}</strong> ";
+        $message .= "you admission to pursue a {$dur_word} ({$data["data"]["Program_Duration"]}) {$data["data"]["Program_Dur_Format"]} <strong>{$data["data"]["Program_Stream"]}</strong> ";
         $message .= "{$pmd[0]} ({$pmd[1]}) programme in {$data["data"]["Program_Merit"]} in the Faculty of </p>";
         $message .= "{$data["data"]["Program_Faculty"]} of the University. </p>";
         $message .= "<p>Kindly find attached a copy of your admission letter, alongside the fees payment details and a copy of the acceptance form. ";

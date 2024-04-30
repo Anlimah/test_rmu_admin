@@ -3,3 +3,4 @@
 endpoint/.htaccess
 /assets
 /admission_letters
+/inc/admin-database-con.php
