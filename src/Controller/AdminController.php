@@ -2140,7 +2140,7 @@ class AdminController
         $message .= "<p>Do not hesitate to contact <a href='mailto:admission@rmu.edu.gh'>admission@rmu.edu.gh</a> for any clarification.</p>";
         $message .= "<p>Congratulations on your enrollment to the Regional Maritime University.</p>";
         $message .= "<p>Thank you and warm regards.</p>";
-        return $message;
+
         $response = $this->expose->sendEmail($email, $subject, $message, $file_paths);
         if (!empty($response) && is_int($response)) return 1;
         return 0;
@@ -2161,15 +2161,15 @@ class AdminController
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied);
         if (!$l_res["success"]) return $l_res;
 
-        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
-        if (!$g_res["success"]) return $g_res;
+        // $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
+        // if (!$g_res["success"]) return $g_res;
         //return $g_res;
         $file_paths = [];
-        array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
-        $status_update_extras = [];
+        // array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
+        // $status_update_extras = [];
 
-        if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        //return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $status_update_extras);
@@ -2412,7 +2412,7 @@ class AdminController
 
     public function smsApplicantEnrollmentStatus($data): mixed
     {
-        $to = $data["phone_number"];
+        $to = $data["phone_no1_code"] . $data["phone_no1"];
         $message = "Congratulations! Your enrollment to Regional Maritime University to pursue {$data["p"][0]["name"]} is completed. ";
         $message .= "Kindly check your mail box for more details.";
         $response = json_decode($this->expose->sendSMS($to, $message));
