@@ -2170,9 +2170,9 @@ class AdminController
         array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
         $status_update_extras = [];
 
-        if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         //return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
+        //if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $status_update_extras);
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
@@ -2333,12 +2333,12 @@ class AdminController
     {
         $date_admitted = date("Y-m-d");
 
-        $query2 = "INSERT INTO `student` (`index_number`, `app_number`, `email`, `password`, `phone_number`, 
+        $query1 = "INSERT INTO `student` (`index_number`, `app_number`, `email`, `password`, `phone_number`, 
                     `prefix`, `first_name`, `middle_name`, `last_name`, `suffix`, `gender`, `dob`, `nationality`, 
                     `photo`, `marital_status`, `disability`, `date_admitted`, `term_admitted`, `stream_admitted`, 
                     `fk_academic_year`, `fk_program`, `fk_class`, `fk_department`) 
                     VALUES (:ix, :an, :ea, :pw, :pn, :px, :fn, :mn, :ln, :sx, :gd, :db, :nt, :pt, :ms, :ds, :da, :ta, :sa, :fkay, :fkpg, :fkcl, :fkdt)";
-        $params2 = array(
+        $params1 = array(
             ":ix" => $data["index_number"],
             ":an" => $data["app_number"],
             ":ea" => $data["email_generated"],
@@ -2363,8 +2363,8 @@ class AdminController
             ":fkcl" => $data["class"],
             ":fkdt" => $data["department"]
         );
-
-        $student = $this->dm->inputData($query2, $params2);
+        //return array("success" => false, "message" => "OKAY");
+        $student = $this->dm->inputData($query1, $params1);
         if (empty($student)) return array("success" => false, "message" => "Failed to create a student account for applicant!");
         return array("success" => true);
     }
@@ -2461,8 +2461,8 @@ class AdminController
         $add_student_result = $this->addNewStudent($data);
         if (!$add_student_result["success"]) return $add_student_result;
 
-        $this->emailApplicantEnrollmentStatus($data);
-        $this->smsApplicantEnrollmentStatus($data);
+        //$this->emailApplicantEnrollmentStatus($data);
+        //$this->smsApplicantEnrollmentStatus($data);
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
         return array("success" => true, "message" => "Applicant successfully enrolled!");

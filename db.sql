@@ -1,6 +1,12 @@
 DROP TABLE IF EXISTS `course`;
 DROP TABLE IF EXISTS `student`;
 DROP TABLE IF EXISTS `department`;
+DROP TABLE IF EXISTS `course`;
+DROP TABLE IF EXISTS `student`;
+DROP TABLE IF EXISTS `department`;
+DROP TABLE IF EXISTS `course`;
+DROP TABLE IF EXISTS `student`;
+DROP TABLE IF EXISTS `academic_year`;
 -- -----------------------------------------------------
 -- Table `academic_year`
 -- -----------------------------------------------------
@@ -13,7 +19,7 @@ CREATE TABLE IF NOT EXISTS `academic_year` (
   `start_year` YEAR NOT NULL, 
   `end_year` YEAR NOT NULL,
   `archived` TINYINT(1) DEFAULT 0,
-  `name` VARCHAR(15) GENERATED ALWAYS AS (CONCAT(`start_year`, '-', `end_year`)) VIRTUAL,
+  `name` VARCHAR(15) GENERATED ALWAYS AS (CONCAT(`start_year`, '-', `end_year`)) STORED,
   PRIMARY KEY (`id`)
 );
 CREATE INDEX academic_year_active_idx1 ON `academic_year` (`active`);
@@ -23,7 +29,28 @@ CREATE INDEX academic_year_start_year_idx1 ON `academic_year` (`start_year`);
 CREATE INDEX academic_year_end_year_idx1 ON `academic_year` (`end_year`);
 CREATE INDEX academic_year_archived_idx1 ON `academic_year` (`archived`);
 CREATE INDEX academic_year_name_idx1 ON `academic_year` (`name`);
-INSERT INTO `academic_year` (`start_month`, `start_year`, `end_month`, `end_year`) VALUES ('Sep', '2023', 'Jun', '2024');
+INSERT INTO `academic_year` (`start_month`, `start_year`, `end_month`, `end_year`)
+VALUES
+('Aug', '2023', 'Jun', '2024'),
+('Aug', '2024', 'Jun', '2025'),
+('Aug', '2025', 'Jun', '2026'),
+('Aug', '2026', 'Jun', '2027'),
+('Aug', '2027', 'Jun', '2028'),
+('Aug', '2028', 'Jun', '2029'),
+('Aug', '2029', 'Jun', '2030'),
+('Aug', '2030', 'Jun', '2031'),
+('Aug', '2031', 'Jun', '2032'),
+('Aug', '2032', 'Jun', '2033'),
+('Aug', '2033', 'Jun', '2034'),
+('Aug', '2034', 'Jun', '2035'),
+('Aug', '2035', 'Jun', '2036'),
+('Aug', '2036', 'Jun', '2037'),
+('Aug', '2037', 'Jun', '2038'),
+('Aug', '2038', 'Jun', '2039'),
+('Aug', '2039', 'Jun', '2040'),
+('Aug', '2040', 'Jun', '2041'),
+('Aug', '2041', 'Jun', '2042');
+
 
 -- -----------------------------------------------------
 -- Table `semester`
@@ -59,6 +86,7 @@ CREATE TABLE IF NOT EXISTS `department` (
   PRIMARY KEY (`id`)
 );
 CREATE INDEX department_archived_idx1 ON `department` (`archived`);
+CREATE INDEX department_name_idx1 ON `department` (`name`);
 INSERT INTO `department`(`name`) VALUES ('ICT'), ('MARINE'), ('NAUTICAL'), ('ELECTRICAL'), ('TRANSPORT'), ('BUSINESS');
 
 -- -----------------------------------------------------
@@ -98,6 +126,129 @@ CREATE INDEX course_semester_idx1 ON `course` (`semester`);
 CREATE INDEX course_level_idx1 ON `course` (`level`);
 CREATE INDEX course_archived_idx1 ON `course` (`archived`);
 
+INSERT INTO `course`(`code`, `name`, `credits`, `semester`, `level`, `fk_category`, `fk_department`) VALUES 
+("BCME 407", "Digital Signal Processing", "3", "1", "400", "1", "1"),
+("BEEE 409", "Linear Systems", "3", "1", "400", "1", "1"),
+("BPSA 301", "Principles Of Management I", "3", "1", "400", "1", "1"),
+("BCME 405", "Micro Processor Systems & Application", "3", "1", "400", "1", "1"),
+("BCME 417", "Web Software Architecture (Elective)", "3", "1", "400", "1", "1"),
+("BCME 400", "Project", "6", "1", "400", "1", "1"),
+
+("BCME 401", "Artificial Intelligence", "3", "1", "400", "1", "1"),
+("BCME 413", "E-Business/Commerce", "3", "1", "400", "1", "1"),
+("BCME 409", "Project Work I", "3", "1", "400", "1", "1"),
+("BCME 419", "Wireless and Mobile Computing", "3", "1", "400", "1", "1"),
+("BINT 403", "Management Information System", "3", "1", "400", "1", "1"),
+
+("BINT 401", "Mobile Computing", "3", "1", "400", "1", "1"),
+("BINT 405", "Artificial Intelligence", "3", "1", "400", "1", "1"),
+("BINT 407", "Wireless Technologies", "3", "1", "400", "1", "1"),
+("BINT 400", "Project", "6", "1", "400", "1", "1"),
+-- ("BCME 409", "Artificial Intelligence", "3", "1", "400", "1", "1"),
+-- ("BPSA 301", "Principles of Management", "3", "1", "400", "1", "1"),
+-- ("BINT 403", "Management Information Systems (MIS)", "3", "1", "400", "1", "1"),
+
+
+("BCME 303", "Computer Communication Networks", "3", "1", "300", "1", "1"),
+("BCME 309", "Design & Analysis Of Digital Systems", "3", "1", "300", "1", "1"),
+("BCME 304", "Discrete Mathematics", "3", "1", "300", "1", "1"),
+("BCME 311", "Digital Communication", "3", "1", "300", "1", "1"),
+("BCME 305", "Operating Systems", "3", "1", "300", "1", "1"),
+("BEEE 303", "Microprocessor Systems (Digital Electronics III)", "3", "1", "300", "1", "1"),
+("BSMA 301", "Statistics & Probability", "3", "1", "300", "1", "1"),
+
+("BINT 301", "Operating  Systems", "3", "1", "300", "1", "1"),
+("BINT 303", "Database Systems I", "3", "1", "300", "1", "1"),
+("BINT 305", "Data Communication & Computer Networks I", "3", "1", "300", "1", "1"),
+("BINT 307", "Research Methods (Moved to 2nd Sem.)", "3", "1", "300", "1", "1"),
+("BINT 309", "Business Intelligence System", "3", "1", "300", "1", "1"),
+("BINT 311", "Programming With .Net", "3", "1", "300", "1", "1"),
+
+("BCME 301", "Computer Communication Networks", "3", "1", "300", "1", "1"),
+("BCME 302", "IT Project Management", "3", "1", "300", "1", "1"),
+("BCME 306", "Introduction to Visual Basic", "3", "1", "300", "1", "1"),
+("BCME 307", "Computer Architecture", "3", "1", "300", "1", "1"),
+("BCME 310", "Operating Systems", "3", "1", "300", "1", "1"),
+("BEME 311", "Formal Methods & Models", "3", "1", "300", "1", "1"),
+("BCME 315", "Web Technologies", "3", "1", "300", "1", "1"),
+
+
+("DITE 200", "Project ", "3", "1", "200", "1", "1"),
+("DITE 201", "Systems Analysis and Design", "3", "1", "200", "1", "1"),
+("DITE 203", "Object Oriented Programming (Java)", "3", "1", "200", "1", "1"),
+("DITE 205", "Data Communication & Computer Networks I", "3", "1", "200", "1", "1"),
+("DITE 207", "Operating Systems", "3", "1", "200", "1", "1"),
+("DITE 209", "Computer Architecture", "3", "1", "200", "1", "1"),
+("DITE 211", "Database Systems I", "3", "1", "200", "1", "1"),
+("DITE 215", "Information Security", "3", "1", "200", "1", "1"),
+("DITE 299", "Research Methods (Non-Examinable)", "3", "1", "200", "1", "1"),
+
+("BCME 201", "Programming Language I (C++)", "3", "1", "200", "1", "1"),
+("BCME 203", "Data Structures & Algorithms", "3", "1", "200", "1", "1"),
+("BEEE 203", "Digital Electronics I (Combinational Logic)", "3", "1", "200", "1", "1"),
+("BEEE 207", "Electronics II (Electronic Systems)", "3", "1", "200", "1", "1"),
+("BMAE 205", "Strength Of Material Science", "3", "1", "200", "1", "1"),
+("BMAE 207", "Thermodynamics I", "3", "1", "200", "1", "1"),
+("BSMA 201", "Mathematics III (Calculus With Differential Equations)", "3", "1", "200", "1", "1"),
+
+("BCME 213", "Database Management System", "3", "1", "200", "1", "1"),
+("BCME 205", "Discrete Mathematics", "3", "1", "200", "1", "1"),
+("BCME 207", "Object Oriented Programming With Java", "3", "1", "200", "1", "1"),
+("BCME 209", "Digital Circuit Design II", "3", "1", "200", "1", "1"),
+("BCME 211", "Data Structures And Algorithms", "3", "1", "200", "1", "1"),
+
+("BACC 205", "Principles of Accounting I", "3", "1", "200", "1", "1"),
+("BINT 201", "Systems Analysis & Design", "3", "1", "200", "1", "1"),
+("BINT 203", "Object Oriented Programming (Principles)", "3", "1", "200", "1", "1"),
+("BINT 207", "Introduction to Organizational Behaviour", "3", "1", "200", "1", "1"),
+("BINT 209", "Computer Architecture", "3", "1", "200", "1", "1"),
+("BINT 205", "Programming (WITH C++)", "3", "1", "200", "1", "1"),
+
+-- ("BSMA 201", "Multivarialculus & Differential Equations", "3", "1", "200", "1", "1"),
+-- ("BACC 205", "Principles of Accounting I", "3", "1", "200", "1", "1"),
+-- ("BINT 201", "Systems Analysis & Design", "3", "1", "200", "1", "1"),
+-- ("BINT 203", "Object Oriented Programming (Principles)", "3", "1", "200", "1", "1"),
+-- ("BINT 205", "Programming (With C++)", "3", "1", "200", "1", "1"),
+-- ("BINT 207", "Introduction to Organizational Behaviour", "3", "1", "200", "1", "1"),
+-- ("BINT 209", "Computer Architecture", "3", "1", "200", "1", "1"),
+
+
+("BEEE 101", "Applied Electricity", "3", "1", "100", "1", "1"),
+("BMAE 101", "Basic Mechanics", "3", "1", "100", "1", "1"),
+("BCME 101", "Computer Studies I (Intro To Computer Applications)", "3", "1", "100", "1", "1"),
+("BMAE 103", "Engineering Drawing I", "3", "1", "100", "1", "1"),
+("UFRE 103", "French I", "2", "1", "100", "1", "1"),
+("BSMA 101", "Mathematics I (Algebra With Analysis)", "3", "1", "100", "1", "1"),
+("BMAE 105", "Workshop Technology I", "3", "1", "100", "1", "1"),
+("BMAE 107", "Material Science", "3", "1", "100", "1", "1"),
+("UCOM 101", "Communication Skills I (Academic Writing Skills)", "2", "1", "100", "1", "1"),
+("BCME 105", "Moral & Ethical Issues", "3", "1", "100", "1", "1"),
+("UFRE 101", "French I", "2", "1", "100", "1", "1"),
+("BPSA 101", "Introduction to Micro Economics", "3", "1", "100", "1", "1"),
+
+("BINT 101", "Introduction To Computing", "3", "1", "100", "1", "1"),
+("BINT 103", "Principles of Programming and Problem Solving", "3", "1", "100", "1", "1"),
+("BINT 105", "Critical Thinking and Practical Reasoning", "3", "1", "100", "1", "1"),
+("SBUS 105", "Principles of Management", "3", "1", "100", "1", "1"),
+
+("DITE 101", "Introduction To Computing", "3", "1", "100", "1", "1"),
+("DITE 103", "Principles of Programming and Problem Solving", "3", "1", "100", "1", "1"),
+("DITE 105", "Critical Thinking and Practical Reasoning", "3", "1", "100", "1", "1")
+;
+
+-- ("BEEE 101", "Applied Electricity", "3", "1", "100", "1", "1"),
+-- ("BCME 101", "Computer Studies I (Intro. to Computer Applications)", "3", "1", "100", "1", "1"),
+-- ("BSMA 101", "Mathematics I (Algebra With Analysis)", "3", "1", "100", "1", "1"),
+-- ("UCOM 101", "Communication Skills I", "2", "1", "100", "1", "1"),
+-- ("UFRE 103", "French I", "2", "1", "100", "1", "1"),
+-- ("BSMA 101", "Calculus I", "3", "1", "100", "1", "1"),
+-- ("UCOM 101", "Communication Skills", "2", "1", "100", "1", "1"),
+-- ("UFRE 103", "French I", "2", "1", "100", "1", "1"),
+-- ("BSMA 101", "Calculus I", "3", "1", "100", "1", "1")
+-- ("SBUS 105", "Principles of Management", "3", "1", "100", "1", "1"),
+
+
+
 -- -----------------------------------------------------
 -- Table `room`
 -- -----------------------------------------------------
@@ -113,8 +264,10 @@ CREATE TABLE IF NOT EXISTS `room` (
   PRIMARY KEY (`number`),
   CONSTRAINT `fk_room_department1` FOREIGN KEY (`fk_department`) REFERENCES `department` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
-CREATE INDEX room_code_idx1 ON `room` (`capacity`);
-CREATE INDEX room_name_idx1 ON `room` (`location`);
+CREATE INDEX room_capacity_idx1 ON `room` (`capacity`);
+CREATE INDEX room_location_idx1 ON `room` (`location`);
+CREATE INDEX room_longitude_idx1 ON `room` (`longitude`);
+CREATE INDEX room_latitude_idx1 ON `room` (`latitude`);
 CREATE INDEX room_archived_idx1 ON `room` (`archived`);
 
 -- -----------------------------------------------------
@@ -262,9 +415,13 @@ CREATE TABLE IF NOT EXISTS `course_registration` (
 ALTER TABLE `course_registration` 
 ADD COLUMN `registered` TINYINT(1) DEFAULT 0 AFTER `fk_semester`,
 ADD COLUMN `fk_semester_registered` INT AFTER `fk_semester`,
+ADD COLUMN `semester` INT AFTER `fk_semester_registered`,
+ADD COLUMN `level` INT AFTER `fk_semester_registered`,
 ADD CONSTRAINT `fk_course_registration_semester2` FOREIGN KEY (`fk_semester_registered`) REFERENCES `semester` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE;
 CREATE INDEX course_registration_archived_idx1 ON `course_registration` (`archived`);
 CREATE INDEX course_registration_registered_idx1 ON `course_registration` (`registered`);
+CREATE INDEX course_registration_semester_idx1 ON `course_registration` (`semester`);
+CREATE INDEX course_registration_level_idx1 ON `course_registration` (`level`);
 
 -- -----------------------------------------------------
 -- Table `staff`
@@ -310,3 +467,5 @@ CREATE TABLE IF NOT EXISTS `lecture` (
 CREATE INDEX lecture_archived_idx1 ON `lecture` (`archived`);
 
 ALTER TABLE `admission_period` ADD CONSTRAINT `fk_admission_period_academic_year` FOREIGN KEY (`fk_academic_year`) REFERENCES `academic_year`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE; 
+
+ALTER TABLE `course` ADD CONSTRAINT `fk_course_category1` FOREIGN KEY (`fk_category`) REFERENCES `course_category`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE; ALTER TABLE `course` ADD CONSTRAINT `fk_course_department1` FOREIGN KEY (`fk_department`) REFERENCES `department`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE; 
