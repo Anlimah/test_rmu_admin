@@ -2163,7 +2163,7 @@ class AdminController
 
         $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
         if (!$g_res["success"]) return $g_res;
-        //return $g_res;
+
         $file_paths = [];
         array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
         $status_update_extras = [];
@@ -2232,7 +2232,7 @@ class AdminController
         return array("success" => true, "message" => $class_code);
     }
 
-    private function createUndergradStudentIndexNumber($appID, $progID): mixed
+    private function createUndergradStudentIndexNumber($appID, $progID, $term_admitted): mixed
     {
         $prog_data = $this->fetchAllFromProgramWithDepartByProgID($progID);
         if (empty($prog_data)) return array(
@@ -2263,13 +2263,16 @@ class AdminController
 
         $stdCount = $this->getTotalEnrolledApplicants($prog_data[0]["id"], $adminPeriodYear[0]["fk_academic_year"], $stream) + 1;
 
-        if ($stdCount <= 10) $numCount = "0000";
-        elseif ($stdCount <= 100) $numCount = "000";
-        elseif ($stdCount <= 1000) $numCount = "00";
-        elseif ($stdCount <= 10000) $numCount = "0";
-        elseif ($stdCount <= 100000) $numCount = "";
+        if ($stdCount <= 10) $numCount = "000";
+        elseif ($stdCount <= 100) $numCount = "00";
+        elseif ($stdCount <= 1000) $numCount = "0";
+        elseif ($stdCount <= 10000) $numCount = "";
 
-        $indexNumber = $index_code . $numCount . $stdCount . $completionYear;
+        // Check whether it's january or august intake
+        if (strtolower($term_admitted) === "august") $term = 1;
+        else if (strtolower($term_admitted) === "january") $term = 2;
+
+        $indexNumber = $index_code . $term . $numCount . $stdCount . $completionYear;
 
         return array(
             "success" => true,
@@ -2452,8 +2455,11 @@ class AdminController
      */
     public function enrollApplicant($appID, $progID): mixed
     {
+        $term_admitted = $this->getAdmissionPeriodYearsByID($this->getCurrentAdmissionPeriodID())[0]["intake"];
+        //return $term_admitted;
+
         //create index number from program and number of student that exists
-        $index_creation_rslt = $this->createUndergradStudentIndexNumber($appID, $progID);
+        $index_creation_rslt = $this->createUndergradStudentIndexNumber($appID, $progID, $term_admitted);
         if (!$index_creation_rslt["success"]) return $index_creation_rslt;
         $indexCreation = $index_creation_rslt["message"];
         //return $indexCreation;
@@ -2468,9 +2474,6 @@ class AdminController
         //return $appDetails;
         if (!$appDetails) return array("success" => false, "message" => "Failed to fetch applicant's background information!");
         //$appDetails = $app_details_rslt["message"];
-
-        $term_admitted = $this->getAdmissionPeriodYearsByID($this->getCurrentAdmissionPeriodID())[0]["intake"];
-        //return $term_admitted;
 
         $password = password_hash("123@Password", PASSWORD_BCRYPT);
         $data = array_merge(
