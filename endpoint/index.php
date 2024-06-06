@@ -929,6 +929,15 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         die(json_encode($admin->enrollApplicant($_POST["app-login"], $_POST["app-prog"])));
     }
 
+    // Set student's class and courses
+    elseif ($_GET["url"] == "set-student-courses") {
+        if (!isset($_POST["class"]) || empty($_POST["class"]))
+            die(json_encode(array("success" => false, "message" => "Missing parameter in request: class code!")));
+        if (!isset($_POST["program"]) || empty($_POST["program"]))
+            die(json_encode(array("success" => false, "message" => "Missing parameter in request: program!")));
+        die(json_encode($admin->setStudentCourses($_POST["class"], $_POST["program"])));
+    }
+
     //
     elseif ($_GET["url"] == "unenroll-applicant") {
         if (!isset($_POST["app-login"]) || empty($_POST["app-login"]))

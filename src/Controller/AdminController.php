@@ -2491,7 +2491,44 @@ class AdminController
         //$this->smsApplicantEnrollmentStatus($data);
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
-        return array("success" => true, "message" => "Applicant successfully enrolled!");
+        return array(
+            "success" => true,
+            "message" => "Applicant successfully enrolled!",
+            "data" => array(
+                "index_number" => $index_creation_rslt["message"]["index_number"],
+                "class" => $index_creation_rslt["message"]["class"],
+                "program" => $index_creation_rslt["message"]["program"]
+            )
+        );
+    }
+
+    public function setStudentCourses($class_code, $program_id): mixed
+    {
+        $section = $this->dm->getData(
+            "SELECT `id` FROM `section` WHERE `fk_class` = :c",
+            array(":c" => $class_code)
+        );
+
+        if (!empty($section)) return array("success" => true, "message" => "Section created for this student's class [{$class_code}]!");
+
+        $curriculum = $this->dm->getData(
+            "SELECT `fk_course` AS course FROM `curriculum` WHERE `fk_program` = :p",
+            array(":p" => $program_id)
+        );
+
+        if (empty($curriculum)) return array("success" => false, "message" => "No curriculum found for student's program!");
+
+        $added = 0;
+        foreach ($curriculum as $curr) {
+            $added += $this->dm->getData(
+                "INSERT INTO `section` (`fk_class`, `fk_course`) VALUES (:cl, :cs)",
+                array(":cl" => $class_code, ":cs" => $curr["course"])
+            );
+        }
+
+        if (!$added)  return array("success" => false, "message" => "Could not create a section for student's class [{$class_code}]!");
+
+        return array("success" => true, "message" => "Section created for this student's class [{$class_code}]!");
     }
 
     public function getEnrolledApplicantDetailsByAppNum($app_number): mixed

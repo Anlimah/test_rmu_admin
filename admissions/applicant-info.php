@@ -281,6 +281,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                 <?php } ?>
                                             </table>
                                         </div>
+                                        <div style="display: flex; padding: 15px; padding-bottom: 0 !important; border-radius:15px" id="message"></div>
                                         <div style="display: flex; justify-content: flex-end; padding: 15px; border-radius:15px">
                                             <a style="width: 100px" class="btn btn-primary btn-sm" target="_blank" href="../download-appData.php?<?= "t=" . $_GET["t"] . "&q=" . $_GET["q"] ?>">
                                                 <span class="bi bi-printer"></span> <b>Print</b>
@@ -934,6 +935,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
             $("#enrollAppForm").on("submit", function(e) {
                 e.preventDefault();
                 $("#enrollAppBtn-text").text("Enrolling...");
+
                 $.ajax({
                     type: "POST",
                     url: "../endpoint/enroll-applicant",
@@ -947,9 +949,40 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                             window.location.href = "?logout=true";
                             return;
                         } else {
-                            alert(result.message);
+                            $("#message").html('<div class="text-success" style="font-weight: bold">' + result.message + "..." + '</div>');
                             $("#enrollAppBtn-text").text("Enroll");
-                            if (result.success) window.location.reload();
+                            if (result.success) {
+                                setTimeout(function() {
+                                    payload = result.data;
+
+                                    $.ajax({
+                                        type: "POST",
+                                        url: "../endpoint/set-student-courses",
+                                        data: payload,
+                                        success: function(result) {
+                                            console.log(result);
+                                            if (!result.success && result.message == "logout") {
+                                                window.location.href = "?logout=true";
+                                                return;
+                                            } else {
+                                                setTimeout(function() {
+                                                    if (result.success) {
+                                                        $("#message").html('<div class="text-success" style="font-weight: bold">' + result.message + "..." + '</div>');
+                                                    } else {
+                                                        $("#message").html('<div class="text-danger" style="font-weight: bold">' + result.message + "..." + '</div>');
+                                                    }
+                                                    setTimeout(function() {
+                                                        window.location.reload();
+                                                    }, 1000);
+                                                }, 1000);
+                                            }
+                                        },
+                                        error: function(error) {
+                                            console.log(error);
+                                        }
+                                    });
+                                }, 1000);
+                            }
                         }
                     },
                     error: function(error) {
