@@ -893,13 +893,16 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (!isset($_POST["app-stream-check"]) || empty($_POST["app-stream-check"]))
             die(json_encode(array("success" => false, "message" => "No stream provide for this applicant!")));
 
+        if (!isset($_POST["app-level-admit-check"]) || empty($_POST["app-level-admit-check"]))
+            die(json_encode(array("success" => false, "message" => "No stream provide for this applicant!")));
+
         if (!isset($_POST["app-email-check"]))
             die(json_encode(array("success" => false, "message" => "Choose an option to send email to applicant or not!")));
 
         if (!isset($_POST["app-sms-check"]))
             die(json_encode(array("success" => false, "message" => "Choose an option to send SMS to applicant or not!")));
 
-        die(json_encode($admin->admitIndividualApplicant($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-email-check"], $_POST["app-sms-check"])));
+        die(json_encode($admin->admitIndividualApplicant($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-level-admit-check"], $_POST["app-email-check"], $_POST["app-sms-check"])));
     }
 
     // decline applicant admission
@@ -926,7 +929,9 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "There no match for this applicant in database!")));
         if (!isset($_POST["app-prog"]) || empty($_POST["app-prog"]))
             die(json_encode(array("success" => false, "message" => "Please choose a programme!")));
-        die(json_encode($admin->enrollApplicant($_POST["app-login"], $_POST["app-prog"])));
+        if (!isset($_POST["app-level"]) || empty($_POST["app-level"]))
+            die(json_encode(array("success" => false, "message" => "Please choose a level!")));
+        die(json_encode($admin->enrollApplicant($_POST["app-login"], $_POST["app-prog"], $_POST["app-level"])));
     }
 
     // Set student's class and courses

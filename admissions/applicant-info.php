@@ -234,6 +234,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                                     </button>
                                                                     <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
                                                                     <input type="hidden" name="app-prog" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
+                                                                    <input type="hidden" name="app-level" id="app-level" value="<?= !empty($app_statuses[0]["level_admitted"]) ? $app_statuses[0]["level_admitted"] : 0 ?>">
                                                                 </form>
                                                             <?php } ?>
                                                             <?php if ($app_statuses[0]["enrolled"]) { ?>
@@ -631,37 +632,48 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                     </div>
                     <div class="modal-body">
                         <form id="admit-applicant-form">
-                            <div class="row mb-3">
+                            <div class="row mb-2">
                                 <label for="recipient-name" class="col-sm-4 col-form-label"> Application: </label>
-                                <div class="col-sm-8">
+                                <div class="col-sm-8 mt-1">
                                     <input type="text" name="app-app-number-check" id="" class="form-control form-control-sm" value="<?= $app_number[0]["app_number"] ?> (<?= $personal_AB[0]["study_stream"] ?>)" style="font-weight: bolder; border: none !important" disabled>
                                 </div>
                             </div>
-                            <div class="row mb-3">
+                            <div class="row mb-2">
                                 <label for="message-text" class="col-sm-4 col-form-label">Program Applying: </label>
-                                <div class="col-sm-8">
+                                <div class="col-sm-8 mt-1">
                                     <input type="text" name="app-prog-check" id="app-prog-check" class="form-control form-control-sm" style="font-weight: bolder; border: none !important" disabled>
                                 </div>
                             </div>
-                            <div class="row mb-3">
+                            <div class="row mb-2">
                                 <label for="message-text" class="col-sm-4 col-form-label">Stream Availability: </label>
                                 <div class="row col-sm-8">
                                     <input type="text" name="app-prog-availability-check" id="app-prog-availability-check" class="col-3 form-control form-control-sm" style="font-weight: bolder; border: none !important; width: 10px" disabled>
                                     <span id="app-prog-availability-check-msg" class="col-9"></span>
                                 </div>
                             </div>
-                            <div class="row mb-3">
+                            <div class="row mb-2">
                                 <label for="message-text" class="col-sm-4 col-form-label"> Stream Applying: </label>
                                 <div class="col-sm-8">
-                                    <select name="app-stream-check" id="app-stream-check" class="form-select form-select-sm" style="font-weight: bolder; width:150px">
+                                    <select name="app-stream-check" id="app-stream-check" class="form-select form-select-sm" style="font-weight: bolder; width:120px">
                                         <option value=" REGULAR" <?= strtolower($personal_AB[0]["study_stream"]) === "regular" ? "selected" : "" ?>>REGULAR</option>
                                         <option value="WEEKEND" <?= strtolower($personal_AB[0]["study_stream"]) === "weekend" ? "selected" : "" ?>>WEEKEND</option>
                                     </select>
                                 </div>
                             </div>
-                            <div class="row mb-3">
-                                <label for="message-text" class="col-sm-4 col-form-label">Email Admission Letter: </label>
+                            <div class="row mb-2">
+                                <label for="message-text" class="col-sm-4 col-form-label"> Level Admitting: </label>
                                 <div class="col-sm-8">
+                                    <select name="app-level-admit-check" id="app-level-admit-check" class="form-select form-select-sm" style="font-weight: bolder; width:80px">
+                                        <option value="100">100</option>
+                                        <option value="200">200</option>
+                                        <option value="300">300</option>
+                                        <option value="400">400</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <label for="message-text" class="col-sm-4 col-form-label">Email Admission Letter: </label>
+                                <div class="col-sm-8  mt-2">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="app-email-check" id="app-email-check-yes" value="1" checked>
                                         <label class="form-check-label" for="app-email-check-yes">Yes</label>
@@ -672,9 +684,9 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                     </div>
                                 </div>
                             </div>
-                            <div class="row mb-3">
+                            <div class="row">
                                 <label for="message-text" class="col-sm-4 col-form-label">Notify Applicant (SMS):</label>
-                                <div class="col-sm-8">
+                                <div class="col-sm-8  mt-2">
                                     <div class="form-check form-check-inline">
                                         <input class="form-check-input" type="radio" name="app-sms-check" id="app-sms-check-yes" value="1" checked>
                                         <label class="form-check-label" for="app-sms-check-yes">Yes</label>
@@ -949,9 +961,9 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                             window.location.href = "?logout=true";
                             return;
                         } else {
-                            $("#message").html('<div class="text-success" style="font-weight: bold">' + result.message + "..." + '</div>');
-                            $("#enrollAppBtn-text").text("Enroll");
                             if (result.success) {
+                                $("#message").html('<div class="text-success" style="font-weight: bold">' + result.message + "..." + '</div>');
+
                                 setTimeout(function() {
                                     payload = result.data;
 
@@ -982,7 +994,10 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                         }
                                     });
                                 }, 1000);
+                            } else {
+                                $("#message").html('<div class="text-danger" style="font-weight: bold">' + result.message + "..." + '</div>');
                             }
+                            $("#enrollAppBtn-text").text("Enroll");
                         }
                     },
                     error: function(error) {

@@ -1917,7 +1917,7 @@ class AdminController
         }
     }
 
-    private function loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied): mixed
+    private function loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied, $level): mixed
     {
         $app_pers_info = $this->fetchApplicantPersInfoByAppID($appID)[0];
         $app_app_number = $this->fetchApplicantAppNumber($appID)[0];
@@ -1935,6 +1935,9 @@ class AdminController
                 $program_name = ($prog_info["category"] === "DEGREE") ? str_replace(["b.sc ", "b.sc. ", "b.s.c ", "b.s.c. "], "", strtolower($prog_info["name"])) : $prog_info["name"];
                 $program_name = str_replace(['\\', '/', ':', '*', '?', '"', '<', '>', '|'], " ", $program_name);
 
+                if ($level == 100) $program_dur = $prog_info["duration"];
+                else if ($level > 100) $program_dur = ((400 - $level) / 100) + 1;
+
                 $letter_data = [
                     "success" => true,
                     "type" => "undergrade",
@@ -1942,6 +1945,8 @@ class AdminController
                     "program" => $program_name,
                     "phone_number" => $app_pers_info["phone_no1_code"] . $app_pers_info["phone_no1"],
                     "email_address" => $app_pers_info["email_addr"],
+                    "program_dur" => $program_dur,
+                    "level_admitted" => $level,
                     "data" => [
                         'app_number' => $app_app_number["app_number"],
                         'Prefix' => ucwords(strtolower($app_pers_info["prefix"])),
@@ -1953,9 +1958,9 @@ class AdminController
                         'Box_Address' => ucwords(strtolower($app_pers_info["postal_addr"])),
                         'Location' => ucwords(strtolower($app_pers_info["postal_country"])),
                         'Year_of_Admission' => $admission_period["academic_year"],
-                        'Program_Length_1' => strtoupper(strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"])),
+                        'Program_Length_1' => strtoupper(strtolower($program_dur . "-" . $prog_info["dur_format"])),
                         'Program_Offered_1' => strtoupper(strtolower($prog_info["name"])),
-                        'Program_Length_2' => strtolower($prog_info["duration"] . "-" . $prog_info["dur_format"]),
+                        'Program_Length_2' => strtolower($program_dur . "-" . $prog_info["dur_format"]),
                         'Program_Offered_2' => (($prog_info["category"] === "DEGREE") ? "B.Sc " : "") . ucwords(strtolower($program_name)),
                         'Program_Type' => ucwords(strtolower($prog_info["category"])),
                         'Program_Stream' => trim(strtolower($stream_applied)),
@@ -2084,7 +2089,7 @@ class AdminController
         return $letter_data;
     }
 
-    private function updateApplicantAdmissionStatus($app_id, $prog_id, $extras = []): mixed
+    private function updateApplicantAdmissionStatus($app_id, $prog_id, $program_dur, $level, $extras = []): mixed
     {
         $extras_query = "";
         if (!empty($extras)) {
@@ -2099,8 +2104,10 @@ class AdminController
                 else $extras_query .= "`notified_sms` = 1, ";
             }
         }
-        $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p WHERE `app_login` = :i";
-        return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id)));
+        $query = "UPDATE `form_sections_chek` 
+        SET `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p, `programme_duration` = :pr, `level_admitted` = :l 
+        WHERE `app_login` = :i";
+        return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id, ":pr" => $program_dur, ":l" => $level)));
     }
 
     private function sendAdmissionLetterViaEmail($data, $file_paths = []): mixed
@@ -2156,9 +2163,9 @@ class AdminController
         return 0;
     }
 
-    public function admitIndividualApplicant($appID, $prog_id, $stream_applied, bool $email_letter = false, bool $sms_notify = false)
+    public function admitIndividualApplicant($appID, $prog_id, $stream_applied, $level, bool $email_letter = false, bool $sms_notify = false)
     {
-        $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied);
+        $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied, $level);
         if (!$l_res["success"]) return $l_res;
 
         $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
@@ -2172,7 +2179,7 @@ class AdminController
         //return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         //if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
-        $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $status_update_extras);
+        $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $l_res["program_dur"], $l_res["level_admitted"], $status_update_extras);
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
         return array("success" => true, "message" => "Successfully admitted applicant!");
     }
@@ -2336,9 +2343,9 @@ class AdminController
 
         $query1 = "INSERT INTO `student` (`index_number`, `app_number`, `email`, `password`, `phone_number`, 
                     `prefix`, `first_name`, `middle_name`, `last_name`, `suffix`, `gender`, `dob`, `nationality`, 
-                    `photo`, `marital_status`, `disability`, `date_admitted`, `term_admitted`, `stream_admitted`, 
+                    `photo`, `marital_status`, `disability`, `date_admitted`, `term_admitted`, `stream_admitted`, `level_admitted`, 
                     `fk_academic_year`, `fk_program`, `fk_class`, `fk_department`) 
-                    VALUES (:ix, :an, :ea, :pw, :pn, :px, :fn, :mn, :ln, :sx, :gd, :db, :nt, :pt, :ms, :ds, :da, :ta, :sa, :fkay, :fkpg, :fkcl, :fkdt)";
+                    VALUES (:ix, :an, :ea, :pw, :pn, :px, :fn, :mn, :ln, :sx, :gd, :db, :nt, :pt, :ms, :ds, :da, :ta, :sa, :la, :fkay, :fkpg, :fkcl, :fkdt)";
         $params1 = array(
             ":ix" => $data["index_number"],
             ":an" => $data["app_number"],
@@ -2359,6 +2366,7 @@ class AdminController
             ":da" => $date_admitted,
             ":ta" => $data["term"],
             ":sa" => $data["stream"],
+            ":la" => $data["level_admitted"],
             ":fkay" => $data["academic_year"],
             ":fkpg" => $data["program"],
             ":fkcl" => $data["class"],
@@ -2453,7 +2461,7 @@ class AdminController
      * @param int $progID
      * @return mixed
      */
-    public function enrollApplicant($appID, $progID): mixed
+    public function enrollApplicant($appID, $progID, $level): mixed
     {
         $term_admitted = $this->getAdmissionPeriodYearsByID($this->getCurrentAdmissionPeriodID())[0]["intake"];
         //return $term_admitted;
@@ -2477,7 +2485,7 @@ class AdminController
 
         $password = password_hash("123@Password", PASSWORD_BCRYPT);
         $data = array_merge(
-            ["email_generated" => $emailGenerated, "term" => $term_admitted, "password" => $password],
+            ["email_generated" => $emailGenerated, "term" => $term_admitted, "password" => $password, "level_admitted" => $level],
             $indexCreation,
             $appDetails
         );
@@ -2980,7 +2988,7 @@ class AdminController
 
     public function fetchApplicationStatus($appID)
     {
-        $query = "SELECT `declaration`, `reviewed`, `enrolled`, `admitted`, `declined`, `printed`, `programme_awarded` 
+        $query = "SELECT `declaration`, `reviewed`, `enrolled`, `admitted`, `declined`, `printed`, `programme_awarded`, `programme_duration` , `level_admitted` 
                     FROM `form_sections_chek` WHERE `app_login` = :i";
         return $this->dm->getData($query, array(":i" => $appID));
     }
