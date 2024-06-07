@@ -471,3 +471,5 @@ ALTER TABLE `admission_period` ADD CONSTRAINT `fk_admission_period_academic_year
 ALTER TABLE `course` ADD CONSTRAINT `fk_course_category1` FOREIGN KEY (`fk_category`) REFERENCES `course_category`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE; ALTER TABLE `course` ADD CONSTRAINT `fk_course_department1` FOREIGN KEY (`fk_department`) REFERENCES `department`(`id`) ON DELETE NO ACTION ON UPDATE CASCADE; 
 ALTER TABLE `form_sections_chek` ADD COLUMN `programme_duration` INT DEFAULT NULL AFTER `programme_awarded`;
 ALTER TABLE `form_sections_chek` ADD COLUMN `level_admitted` INT DEFAULT NULL AFTER `programme_duration`;
+ALTER TABLE `student` ADD COLUMN `programme_duration` INT DEFAULT 4 AFTER `level_admitted`;
+CREATE INDEX student_programme_duration_idx1 ON `student` (`programme_duration`);

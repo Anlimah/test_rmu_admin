@@ -2343,9 +2343,9 @@ class AdminController
 
         $query1 = "INSERT INTO `student` (`index_number`, `app_number`, `email`, `password`, `phone_number`, 
                     `prefix`, `first_name`, `middle_name`, `last_name`, `suffix`, `gender`, `dob`, `nationality`, 
-                    `photo`, `marital_status`, `disability`, `date_admitted`, `term_admitted`, `stream_admitted`, `level_admitted`, 
-                    `fk_academic_year`, `fk_program`, `fk_class`, `fk_department`) 
-                    VALUES (:ix, :an, :ea, :pw, :pn, :px, :fn, :mn, :ln, :sx, :gd, :db, :nt, :pt, :ms, :ds, :da, :ta, :sa, :la, :fkay, :fkpg, :fkcl, :fkdt)";
+                    `photo`, `marital_status`, `disability`, `date_admitted`, `term_admitted`, `stream_admitted`, 
+                    `level_admitted`, `programme_duration`, `fk_academic_year`, `fk_program`, `fk_class`, `fk_department`) 
+                    VALUES (:ix, :an, :ea, :pw, :pn, :px, :fn, :mn, :ln, :sx, :gd, :db, :nt, :pt, :ms, :ds, :da, :ta, :sa, :la, :pd, :fkay, :fkpg, :fkcl, :fkdt)";
         $params1 = array(
             ":ix" => $data["index_number"],
             ":an" => $data["app_number"],
@@ -2367,6 +2367,7 @@ class AdminController
             ":ta" => $data["term"],
             ":sa" => $data["stream"],
             ":la" => $data["level_admitted"],
+            ":pd" => $data["programme_duration"],
             ":fkay" => $data["academic_year"],
             ":fkpg" => $data["program"],
             ":fkcl" => $data["class"],
@@ -2461,7 +2462,7 @@ class AdminController
      * @param int $progID
      * @return mixed
      */
-    public function enrollApplicant($appID, $progID, $level): mixed
+    public function enrollApplicant($appID, $progID, $level, $prog_dur): mixed
     {
         $term_admitted = $this->getAdmissionPeriodYearsByID($this->getCurrentAdmissionPeriodID())[0]["intake"];
         //return $term_admitted;
@@ -2485,7 +2486,13 @@ class AdminController
 
         $password = password_hash("123@Password", PASSWORD_BCRYPT);
         $data = array_merge(
-            ["email_generated" => $emailGenerated, "term" => $term_admitted, "password" => $password, "level_admitted" => $level],
+            [
+                "email_generated" => $emailGenerated,
+                "term" => $term_admitted,
+                "password" => $password,
+                "level_admitted" => $level,
+                "programme_duration" => $prog_dur
+            ],
             $indexCreation,
             $appDetails
         );

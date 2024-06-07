@@ -931,7 +931,9 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Please choose a programme!")));
         if (!isset($_POST["app-level"]) || empty($_POST["app-level"]))
             die(json_encode(array("success" => false, "message" => "Please choose a level!")));
-        die(json_encode($admin->enrollApplicant($_POST["app-login"], $_POST["app-prog"], $_POST["app-level"])));
+        if (!isset($_POST["app-duration"]) || empty($_POST["app-duration"]))
+            die(json_encode(array("success" => false, "message" => "Please choose a level!")));
+        die(json_encode($admin->enrollApplicant($_POST["app-login"], $_POST["app-prog"], $_POST["app-level"], $_POST["app-duration"])));
     }
 
     // Set student's class and courses
@@ -939,7 +941,8 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (!isset($_POST["class"]) || empty($_POST["class"]))
             die(json_encode(array("success" => false, "message" => "Missing parameter in request: class code!")));
         if (!isset($_POST["program"]) || empty($_POST["program"]))
-            die(json_encode(array("success" => false, "message" => "Missing parameter in request: program!")));
+            die(json_encode(array("success" => false, "message" => "Missing parameter in request: program id!")));
+
         die(json_encode($admin->setStudentCourses($_POST["class"], $_POST["program"])));
     }
 

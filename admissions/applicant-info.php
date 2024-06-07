@@ -235,6 +235,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                                     <input type="hidden" name="app-login" id="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
                                                                     <input type="hidden" name="app-prog" value="<?= !empty($app_statuses[0]["programme_awarded"]) ? $app_statuses[0]["programme_awarded"] : 0  ?>">
                                                                     <input type="hidden" name="app-level" id="app-level" value="<?= !empty($app_statuses[0]["level_admitted"]) ? $app_statuses[0]["level_admitted"] : 0 ?>">
+                                                                    <input type="hidden" name="app-duration" id="app-duration" value="<?= !empty($app_statuses[0]["programme_duration"]) ? $app_statuses[0]["programme_duration"] : 0 ?>">
                                                                 </form>
                                                             <?php } ?>
                                                             <?php if ($app_statuses[0]["enrolled"]) { ?>
