@@ -473,3 +473,11 @@ ALTER TABLE `form_sections_chek` ADD COLUMN `programme_duration` INT DEFAULT NUL
 ALTER TABLE `form_sections_chek` ADD COLUMN `level_admitted` INT DEFAULT NULL AFTER `programme_duration`;
 ALTER TABLE `student` ADD COLUMN `programme_duration` INT DEFAULT 4 AFTER `level_admitted`;
 CREATE INDEX student_programme_duration_idx1 ON `student` (`programme_duration`);
+
+ALTER TABLE `section` 
+ADD COLUMN `credits` INT NOT NULL AFTER `fk_course`,
+ADD COLUMN `level` INT NOT NULL AFTER `credits`,
+ADD COLUMN `semester` INT NOT NULL AFTER `level`;
+CREATE INDEX section_credits_idx1 ON section (`credits`);
+CREATE INDEX section_level_idx1 ON section (`level`);
+CREATE INDEX section_semester_idx1 ON section (`semester`);

@@ -2527,7 +2527,9 @@ class AdminController
         if (!empty($section)) return array("success" => true, "message" => "Section created for this student's class [{$class_code}]!");
 
         $curriculum = $this->dm->getData(
-            "SELECT `fk_course` AS course FROM `curriculum` WHERE `fk_program` = :p",
+            "SELECT c.`credits`, c.`level`, c.`semester`, cc.`fk_course` AS course 
+            FROM `curriculum` AS cc, `course` AS c 
+            WHERE cc.`fk_course` = c.`code` AND cc.`fk_program` = :p",
             array(":p" => $program_id)
         );
 
@@ -2536,8 +2538,15 @@ class AdminController
         $added = 0;
         foreach ($curriculum as $curr) {
             $added += $this->dm->getData(
-                "INSERT INTO `section` (`fk_class`, `fk_course`) VALUES (:cl, :cs)",
-                array(":cl" => $class_code, ":cs" => $curr["course"])
+                "INSERT INTO `section` (`fk_class`, `fk_course`, `credits`, `level`, `semester`) 
+                VALUES (:fkcl, :fkcs, :cd, :lv, :sm)",
+                array(
+                    ":fkcl" => $class_code,
+                    ":fkcs" => $curr["course"],
+                    ":cd" => $curr["credits"],
+                    ":lv" => $curr["level"],
+                    ":sm" => $curr["semester"]
+                )
             );
         }
 
