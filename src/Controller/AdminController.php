@@ -87,7 +87,7 @@ class AdminController
                 "DIPLOMA" => "DIPLOMA",
                 "VOCATIONAL/PROFESSIONAL COURSES" => "SHORT"
             };
-            $query = "SELECT * FROM programs WHERE `type` = :t AND `code` = :p";
+            $query = "SELECT * FROM programs WHERE `fk_type` = :t AND `code` = :p";
             $param = array(':t' => $type, ':p' => $prog_code);
         } else {
             $query = "SELECT * FROM programs";
@@ -382,14 +382,14 @@ class AdminController
     public function fetchAllPrograms()
     {
         $query = "SELECT p.`id`, p.`name`, f.name AS `type`, p.`weekend`, p.`group` 
-                FROM programs AS p, forms AS f WHERE p.type = f.id";
+                FROM programs AS p, forms AS f WHERE p.fk_type = f.id";
         return $this->dm->getData($query);
     }
 
     public function fetchProgramme($prog_id)
     {
         $query = "SELECT p.`id`, p.`name`, f.id AS `type`, p.`weekend`, p.`group` 
-                FROM programs AS p, forms AS f WHERE p.type = f.id AND p.id = :i";
+                FROM programs AS p, forms AS f WHERE p.fk_type = f.id AND p.id = :i";
         return $this->dm->getData($query, array(":i" => $prog_id));
     }
 
@@ -410,7 +410,7 @@ class AdminController
 
     public function addProgramme($prog_name, $prog_type, $prog_wkd, $prog_grp)
     {
-        $query = "INSERT INTO programs (`name`, `type`, `weekend`, `group`) VALUES(:n, :t, :w, :g)";
+        $query = "INSERT INTO programs (`name`, `fk_type`, `weekend`, `group`) VALUES(:n, :t, :w, :g)";
         $params = array(":n" => strtoupper($prog_name), ":t" => $prog_type, ":w" => $prog_wkd, ":g" => $prog_grp);
         $query_result = $this->dm->inputData($query, $params);
         if ($query_result)
@@ -424,7 +424,7 @@ class AdminController
 
     public function updateProgramme($prog_id, $prog_name, $prog_type, $prog_wkd, $prog_grp)
     {
-        $query = "UPDATE programs SET `name` = :n, `type` = :t, `weekend` = :w, `group` = :g WHERE id = :i";
+        $query = "UPDATE programs SET `name` = :n, `fk_type` = :t, `weekend` = :w, `group` = :g WHERE id = :i";
         $params = array(":n" => strtoupper($prog_name), ":t" => $prog_type, ":w" => $prog_wkd, ":g" => $prog_grp, ":i" => $prog_id);
         $query_result = $this->dm->inputData($query, $params);
         if ($query_result)
@@ -1120,7 +1120,7 @@ class AdminController
                     purchase_detail AS pd, admission_period AS ap, applicants_login AS al, forms AS ft, programs AS pg 
                 WHERE 
                     ap.id = pd.admission_period AND ap.active = 1 AND al.purchase_id = pd.id 
-                    AND pd.form_id = ft.id AND pg.type = ft.id AND pg.code = :pc";
+                    AND pd.form_id = ft.id AND pg.fk_type = ft.id AND pg.code = :pc";
             return $this->dm->getData($query, array(":pc" => $prog_code));
         } else {
             $query = "SELECT COUNT(*) AS total 
@@ -1129,7 +1129,7 @@ class AdminController
                     applicants_login AS al, forms AS ft, programs AS pg 
                 WHERE 
                     ap.id = pd.admission_period AND fc.app_login = al.id AND al.purchase_id = pd.id 
-                    AND pd.form_id = ft.id AND pg.type = ft.id AND pg.code = :pc AND ap.id = :a";
+                    AND pd.form_id = ft.id AND pg.fk_type = ft.id AND pg.code = :pc AND ap.id = :a";
             return $this->dm->getData($query, array(":pc" => $prog_code, ":a" => $admin_period));
         }
     }
@@ -1166,7 +1166,7 @@ class AdminController
         $query = "SELECT COUNT(DISTINCT pd.id) AS total 
                     FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft, programs AS pg 
                     WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id 
-                        AND pd.form_id = ft.id AND ft.id = pg.type AND ft.id = 1 AND fc.declaration = 1 AND fc.admitted = 0$SQL_COND";
+                        AND pd.form_id = ft.id AND ft.id = pg.fk_type AND ft.id = 1 AND fc.declaration = 1 AND fc.admitted = 0$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
@@ -1388,13 +1388,13 @@ class AdminController
         if (!empty($prog_type)) {
             $query = "SELECT s.*, 
             CONCAT(s.first_name, ' ', IF(s.middle_name <> '', CONCAT(s.middle_name, ' '), ''), s.last_name) AS full_name, 
-            p.`id` AS program_id, p.`name` AS program_name, p.`category` AS program_category, p.`type` AS program_type  
+            p.`id` AS program_id, p.`name` AS program_name, p.`category` AS program_category, p.`fk_type` AS program_type  
             FROM `student` AS s, `programs` AS p WHERE s.`fk_program` = p.`id` AND p.`id` = :p";
             $params = array(":p" => $prog_type);
         } else if (!empty($cert_type)) {
             $query = "SELECT s.*, 
             CONCAT(s.first_name, ' ', IF(s.middle_name <> '', CONCAT(s.middle_name, ' '), ''), s.last_name) AS full_name, 
-            p.`id` AS program_id, p.`name` AS program_name, p.`category` AS program_category, p.`type` AS program_type  
+            p.`id` AS program_id, p.`name` AS program_name, p.`category` AS program_category, p.`fk_type` AS program_type  
             FROM `student` AS s, `programs` AS p WHERE s.`fk_program` = p.`id` AND p.`category` = :c";
             $params = array(":c" => $cert_type);
         }
@@ -1798,7 +1798,7 @@ class AdminController
     public function fetchApplicantProgInfoByProgName($progName): mixed
     {
         return $this->dm->getData("SELECT p.*, f.`name` AS form_type FROM `programs` AS p, `forms` AS f 
-        WHERE p.`name` = :n AND p.`type` = f.`id`", array(":n" => $progName));
+        WHERE p.`name` = :n AND p.`fk_type` = f.`id`", array(":n" => $progName));
     }
 
     public function fetchApplicantProgInfoByProgID($progID): mixed

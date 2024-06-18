@@ -559,7 +559,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
 
                                             <?php
                                             $programData = $admin->fetchAllFromProgramByName($personal_AB[0]["first_prog"]);
-                                            if ($programData[0]["type"] < 4) {
+                                            if ($programData[0]["fk_type"] < 4) {
                                             ?>
                                                 <h5 style="font-size: 16px;" class="form-label mt-4"><b>Award a different programme</b></h5>
                                                 <div class="mb-4">
