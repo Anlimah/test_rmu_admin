@@ -1009,7 +1009,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
 
         });
     </script>
-    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+    <script src="../js/loadingoverlay.min.js"></script>
     <script>
         $(document).ready(function() {
             $(document).on({

@@ -2202,7 +2202,7 @@ class AdminController
     public function fetchAllFromProgramWithDepartByProgID($prog_id)
     {
         $query = "SELECT pg.*, dp.`id` AS department_id, dp.`name` AS department_name 
-        FROM `programs` AS pg, `department` AS dp WHERE pg.`id` = :i AND pg.`department` = dp.`id`";
+        FROM `programs` AS pg, `department` AS dp WHERE pg.`id` = :i AND pg.`fk_department` = dp.`id`";
         return $this->dm->getData($query, array(":i" => $prog_id));
     }
 
@@ -2502,8 +2502,8 @@ class AdminController
         $add_student_result = $this->addNewStudent($data);
         if (!$add_student_result["success"]) return $add_student_result;
 
-        $this->emailApplicantEnrollmentStatus($data);
-        $this->smsApplicantEnrollmentStatus($data);
+        //$this->emailApplicantEnrollmentStatus($data);
+        //$this->smsApplicantEnrollmentStatus($data);
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
         return array(
