@@ -180,7 +180,9 @@ class VoucherPurchase
             $purchase_id = $this->saveVendorPurchaseData($trans_id, $vd, $fi, $ap_id, $pm, $am, $fn, $ln, $em, $cn, $cc, $pn);
             if ($purchase_id) {
                 if ($pm == "CASH") {
-                    return $this->genLoginsAndSend($purchase_id);
+                    $send_email_sms = isset($data["ref_number"]) ? true : false;
+                    if ($send_email_sms) $_SESSION["is_international"] = true;
+                    return $this->genLoginsAndSend($purchase_id, $send_email_sms);
                 } else {
                     return array("success" => true, "message" => "Save purchase data!");
                 }
@@ -212,13 +214,12 @@ class VoucherPurchase
         return $this->dm->getData($sql, array(':t' => $trans_id));
     }
 
-    public function genLoginsAndSend(int $trans_id)
+    public function genLoginsAndSend(int $trans_id, bool $send_e_s = false)
     {
         $data = $this->getAppPurchaseData($trans_id);
         if (empty($data)) return array("success" => false, "message" => "No data records for this transaction!");
 
         $app_type = 0;
-
         if ($data[0]["form_category"] >= 2) {
             $app_type = 1;
         } else if ($data[0]["form_category"] == 1) {
@@ -226,14 +227,11 @@ class VoucherPurchase
         }
 
         $app_year = $this->expose->getAdminYearCode();
-
         $login_details = $this->genLoginDetails($app_type, $app_year);
 
         if ($this->saveLoginDetails($login_details['app_number'], $login_details['pin_number'], $trans_id)) {
-
             $this->updateVendorPurchaseData($trans_id, $login_details['app_number'], $login_details['pin_number'], 'COMPLETED');
             $vendor_id = $this->getVendorIDByTransactionID($trans_id);
-
             $this->logActivity(
                 $vendor_id,
                 "INSERT",
@@ -242,32 +240,36 @@ class VoucherPurchase
 
             $errors = [];
 
-            if (!empty($data[0]["phone_number"])) {
-                $message = 'Your RMU Online Application login details. ';
-                $message .= 'APPLICATION NUMBER: RMU-' . $login_details['app_number'];
-                $message .= '    PIN: ' . $login_details['pin_number'] . ".";
-                $message .= ' Follow the link, https://admissions.rmuictonline.com to start application process.';
-                $to = $data[0]["country_code"] . $data[0]["phone_number"];
+            if ($send_e_s) {
 
-                $response = json_decode($this->expose->sendSMS($to, $message));
-                if ($response->status) $errors['sms'] = 'Failed to send applicant login details via SMS!';
-            }
+                if (!empty($data[0]["phone_number"])) {
+                    $message = 'Your RMU Online Application login details. ';
+                    $message .= 'APPLICATION NUMBER: RMU-' . $login_details['app_number'];
+                    $message .= '    PIN: ' . $login_details['pin_number'] . ".";
+                    $message .= ' Follow the link, https://admissions.rmuictonline.com to start application process.';
+                    $to = $data[0]["country_code"] . $data[0]["phone_number"];
 
-            if (!empty($data[0]["email_address"])) {
-                // Prepare email
-                $emailMsg = "<p>Hello " . $data[0]["first_name"] . " " . $data[0]["last_name"] . ", </p></br>";
-                $emailMsg .= "<p>Find below your Login details to access the online application portal.</p></br>";
-                $emailMsg .= "<p style='font-weight: bold;'>Application Number: " . $login_details['app_number'] . "</p>";
-                $emailMsg .= "<p style='font-weight: bold;'>PIN Code: " . $login_details['pin_number'] . "</p></br>";
-                $emailMsg .= "<div>Please note this: <span>DO NOT share your login details with anyone.</span></div>";
-                $emailMsg .= "<p><a href='https://admissions.rmuictonline.com'>Click here</a> to access the online application portal and start the application process.</p>";
-                $emailMsg .= "<p>Thank you for choosing Regional Maritime University.</p>";
-                $emailMsg .= "<p>REGIONAL MARITIME UNIVERSITY</p>";
-                $mailResponse = $this->expose->sendEmail($data[0]["email_address"], 'RMU Forms Online - Form Purchase Information', $emailMsg);
-                if ($mailResponse != 1) $errors['email'] = 'Failed to send applicant login details via mail!';
+                    $response = json_decode($this->expose->sendSMS($to, $message));
+                    if ($response->status) $errors['sms'] = 'Failed to send applicant login details via SMS!';
+                }
+
+                if (!empty($data[0]["email_address"])) {
+                    // Prepare email
+                    $emailMsg = "<p>Hello " . $data[0]["first_name"] . " " . $data[0]["last_name"] . ", </p></br>";
+                    $emailMsg .= "<p>Find below your Login details to access the online application portal.</p></br>";
+                    $emailMsg .= "<p style='font-weight: bold;'>Application Number: " . $login_details['app_number'] . "</p>";
+                    $emailMsg .= "<p style='font-weight: bold;'>PIN Code: " . $login_details['pin_number'] . "</p></br>";
+                    $emailMsg .= "<div>Please note this: <span>DO NOT share your login details with anyone.</span></div>";
+                    $emailMsg .= "<p><a href='https://admissions.rmuictonline.com'>Click here</a> to access the online application portal and start the application process.</p>";
+                    $emailMsg .= "<p>Thank you for choosing Regional Maritime University.</p>";
+                    $emailMsg .= "<p>REGIONAL MARITIME UNIVERSITY</p>";
+                    $mailResponse = $this->expose->sendEmail($data[0]["email_address"], 'RMU Forms Online - Form Purchase Information', $emailMsg);
+                    if ($mailResponse != 1) $errors['email'] = 'Failed to send applicant login details via mail!';
+                }
             }
 
             $_SESSION["login_sending_errors"] = $errors;
+
             return array(
                 "success" => true,
                 "exttrid" => $trans_id,

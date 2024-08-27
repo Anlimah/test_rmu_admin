@@ -1779,9 +1779,9 @@ class AdminController
         if (!$response->status) $smsSent = true;
 
         // Check if email address was provided
-        if (!empty($data[0]["email_address"])) {
+        if (!empty($contactInfo[0]["email_address"])) {
             // Prepare email message
-            $e_message = '<p>Hi ' . $data[0]["first_name"] . ",</p>";
+            $e_message = '<p>Hi ' . $contactInfo[0]["first_name"] . ",</p>";
             $e_message .= '<p>Congratulations! You have been offered admission into Regional Maritime University to read ' . $programInfo[0][$prog_choice];
             $e_message .= 'as a ' . strtolower($programInfo[0]['study_stream']) . ' student.</p>';
             $e_message .= '<p>To secure this offer, please visit the application portal at https://admissions.rmuictonline.com and login to complete an acceptance form.';
