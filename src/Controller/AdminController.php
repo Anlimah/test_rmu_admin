@@ -2230,7 +2230,10 @@ class AdminController
         return $this->dm->getData($query, array(":i" => $prog_id));
     }
 
-    public function sendAdmissionFiles($appID, $fileObj) {}
+    public function sendAdmissionFiles($appID, $fileObj)
+    {
+        return 1;
+    }
 
     private function getAdmissionPeriodYearsByID($admin_period): mixed
     {
