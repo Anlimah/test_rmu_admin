@@ -30,27 +30,17 @@ CREATE INDEX academic_year_end_year_idx1 ON `academic_year` (`end_year`);
 CREATE INDEX academic_year_archived_idx1 ON `academic_year` (`archived`);
 CREATE INDEX academic_year_name_idx1 ON `academic_year` (`name`);
 INSERT INTO `academic_year` (`start_month`, `start_year`, `end_month`, `end_year`)
-VALUES
-('Aug', '2023', 'Jun', '2024'),
-('Aug', '2024', 'Jun', '2025'),
-('Aug', '2025', 'Jun', '2026'),
-('Aug', '2026', 'Jun', '2027'),
-('Aug', '2027', 'Jun', '2028'),
-('Aug', '2028', 'Jun', '2029'),
-('Aug', '2029', 'Jun', '2030'),
-('Aug', '2030', 'Jun', '2031'),
-('Aug', '2031', 'Jun', '2032'),
-('Aug', '2032', 'Jun', '2033'),
-('Aug', '2033', 'Jun', '2034'),
-('Aug', '2034', 'Jun', '2035'),
-('Aug', '2035', 'Jun', '2036'),
-('Aug', '2036', 'Jun', '2037'),
-('Aug', '2037', 'Jun', '2038'),
-('Aug', '2038', 'Jun', '2039'),
-('Aug', '2039', 'Jun', '2040'),
-('Aug', '2040', 'Jun', '2041'),
-('Aug', '2041', 'Jun', '2042');
-
+VALUES 
+('Aug', '2023', 'Jun', '2024'), ('Aug', '2024', 'Jun', '2025'),
+('Aug', '2025', 'Jun', '2026'), ('Aug', '2026', 'Jun', '2027'),
+('Aug', '2027', 'Jun', '2028'), ('Aug', '2028', 'Jun', '2029'),
+('Aug', '2029', 'Jun', '2030'), ('Aug', '2030', 'Jun', '2031'),
+('Aug', '2031', 'Jun', '2032'), ('Aug', '2032', 'Jun', '2033'),
+('Aug', '2033', 'Jun', '2034'), ('Aug', '2034', 'Jun', '2035'),
+('Aug', '2035', 'Jun', '2036'), ('Aug', '2036', 'Jun', '2037'),
+('Aug', '2037', 'Jun', '2038'), ('Aug', '2038', 'Jun', '2039'),
+('Aug', '2039', 'Jun', '2040'), ('Aug', '2040', 'Jun', '2041'),
+('Aug', '2041', 'Jun', '2042'), ('Aug', '2042', 'Jun', '2043');
 
 -- -----------------------------------------------------
 -- Table `semester`
@@ -113,8 +103,8 @@ CREATE TABLE IF NOT EXISTS `course` (
   `semester` INT NOT NULL,
   `level` INT NOT NULL,
   `archived` TINYINT(1) DEFAULT 0,
-  `fk_category` INT ,
-  `fk_department` INT NULL,
+  `fk_category` INT,
+  `fk_department` INT,
   PRIMARY KEY (`code`),
   CONSTRAINT `fk_course_department1` FOREIGN KEY (`fk_department`) REFERENCES `department` (`id`) ON DELETE NO ACTION ON UPDATE CASCADE
 );
@@ -481,3 +471,39 @@ ADD COLUMN `semester` INT NOT NULL AFTER `level`;
 CREATE INDEX section_credits_idx1 ON section (`credits`);
 CREATE INDEX section_level_idx1 ON section (`level`);
 CREATE INDEX section_semester_idx1 ON section (`semester`);
+
+
+
+CREATE INDEX form_sections_chek_personal_idx1 ON `form_sections_chek` (`personal`);
+CREATE INDEX form_sections_chek_education_idx1 ON `form_sections_chek` (`education`);
+CREATE INDEX form_sections_chek_programme_idx1 ON `form_sections_chek` (`programme`);
+CREATE INDEX form_sections_chek_uploads_idx1 ON `form_sections_chek` (`uploads`);
+CREATE INDEX form_sections_chek_declaration_idx1 ON `form_sections_chek` (`declaration`);
+CREATE INDEX form_sections_chek_reviewed_idx1 ON `form_sections_chek` (`reviewed`);
+CREATE INDEX form_sections_chek_admitted_idx1 ON `form_sections_chek` (`admitted`);
+CREATE INDEX form_sections_chek_declined_idx1 ON `form_sections_chek` (`declined`);
+CREATE INDEX form_sections_chek_enrolled_idx1 ON `form_sections_chek` (`enrolled`);
+CREATE INDEX form_sections_chek_printed_idx1 ON `form_sections_chek` (`printed`);
+CREATE INDEX form_sections_chek_notified_sms_idx1 ON `form_sections_chek` (`notified_sms`);
+CREATE INDEX form_sections_chek_emailed_letter_idx1 ON `form_sections_chek` (`emailed_letter`);
+CREATE INDEX form_sections_chek_programme_awarded_idx1 ON `form_sections_chek` (`programme_awarded`);
+CREATE INDEX form_sections_chek_programme_duration_idx1 ON `form_sections_chek` (`programme_duration`);
+CREATE INDEX form_sections_chek_level_admitted_idx1 ON `form_sections_chek` (`level_admitted`);
+
+CREATE INDEX purchase_detail_sold_by_idx1 ON `purchase_detail` (`sold_by`);
+CREATE INDEX purchase_detail_ext_trans_datetime_idx1 ON `purchase_detail` (`ext_trans_datetime`);
+CREATE INDEX purchase_detail_first_name_idx1 ON `purchase_detail` (`first_name`);
+CREATE INDEX purchase_detail_last_name_idx1 ON `purchase_detail` (`last_name`);
+CREATE INDEX purchase_detail_email_address_idx1 ON `purchase_detail` (`email_address`);
+CREATE INDEX purchase_detail_country_name_idx1 ON `purchase_detail` (`country_name`);
+CREATE INDEX purchase_detail_country_code_idx1 ON `purchase_detail` (`country_code`);
+CREATE INDEX purchase_detail_phone_number_idx1 ON `purchase_detail` (`phone_number`);
+CREATE INDEX purchase_detail_amount_idx1 ON `purchase_detail` (`amount`);
+CREATE INDEX purchase_detail_app_number_idx1 ON `purchase_detail` (`app_number`);
+CREATE INDEX purchase_detail_pin_number_idx1 ON `purchase_detail` (`pin_number`);
+CREATE INDEX purchase_detail_status_idx1 ON `purchase_detail` (`status`);
+CREATE INDEX purchase_detail_added_at_idx1 ON `purchase_detail` (`added_at`);
+CREATE INDEX purchase_detail_payment_method_idx1 ON `purchase_detail` (`payment_method`);
+CREATE INDEX purchase_detail_deleted_idx1 ON `purchase_detail` (`deleted`);
+CREATE INDEX purchase_detail_sms_sent_idx1 ON `purchase_detail` (`sms_sent`);
+CREATE INDEX purchase_detail_email_sent_idx1 ON `purchase_detail` (`email_sent`);
