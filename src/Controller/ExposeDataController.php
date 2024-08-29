@@ -250,29 +250,30 @@ class ExposeDataController extends DatabaseMethods
 
     public function sendEmail($recipient_email, $subject, $message, $file_path = [])
     {
-        //PHPMailer Object
-        $mail = new PHPMailer(true); //Argument true in constructor enables exceptions
-
-        //From email address and name
-        $mail->From = "rmuicton@rmuictonline.com";
-        $mail->FromName = "Regional Maritime University";
-
-        //To address and name
-        $mail->addAddress($recipient_email);
-
-        //Send HTML or Plain Text email
-        $mail->isHTML(true);
-        $mail->Subject = $subject;
-        $mail->Body = $message;
-
-        // Add attachment if file path is provided
-        if (!empty($file_path)) {
-            foreach ($file_path as $path) {
-                $mail->addAttachment($path);
-            }
-        }
-
         try {
+
+            //PHPMailer Object
+            $mail = new PHPMailer(true); //Argument true in constructor enables exceptions
+
+            //From email address and name
+            $mail->From = "rmuicton@rmuictonline.com";
+            $mail->FromName = "Regional Maritime University";
+
+            //To address and name
+            $mail->addAddress($recipient_email);
+
+            //Send HTML or Plain Text email
+            $mail->isHTML(true);
+            $mail->Subject = $subject;
+            $mail->Body = $message;
+
+            // Add attachment if file path is provided
+            if (!empty($file_path)) {
+                foreach ($file_path as $path) {
+                    $mail->addAttachment($path);
+                }
+            }
+
             if ($mail->send()) return 1;
         } catch (Exception $e) {
             return "Mailer Error: " . $mail->ErrorInfo;

@@ -2,8 +2,7 @@
 
 namespace Src\Controller;
 
-use Dompdf\Dompdf;
-use Dompdf\Options;
+use Exception;
 use PhpOffice\PhpWord\IOFactory;
 use PhpOffice\PhpWord\Settings;
 use Src\System\DatabaseMethods;
@@ -1913,30 +1912,62 @@ class AdminController
             foreach ([$academic_year_path, $intake_path, $program_category, $stream_applied, $program_applied] as $path) {
                 if (!is_dir($path)) mkdir($path, 0755, true);
             }
+            $mpdf = new \Mpdf\Mpdf();
+            $html = file_get_contents($dir_path . $letter_type . '_template.html');
 
-            $template_processor = new TemplateProcessor($dir_path . $letter_type . '_template.docx');
-            $word_output_path = $program_applied . "{$letter_data['app_number']}.docx";
+            // Perform placeholder replacement
+            $html = str_replace('${Letter_Reference}', 'RMU/2024/001', $html);
+            //$html = str_replace('${Letter_Reference}', $letter_data['Letter_Reference'], $html);
+            $html = str_replace('${Letter_Date}', date('F j, Y'), $html);
+            $html = str_replace('${Full_Name}', $letter_data['Full_Name'], $html);
+            $html = str_replace('${Box_Location}', $letter_data['Box_Location'], $html);
+            $html = str_replace('${Box_Address}', $letter_data['Box_Address'], $html);
+            $html = str_replace('${Location}', $letter_data['Location'], $html);
+            $html = str_replace('${Program_Length_1}', $letter_data['Program_Length_1'], $html);
+            $html = str_replace('${Program_Offered_1}', $letter_data['Program_Offered_1'], $html);
+            $html = str_replace('${Year_of_Admission}', $letter_data['Year_of_Admission'], $html);
+            $html = str_replace('${Program_Type}', $letter_data['Program_Type'], $html);
+            $html = str_replace('${No_of_Semesters}', $letter_data['No_of_Semesters'], $html);
+            $html = str_replace('${Program_Stream}', $letter_data['Program_Stream'], $html);
+            $html = str_replace('${Program_Offered_2}', $letter_data['Program_Offered_2'], $html);
+            $html = str_replace('${Program_Length_2}', $letter_data['Program_Length_1'], $html);
+            $html = str_replace('${Program_Type}', $letter_data['Program_Type'], $html);
+            $html = str_replace('${Commencement_Date}', $letter_data['Commencement_Date'], $html);
+            $html = str_replace('${Initial_Fees_in_Words}', $letter_data['Initial_Fees_in_Words'], $html);
+            $html = str_replace('${Initial_Fees_in_Figures}', $letter_data['Initial_Fees_in_Figures'], $html);
+            $html = str_replace('${Tel_Number_1}', $letter_data['Tel_Number_1'], $html);
+            $html = str_replace('${Tel_Number_2}', $letter_data['Tel_Number_2'], $html);
+            $html = str_replace('${Closing_Date}', $letter_data['Closing_Date'], $html);
+            $html = str_replace('${Orientation_Date}', $letter_data['Orientation_Date'], $html);
+            $html = str_replace('${Deadline_Date}', $letter_data['Deadline_Date'], $html);
+            $html = str_replace('${Registration_Fees_in_Words}', $letter_data['Registration_Fees_in_Words'], $html);
+            $html = str_replace('${Registration_Fees_in_Figures}', $letter_data['Registration_Fees_in_Figures'], $html);
+            $html = str_replace('${University_Registrar}', $letter_data['University_Registrar'], $html);
 
-            $template_processor->setValues($letter_data);
-            $template_processor->saveAs($word_output_path);
+            $mpdf->DefHTMLHeaderByName(
+                'Chapter2Header',
+                '<div style="text-align: right; border-bottom: 1px solid #000000; 
+                font-weight: bold; font-size: 10pt;">Chapter 2</div>'
+            );
 
-            // Convert the Word document to PDF
-            $vendor_path = ".." . DIRECTORY_SEPARATOR . "vendor" . DIRECTORY_SEPARATOR . 'dompdf' . DIRECTORY_SEPARATOR . 'dompdf';
-            Settings::setPdfRenderer(Settings::PDF_RENDERER_DOMPDF, $vendor_path);
+            $mpdf->DefHTMLFooterByName(
+                'Chapter2Footer',
+                '<div style="text-align: right; font-weight: bold; font-size: 8pt; 
+                font-style: italic;">Chapter 2 Footer</div>'
+            );
 
-            $phpWord = IOFactory::load($word_output_path);
+            $mpdf->WriteHTML($html);
             $pdf_output_path = $program_applied . "{$letter_data['app_number']}.pdf";
-            $pdfWriter = IOFactory::createWriter($phpWord, 'PDF');
-            $pdfWriter->save($pdf_output_path);
+            $mpdf->Output($pdf_output_path, 'F');
 
             return [
                 "success" => true,
                 "message" => "Admission letter successfully generated!",
                 "acceptance_form_path" => $dir_path . "acceptance_form.docx",
-                "letter_word_path" => $word_output_path,
+                //"letter_word_path" => $word_output_path,
                 "letter_pdf_path" => $pdf_output_path
             ];
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             return ["success" => false, "message" => $e->getMessage()];
         }
     }
@@ -2196,12 +2227,12 @@ class AdminController
         if (!$g_res["success"]) return $g_res;
 
         $file_paths = [];
-        array_push($file_paths, $g_res["letter_word_path"], $g_res["acceptance_form_path"]);
+        array_push($file_paths, $g_res["letter_pdf_path"], $g_res["acceptance_form_path"]);
         $status_update_extras = [];
 
-        //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        //return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        //if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
+        if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $l_res["program_dur"], $l_res["level_admitted"], $status_update_extras);
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
