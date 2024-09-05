@@ -507,3 +507,8 @@ CREATE INDEX purchase_detail_payment_method_idx1 ON `purchase_detail` (`payment_
 CREATE INDEX purchase_detail_deleted_idx1 ON `purchase_detail` (`deleted`);
 CREATE INDEX purchase_detail_sms_sent_idx1 ON `purchase_detail` (`sms_sent`);
 CREATE INDEX purchase_detail_email_sent_idx1 ON `purchase_detail` (`email_sent`);
+
+ALTER TABLE forms 
+ADD COLUMN dollar_cedis_rate DECIMAL(5,2) DEFAULT 10 AFTER amount,
+ADD COLUMN member_amount DECIMAL(5,2) GENERATED ALWAYS AS (amount / dollar_cedis_rate) STORED AFTER dollar_cedis_rate,
+ADD COLUMN non_member_amount DECIMAL(5,2) DEFAULT 50 AFTER amount;
