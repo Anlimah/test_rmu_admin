@@ -3049,8 +3049,14 @@ class AdminController
 
     public function verifyInternationalApplicantRefNumber(string $ref_number)
     {
-        $query = "SELECT ffp.*, f.`name`, f.`amount`, ap.`info` FROM `foreign_form_purchase_requests` AS ffp, forms AS f, admission_period AS ap 
-        WHERE ffp.`reference_number` = :r AND f.id = ffp.form AND ap.id = ffp.admission_period";
+        preg_match('/RMUF(\d)/', $ref_number, $matches);
+        if (isset($matches[1])) {
+            $query = "SELECT ffp.*, f.`name`, f.`member_amount` AS amount, ap.`info` FROM `foreign_form_purchase_requests` AS ffp, forms AS f, admission_period AS ap 
+            WHERE ffp.`reference_number` = :r AND f.id = ffp.form AND ap.id = ffp.admission_period";
+        } else {
+            $query = "SELECT ffp.*, f.`name`, f.`non_member_amount` AS amount, ap.`info` FROM `foreign_form_purchase_requests` AS ffp, forms AS f, admission_period AS ap 
+            WHERE ffp.`reference_number` = :r AND f.id = ffp.form AND ap.id = ffp.admission_period";
+        }
         return $this->dm->getData($query, array(":r" => $ref_number));
     }
 

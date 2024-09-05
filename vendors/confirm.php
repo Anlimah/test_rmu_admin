@@ -226,7 +226,7 @@ $data = isset($_GET["exttrid"]) ? $expose->getApplicationInfo($_GET["exttrid"]) 
                                         <td style="background: #f1f1f1;text-align: right; padding: 5px; font-size: 11px;"><b>PRICE:</b></td>
                                         <td style="text-align: left; padding: 5px; font-size: 11px;">
                                             <b>
-                                                <?= isset($_SESSION["vendorData"]["is_international"]) ? $_SESSION["vendorData"]["amount_paid"] : 'GHS ' . $data[0]["amount"] ?>
+                                                <?= isset($_SESSION["vendorData"]["is_international"]) == 1 ? $_SESSION["vendorData"]["amount_paid"] : 'GHS ' . $data[0]["amount"] ?>
                                             </b>
                                         </td>
                                     </tr>
