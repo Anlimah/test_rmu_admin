@@ -512,3 +512,6 @@ ALTER TABLE forms
 ADD COLUMN dollar_cedis_rate DECIMAL(5,2) DEFAULT 10 AFTER amount,
 ADD COLUMN member_amount DECIMAL(5,2) GENERATED ALWAYS AS (amount / dollar_cedis_rate) STORED AFTER dollar_cedis_rate,
 ADD COLUMN non_member_amount DECIMAL(5,2) DEFAULT 50 AFTER amount;
+
+ALTER TABLE `foreign_form_purchase_requests` ADD COLUMN `status` VARCHAR(10) DEFAULT 'pending' AFTER admission_period;
+CREATE INDEX ffpr_status_idx1 ON `foreign_form_purchase_requests` (`status`);

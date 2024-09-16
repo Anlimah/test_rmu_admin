@@ -1,4 +1,4 @@
 <?php
-$db   = getenv('LOCAL_DB_ADMISSION_DATABASE');
-$user = getenv('LOCAL_DB_ADMISSION_USERNAME');
-$pass = getenv('LOCAL_DB_ADMISSION_PASSWORD');
+$db   = getenv('DB_DATABASE');
+$user = getenv('DB_USERNAME');
+$pass = getenv('DB_PASSWORD');

@@ -159,54 +159,158 @@ require_once('../inc/page-data.php');
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Forms Sale</h1>
+            <h1>International Purchase</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Home</a></li>
-                    <li class="breadcrumb-item active">International Form Purchase</li>
+                    <li class="breadcrumb-item active">International Purchase</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
 
         <section class="section dashboard">
 
-            <div id="flashMessage" class="alert text-center" role="alert"></div>
+            <div class="row">
 
-            <div class="row" style="display:flex !important; flex-direction:row !important; justify-content: center !important; align-items: center">
-                <div class="flex-card">
+                <div class="col-lg-12">
+                    <div class="row">
 
-                    <div class="form-card card" style="max-width: 600px !important;">
-
-                        <div class="purchase-card-header">
-                            <h1>Provide Customer Reference Number</h1>
-                        </div>
-
-                        <hr style="color:#999">
-
-                        <div class="purchase-card-body">
-                            <form id="RefNumberForm" method="post" enctype="multipart/form-data">
-                                <div class="flex-column" style="padding:10px 30px">
-                                    <div class="row mb-4">
-                                        <div class="col">
-                                            <label for="ref_number" class="form-label">Payment Reference Number</label>
-                                            <input name="ref_number" id="ref_number" style="text-align:center" class="form-control" type="text" placeholder="Enter reference number" required>
+                        <?php //var_dump($admin->fetchTotalAppsByProgCodeAndAdmisPeriod('MSC', 0)[0]["total"]) 
+                        ?>
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="#">
+                                        <h5 class="card-title">Pending</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-receipt-pending-96.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalInternationalFormPurchaseRequestsByStatus('pending')[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Requests</span>
+                                            </div>
                                         </div>
-                                        <div class="col">
-                                            <label for="amount" class="form-label">Amount Paid (USD)</label>
-                                            <input name="amount" id="amount" style="text-align:center" class="form-control" type="text" placeholder="Enter Amount Oaid" required>
-                                        </div>
-                                    </div>
-                                    <div class="flex-row justify-content-center">
-                                        <button class="btn btn-primary btn-sm" type="submit" id="submitBtn" style="padding: 10px 10px; width:200px">Verify</button>
-                                    </div>
+                                    </a>
                                 </div>
-                                <input type="hidden" name="_FFToken" value="<?= isset($_SESSION["_foreignFormToken"]) ? $_SESSION["_foreignFormToken"] : "" ?>">
-                            </form>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="#">
+                                        <h5 class="card-title">Approved</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-receipt-approved-96.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalInternationalFormPurchaseRequestsByStatus('approved')[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Requests</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="#">
+                                        <h5 class="card-title">Declined</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-receipt-declined-96.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalInternationalFormPurchaseRequestsByStatus('declined')[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Requests</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                    </div>
+                </div><!-- Forms Sales Card  -->
+            </div>
+
+        </section>
+
+        <section class="section dashboard">
+            <div class="row">
+                <div class="col-12">
+
+                    <div class="card recent-sales overflow-auto">
+
+                        <div class="card-body">
+                            <h5 class="card-title">Requests</h5>
+
+                            <div>
+                                <table class="table table-borderless datatable table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col" style="width:150px">Applicant Name</th>
+                                            <th scope="col">Contact</th>
+                                            <th scope="col">Membership</th>
+                                            <th scope="col">Ref. Number</th>
+                                            <th scope="col">Form Type</th>
+                                            <th scope="col">Form Price</th>
+                                            <th scope="col">Actions</th>
+                                            <!-- <th scope="col"></th> -->
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $purchaseData = $admin->fetchAllInternationalFormPurchaseRequestsByStatus('pending');
+                                        if (!empty($purchaseData)) {
+                                            $index = 1;
+                                            foreach ($purchaseData as $pd) {
+
+                                                preg_match('/RMUF(\d)/', $pd["reference_number"], $matches);
+                                                $membership = $matches[1] ? "Member" : "Non-Member";
+                                        ?>
+                                                <tr>
+                                                    <td><?= $index ?></td>
+                                                    <td><?= $pd["first_name"] . " " . $pd["last_name"] ?></td>
+                                                    <td><span><?= "(" . $pd["p_country_code"] . ") " ?></span><?= $pd["phone_number"] ?></td>
+                                                    <td><?= $membership ?></td>
+                                                    <td><strong><?= $pd["reference_number"] ?></strong></td>
+                                                    <td><?= $pd["form_type"] ?></td>
+                                                    <td><?= $pd["form_price"] ?></td>
+                                                    <td>
+                                                        <form action="#" method="post" id="sfd">
+                                                            <input type="hidden" name="membership" value="<?= $membership ?>">
+                                                            <input type="hidden" name="ref-number" value="<?= $pd["reference_number"] ?>">
+                                                            <input type="hidden" name="_FFToken" value="<?= $_SESSION["_foreignFormToken"] ?>">
+                                                            <input type="hidden" name="action" value="" id="action-<?= $pd["reference_number"] ?>">
+                                                            <button class="btn btn-success btn-xs approve-btn" id="<?= $pd["reference_number"] ?>">Approve</button>
+                                                            <button class="btn btn-danger btn-xs decline-btn" id="<?= $pd["reference_number"] ?>">Decline</button>
+                                                        </form>
+                                                    </td>
+                                                    <!-- <td>
+                                                        <button class="btn btn-primary btn-xs rounded-pill more-btn" id="<?= $pd["reference_number"] ?>">More</button>
+                                                    </td> -->
+                                                </tr>
+                                        <?php
+                                                $index++;
+                                            }
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-
         </section>
 
     </main><!-- End #main -->
@@ -244,25 +348,55 @@ require_once('../inc/page-data.php');
                 });
             });
 
-            $("#RefNumberForm").on("submit", function(e) {
+            var formAction;
+
+            $(".approve-btn").on("click", function(e) {
+                formAction = 'approve';
+                action = "action-" + $(this).attr("id");
+                document.getElementById(action).value = 'approve';
+                $("#sfd" + $(this).attr("id")).submit();
+            });
+
+            $(".decline-btn").on("click", function(e) {
+                formAction = 'decline';
+                action = "action-" + $(this).attr("id");
+                document.getElementById(action).value = 'decline';
+                $("#sfd" + $(this).attr("id")).submit();
+            });
+
+            $("form").on("submit", function(e) {
+
                 e.preventDefault();
+
+                if (this.action.value === 'approve') {
+                    var c = confirm("Please verify that the required form price has been paid by applicant. Are you sure you want to approve this transaction?")
+                    if (!c) return;
+                }
+
+                formData = new FormData(this);
                 triggeredBy = 4;
 
                 $.ajax({
                     type: "POST",
                     url: "../endpoint/ref-number-verify",
-                    data: new FormData(this),
+                    data: formData,
                     contentType: false,
                     cache: false,
                     processData: false,
                     success: function(result) {
                         console.log(result);
                         if (result.success) {
-                            //window.location.href = result.message;
-                            window.location.href = "confirm.php?status=000&exttrid=" + result.exttrid;
+                            if (formAction === 'approve')
+                                window.location.href = "confirm.php?status=000&exttrid=" + result.exttrid;
+                            if (formAction === 'decline') {
+                                alert(result.message);
+                                document.location.reload();
+                            }
                         } else {
-                            if (result.message == "logout") window.location.href = "?logout=true";
-                            else flashMessage("alert-danger", result.message);
+                            if (result.message == "logout") {
+                                alert('Your session expired. Please refresh the page to continue!');
+                                window.location.href = "?logout=true";
+                            } else flashMessage("alert-danger", result.message);
                             //console.log("success area: ", result.message);
                         }
                     },

@@ -6,7 +6,7 @@ $_SESSION["currentAccess"] = time();
 
 $diff = $_SESSION["currentAccess"] - $_SESSION["lastAccessed"];
 
-if ($diff >  1800) die(json_encode(array("success" => false, "message" => "Your session expired. Please refresh the page to continue!")));
+if ($diff >  1800) die(json_encode(array("success" => false, "message" => "logout")));
 
 /*
 * Designed and programmed by
@@ -277,67 +277,83 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
     // International student ref number verification
     elseif ($_GET["url"] == "ref-number-verify") {
+
+        if (!$expose->vendorExist($_SESSION["vendor_id"])) {
+            die(json_encode(array("success" => false, "message" => "Process can only be performed by a vendor!")));
+        }
+
         if (isset($_SESSION["_foreignFormToken"]) && !empty($_SESSION["_foreignFormToken"]) && isset($_POST["_FFToken"]) && !empty($_POST["_FFToken"]) && $_POST["_FFToken"] == $_SESSION["_foreignFormToken"]) {
 
-            if (!isset($_POST["ref_number"]) || empty($_POST["ref_number"])) {
+            if (!isset($_POST["action"]) || empty($_POST["action"])) {
+                die(json_encode(array("success" => false, "message" => "Action parameter is required!")));
+            }
+
+            if (!isset($_POST["ref-number"]) || empty($_POST["ref-number"])) {
                 die(json_encode(array("success" => false, "message" => "Reference Number is required!")));
             }
-            if (!isset($_POST["amount"]) || empty($_POST["amount"])) {
-                die(json_encode(array("success" => false, "message" => "Amount Paid is required!")));
+
+            if (!isset($_POST["membership"]) || empty($_POST["membership"])) {
+                die(json_encode(array("success" => false, "message" => "Membership is required!")));
             }
 
-            $ref_number = $expose->validateText($_POST["ref_number"]);
-            $amount_paid = $expose->validateNumber($_POST["amount"]);
-            $result = $admin->verifyInternationalApplicantRefNumber($ref_number);
-            if (empty($result)) die(json_encode(array("success" => false, "message" => "No match found for provided reference number!")));
+            switch ($_POST["action"]) {
+                case 'approve':
+                    $ref_number = $expose->validateText($_POST["ref-number"]);
+                    $membership = $expose->validateText($_POST["membership"]);
 
-            $form_price = $result[0]['amount'];
+                    $result = $admin->verifyInternationalApplicantRefNumber($ref_number);
+                    if (empty($result)) die(json_encode(array("success" => false, "message" => "No match found for provided reference number!")));
 
-            if ($result[0]["form"] == 1 && $amount_paid < $form_price) {
-                die(json_encode(array(
-                    "success" => false,
-                    "message" => "The amount paid by the applicant is less than price of {$result[0]['name']} (USD{$form_price}) form!"
-                )));
-            } else if ($result[0]["form"] >= 2 && $amount_paid < $form_price) {
-                die(json_encode(array(
-                    "success" => false,
-                    "message" => "The amount paid by the applicant is less than price of {$result[0]['name']}  (USD{$form_price}) form!"
-                )));
-            }
+                    // Ensure amount and rate are valid floats
+                    $amount = floatval($result[0]['amount']);
+                    $rate = floatval($result[0]['rate']);
 
-            if (isset($result[0]["app_number"]) && !empty($result[0]["app_number"])) {
-                $data = $admin->fetchForeignAppDetailsAppNumber($result[0]["app_number"]);
-                die(json_encode(array("success" => true, "exttrid" => $data[0]["id"], "message" => "Transaction succeeded!")));
-            } else {
-                $_SESSION["vendorData"] = array(
-                    "first_name" => $result[0]["first_name"],
-                    "last_name" => $result[0]["last_name"],
-                    "country_name" => $result[0]["p_country_name"],
-                    "country_code" => $result[0]["p_country_code"],
-                    "phone_number" => $result[0]["phone_number"],
-                    "email_address" => $result[0]["email_address"],
-                    "form_id" => $result[0]["form"],
-                    "pay_method" => "CASH",
-                    "amount" => $result[0]["amount"],
-                    "vendor_id" => $_SESSION["vendor_id"],
-                    "admin_period" => $_SESSION["admin_period"],
-                    "ref_number" => $ref_number,
-                    "is_international" => true,
-                    "amount_paid" => 'USD ' . $form_price
-                );
+                    $form_price = $amount * $rate;
 
-                if (!$expose->vendorExist($_SESSION["vendorData"]["vendor_id"])) {
-                    die(json_encode(array("success" => false, "message" => "Process can only be performed by a vendor!")));
-                }
-                $res = $admin->processVendorPay($_SESSION["vendorData"]);
-                if (!empty($res) && isset($res['success']) && $res["success"] == true) {
-                    if (isset($res["exttrid"]) && !empty($res["exttrid"])) {
-                        $admin->updateForiegnPurchaseStatus($ref_number, $res["app_number"]);
+                    if (isset($result[0]["app_number"]) && !empty($result[0]["app_number"])) {
+                        $data = $admin->fetchForeignAppDetailsAppNumber($result[0]["app_number"]);
+                        die(json_encode(array("success" => true, "exttrid" => $data[0]["id"], "message" => "Transaction succeeded!")));
+                    } else {
+                        $_SESSION["vendorData"] = array(
+                            "first_name" => $result[0]["first_name"],
+                            "last_name" => $result[0]["last_name"],
+                            "country_name" => $result[0]["p_country_name"],
+                            "country_code" => $result[0]["p_country_code"],
+                            "phone_number" => $result[0]["phone_number"],
+                            "email_address" => $result[0]["email_address"],
+                            "form_id" => $result[0]["form"],
+                            "pay_method" => "CASH",
+                            "amount" => $form_price,
+                            "vendor_id" => $_SESSION["vendor_id"],
+                            "admin_period" => $_SESSION["admin_period"],
+                            "ref_number" => $ref_number,
+                            "is_international" => true,
+                            "amount_paid" => 'USD ' . $amount
+                        );
+
+                        $res = $admin->processVendorPay($_SESSION["vendorData"]);
+
+                        if (!empty($res) && isset($res['success']) && $res["success"] == true && isset($res["exttrid"]) && !empty($res["exttrid"])) {
+                            $admin->updateForiegnPurchaseStatus($ref_number, 'approved', $res["app_number"]);
+                            unset($res["app_number"]);
+                        }
+
+                        die(json_encode($res));
                     }
-                    unset($res["app_number"]);
-                    die(json_encode($res));
-                }
+                    break;
+
+                case 'decline':
+                    $ref_number = $expose->validateText($_POST["ref-number"]);
+                    $res = $admin->updateForiegnPurchaseStatus($ref_number, 'declined');
+                    if ($res) die(json_encode(array("success" => true, "message" => "Request declined successfully!")));
+                    break;
+
+                default:
+                    die(json_encode(array("success" => false, "message" => "Action unavailable!")));
+                    break;
             }
+
+            die(json_encode(array("success" => false, "message" => "Action unavailable!")));
         } else {
             die(json_encode(array("success" => false, "message" => "Invalid request!")));
         }

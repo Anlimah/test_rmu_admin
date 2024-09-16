@@ -209,7 +209,7 @@ $data = isset($_GET["exttrid"]) ? $expose->getApplicationInfo($_GET["exttrid"]) 
 
                     <div class="purchase-card-header flex-row">
                         <h1>Applicant Receipt</h1>
-                        <b><span class="bi bi-x-lg me-5 text-danger" style="cursor: pointer;" onclick="window.location.href = 'sell.php'"></span></b>
+                        <b><span class="bi bi-x-lg me-5 text-danger" style="cursor: pointer;" onclick="history.back()"></span></b>
                     </div>
 
                     <hr style="color:#999">
@@ -251,7 +251,7 @@ $data = isset($_GET["exttrid"]) ? $expose->getApplicationInfo($_GET["exttrid"]) 
                                     <button class="btn btn-primary" id="printReciptBtn"><b>Print</b></button>
                                 </center>
                             <?php } else { ?>
-                                <div style="width: 100%;height: 100%; text-align:center">No Data available</div>
+                                <div style="width: 100%;height: 100%; text-align:center">No form sale processed!</div>
                             <?php } ?>
                         </div>
                     </div>

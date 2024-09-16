@@ -3051,24 +3051,43 @@ class AdminController
     {
         preg_match('/RMUF(\d)/', $ref_number, $matches);
         if (isset($matches[1])) {
-            $query = "SELECT ffp.*, f.`name`, f.`member_amount` AS amount, ap.`info` FROM `foreign_form_purchase_requests` AS ffp, forms AS f, admission_period AS ap 
+            $query = "SELECT ffp.*, f.`name`, f.`member_amount` AS amount, f.`dollar_cedis_rate` AS rate, ap.`info` FROM `foreign_form_purchase_requests` AS ffp, forms AS f, admission_period AS ap 
             WHERE ffp.`reference_number` = :r AND f.id = ffp.form AND ap.id = ffp.admission_period";
         } else {
-            $query = "SELECT ffp.*, f.`name`, f.`non_member_amount` AS amount, ap.`info` FROM `foreign_form_purchase_requests` AS ffp, forms AS f, admission_period AS ap 
+            $query = "SELECT ffp.*, f.`name`, f.`non_member_amount` AS amount, f.`dollar_cedis_rate` AS rate, ap.`info` FROM `foreign_form_purchase_requests` AS ffp, forms AS f, admission_period AS ap 
             WHERE ffp.`reference_number` = :r AND f.id = ffp.form AND ap.id = ffp.admission_period";
         }
         return $this->dm->getData($query, array(":r" => $ref_number));
     }
 
-    public function updateForiegnPurchaseStatus(string $ref_number, string $app_number)
+    public function updateForiegnPurchaseStatus(string $ref_number, string|null $status, string $app_number = null)
     {
-        $query = "UPDATE `foreign_form_purchase_requests` SET `app_number` = :an WHERE `reference_number` = :rn";
-        return $this->dm->inputData($query, array(":an" => $app_number, ":rn" => $ref_number));
+        if ($status == 'approved') {
+            $query = "UPDATE `foreign_form_purchase_requests` SET `app_number` = :an, `status` = 'approved' WHERE `reference_number` = :rn";
+            return $this->dm->inputData($query, array(":an" => $app_number, ":rn" => $ref_number));
+        } else if ($status == 'declined') {
+            $query = "UPDATE `foreign_form_purchase_requests` SET `status` = 'declined' WHERE `reference_number` = :rn";
+            return $this->dm->inputData($query, array(":rn" => $ref_number));
+        }
     }
 
     public function fetchForeignAppDetailsAppNumber(string $app_number)
     {
         $query = "SELECT id FROM `purchase_detail` WHERE `app_number` = :an";
-        return $this->dm->inputData($query, array(":an" => $app_number));
+        return $this->dm->getData($query, array(":an" => $app_number));
+    }
+
+    public function fetchAllInternationalFormPurchaseRequestsByStatus(string $status)
+    {
+        $query = "SELECT ffp.*, f.`name` AS form_type, f.`non_member_amount` AS form_price, ap.`info` AS admission_info 
+                    FROM `foreign_form_purchase_requests` AS ffp, forms AS f, admission_period AS ap 
+                    WHERE f.id = ffp.form AND ap.id = ffp.admission_period AND ffp.`status` = :s ORDER BY ffp.`added_at` DESC";
+        return $this->dm->getData($query, array(":s" => $status));
+    }
+
+    public function fetchTotalInternationalFormPurchaseRequestsByStatus(string $status)
+    {
+        $query = "SELECT COUNT(`id`) AS total FROM `foreign_form_purchase_requests` WHERE `status` = :s";
+        return $this->dm->getData($query, array(":s" => $status));
     }
 }
