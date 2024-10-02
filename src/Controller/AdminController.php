@@ -2231,7 +2231,7 @@ class AdminController
         $status_update_extras = [];
 
         if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        //return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $l_res["program_dur"], $l_res["level_admitted"], $status_update_extras);
