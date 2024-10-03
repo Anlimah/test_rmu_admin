@@ -2544,8 +2544,8 @@ class AdminController
         $add_student_result = $this->addNewStudent($data);
         if (!$add_student_result["success"]) return $add_student_result;
 
-        $this->emailApplicantEnrollmentStatus($data);
-        $this->smsApplicantEnrollmentStatus($data);
+        //$this->emailApplicantEnrollmentStatus($data);
+        //$this->smsApplicantEnrollmentStatus($data);
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
 
