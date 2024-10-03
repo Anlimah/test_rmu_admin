@@ -508,10 +508,43 @@ CREATE INDEX purchase_detail_deleted_idx1 ON `purchase_detail` (`deleted`);
 CREATE INDEX purchase_detail_sms_sent_idx1 ON `purchase_detail` (`sms_sent`);
 CREATE INDEX purchase_detail_email_sent_idx1 ON `purchase_detail` (`email_sent`);
 
-ALTER TABLE forms 
-ADD COLUMN dollar_cedis_rate DECIMAL(5,2) DEFAULT 10 AFTER amount,
-ADD COLUMN member_amount DECIMAL(5,2) GENERATED ALWAYS AS (amount / dollar_cedis_rate) STORED AFTER dollar_cedis_rate,
-ADD COLUMN non_member_amount DECIMAL(5,2) DEFAULT 50 AFTER amount;
+ALTER TABLE forms ADD COLUMN dollar_cedis_rate DECIMAL(5,2) DEFAULT 10 AFTER amount;
+ALTER TABLE forms ADD COLUMN member_amount DECIMAL(5,2) GENERATED ALWAYS AS (amount / dollar_cedis_rate) AFTER dollar_cedis_rate;
+ALTER TABLE forms ADD COLUMN non_member_amount DECIMAL(5,2) DEFAULT 50 AFTER amount;
 
 ALTER TABLE `foreign_form_purchase_requests` ADD COLUMN `status` VARCHAR(10) DEFAULT 'pending' AFTER admission_period;
 CREATE INDEX ffpr_status_idx1 ON `foreign_form_purchase_requests` (`status`);
+
+CREATE TABLE notifications(
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `title` VARCHAR(255),
+    `message` TEXT,
+    `type` ENUM('general', 'applicant') DEFAULT 'applicant',
+    `to` INT,
+    `read` TINYINT(1) DEFAULT 0,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP()
+);
+CREATE INDEX notifications_title_idx1 ON `notifications` (`title`);
+CREATE INDEX notifications_type_idx1 ON `notifications` (`type`);
+CREATE INDEX notifications_to_idx1 ON `notifications` (`to`);
+CREATE INDEX notifications_read_idx1 ON `notifications` (`read`);
+CREATE INDEX notifications_created_at_idx1 ON `notifications` (`created_at`);
+
+CREATE TABLE acceptance_receipts(
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `bank_name` VARCHAR(255) NOT NULL,
+    `bank_branch` VARCHAR(255) NOT NULL,
+    `payment_date` DATE NOT NULL,
+    `transaction_identifier` VARCHAR(255) NOT NULL,
+    `receipt_image` VARCHAR(255) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP(),
+    `app_login` INT,
+  CONSTRAINT `fk_applicant_acceptance` FOREIGN KEY (`app_login`) REFERENCES `applicants_login` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
+);
+CREATE INDEX acceptance_receipts_bank_name_idx1 ON `acceptance_receipts` (`bank_name`);
+CREATE INDEX acceptance_receipts_bank_branch_idx1 ON `acceptance_receipts` (`bank_branch`);
+CREATE INDEX acceptance_receipts_payment_date_idx1 ON `acceptance_receipts` (`payment_date`);
+CREATE INDEX acceptance_receipts_transaction_identifier_idx1 ON `acceptance_receipts` (`transaction_identifier`);
+CREATE INDEX acceptance_receipts_receipt_image_idx1 ON `acceptance_receipts` (`receipt_image`);
+CREATE INDEX acceptance_receipts_created_at_idx1 ON `acceptance_receipts` (`created_at`);
+

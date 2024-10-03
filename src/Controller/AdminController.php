@@ -2218,6 +2218,12 @@ class AdminController
         return 0;
     }
 
+    private function sendNotification($title, $message, $type, $to = null)
+    {
+        $query = "INSERT INTO notifications (`title`,`message`,`type`,`to`) VALUES (:t,:m,:p,:w)";
+        return ($this->dm->inputData($query, array(":t" => $title, ":m" => $message, ":p" => $type, ":w" => $to)));
+    }
+
     public function admitIndividualApplicant($appID, $prog_id, $stream_applied, $level, bool $email_letter = false, bool $sms_notify = false)
     {
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied, $level);
@@ -2236,6 +2242,12 @@ class AdminController
 
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $l_res["program_dur"], $l_res["level_admitted"], $status_update_extras);
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
+
+        $title = 'Admission Status';
+        $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$l_res["data"]["Program_Offered_2"]}.";
+        $type = 'applicant';
+        $to = $appID;
+        $this->sendNotification($title, $message, $type, $to);
         return array("success" => true, "message" => "Successfully admitted applicant!");
     }
 
@@ -2257,7 +2269,7 @@ class AdminController
     public function fetchAllFromProgramWithDepartByProgID($prog_id)
     {
         $query = "SELECT pg.*, dp.`id` AS department_id, dp.`name` AS department_name 
-        FROM `programs` AS pg, `department` AS dp WHERE pg.`id` = :i AND pg.`department` = dp.`id`";
+        FROM `programs` AS pg, `department` AS dp WHERE pg.`id` = :i AND pg.`fk_department` = dp.`id`";
         return $this->dm->getData($query, array(":i" => $prog_id));
     }
 
@@ -2532,10 +2544,17 @@ class AdminController
         $add_student_result = $this->addNewStudent($data);
         if (!$add_student_result["success"]) return $add_student_result;
 
-        //$this->emailApplicantEnrollmentStatus($data);
-        //$this->smsApplicantEnrollmentStatus($data);
+        $this->emailApplicantEnrollmentStatus($data);
+        $this->smsApplicantEnrollmentStatus($data);
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
+
+        $title = 'Admission Status';
+        $message = "Congratulations! Your enrollement to Regional Maritime University has been completed.";
+        $type = 'applicant';
+        $to = $appID;
+        $this->sendNotification($title, $message, $type, $to);
+
         return array(
             "success" => true,
             "message" => "Applicant successfully enrolled!",
