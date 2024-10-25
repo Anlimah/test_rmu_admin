@@ -21,9 +21,9 @@ class Broadsheet
 
     public function __construct($admission_period, $cert_type, $action = "bs")
     {
-        $db   = getenv('LOCAL_DB_ADMISSION_DATABASE');
-        $user = getenv('LOCAL_DB_ADMISSION_USERNAME');
-        $pass = getenv('LOCAL_DB_PASSWORD');
+        $db   = getenv('DB_ADMISSION_DATABASE');
+        $user = getenv('DB_ADMISSION_USERNAME');
+        $pass = getenv('DB_ADMISSION_PASSWORD');
 
         $this->action = $action;
         $this->cert_type = $cert_type;

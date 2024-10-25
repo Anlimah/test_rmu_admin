@@ -3,7 +3,7 @@
 require_once('bootstrap.php');
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
-// use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use Src\Controller\AdminController;
 
 class Broadsheet
@@ -15,11 +15,7 @@ class Broadsheet
 
     public function __construct($admin_period)
     {
-        $db   = getenv('DB_ADMISSION_DATABASE');
-        $user = getenv('DB_ADMISSION_USERNAME');
-        $pass = getenv('DB_ADMISSION_PASSWORD');
-
-        $this->admin = new AdminController($db, $user, $pass);
+        $this->admin = new AdminController();
         $this->admin_period = $admin_period;
     }
 
@@ -29,7 +25,7 @@ class Broadsheet
         $awaitingApps = $this->admin->fetchAllAwaitingApplicationsBS($this->admin_period);
         $awaitingAppsGrp = $this->admin->fetchAllAwaitingApplicationsBSGrouped($this->admin_period);
         if (empty($awaitingApps) || empty($awaitingAppsGrp)) return 0;
-        if (empty($this->admin->saveDownloadedAwaitingResults($awaitingApps))) return 0;
+        //if (empty($this->admin->saveDownloadedAwaitingResults($awaitingApps))) return 0;
         $this->dataSheet = array("awaitingApps" => $awaitingApps, "awaitingAppsGrp" => $awaitingAppsGrp);
         return 1;
     }
@@ -41,18 +37,22 @@ class Broadsheet
 
             $zip = new ZipArchive();
             $zipFileName = $this->admission_data[0]["info"]; // The name of the zip file you want to create
+
             if ($zip->open($zipFileName, ZipArchive::CREATE) === TRUE) {
 
                 foreach ($this->dataSheet["awaitingAppsGrp"] as $grp) {
+                    echo "Program: " . $grp["Program"] . "<br>";
+
                     $sanitizedFileName = str_replace('/', '_', $grp["Program"]);
                     $sanitizedFileName = preg_replace('/[^A-Za-z0-9_. -]/', '', $sanitizedFileName);
                     $sanitizedFileName = trim($sanitizedFileName);
 
-                    $fileName = "{$sanitizedFileName} - {$zipFileName}";
+                    $dateData = $this->admin->getAcademicPeriod($this->admin_period);
+                    $fileName = "{$sanitizedFileName} - Awaiting Results Applicants ({$dateData[0]["start_year"]} - {$dateData[0]["end_year"]})";
+
                     $spreadsheet = new Spreadsheet();
                     $sheet = $spreadsheet->getActiveSheet();
-                    //$writer = new Xlsx($spreadsheet);
-                    $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xls($spreadsheet);
+                    $writer = new Xlsx($spreadsheet);
 
                     //$this->formatSpreadsheet();
                     $sheet->setCellValue('A1', "AdmissionNumber");
@@ -69,23 +69,24 @@ class Broadsheet
 
                     foreach ($this->dataSheet["awaitingApps"] as $appData) {
                         if ($grp["Program"] == $appData["Program"]) {
+                            echo "Applicant: " . $appData["AdmissionNumber"] . "<br>";
                             $sheet->setCellValue("A" . $row, $appData["AdmissionNumber"]);
                             $sheet->setCellValue("B" . $row, $appData["IndexNumber"]);
-                            $sheet->setCellValue("C" . $row, in_array($appData["ExamMonth"], ["May", "Jun", "Jul", "Aug", "Sep"]) ? 6 : 12);
+                            $sheet->setCellValue("C" . $row, $appData["ExamMonth"]);
                             $sheet->setCellValue("D" . $row, $appData["ExamYear"]);
-                            $sheet->getStyle("A" . $row . ":D" . $row)->getNumberFormat()->setFormatCode(\PhpOffice\PhpSpreadsheet\Style\NumberFormat::FORMAT_TEXT);
                             $row += 1;
                         }
                     }
 
                     // Save spreadsheet file
-                    $filepath = "awaiting_results/" . $fileName . '.xls';
+                    $filepath = "awaiting_results/" . $fileName . '.xlsx';
                     if (file_exists($filepath)) unlink($filepath);
                     $writer->save($filepath);
                     $spreadsheet->disconnectWorksheets();
 
                     // Add files to the zip archive
                     $zip->addFile($filepath);
+
                     $count += 1;
                 }
             } else {

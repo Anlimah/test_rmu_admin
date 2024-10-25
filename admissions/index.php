@@ -165,6 +165,25 @@ $adminSetup = true;
                         <div class="col-xxl-3 col-md-3">
                             <div class="card info-card">
                                 <div class="card-body">
+                                    <a href="shortlisted-applications.php" style="text-decoration: none;">
+                                        <h5 class="card-title">Shortlisted Applications</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <span class="text-muted small pt-2 ps-1">List of enrolled applicants</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Enrolled Applicants -->
+
+                        <!-- Enrolled Applicants -->
+                        <div class="col-xxl-3 col-md-3">
+                            <div class="card info-card">
+                                <div class="card-body">
                                     <a href="enrolled-applicants.php" style="text-decoration: none;">
                                         <h5 class="card-title">Enrolled Applicants</h5>
                                         <div class="d-flex align-items-center">

@@ -114,7 +114,7 @@ require_once('../inc/page-data.php');
                                     </span>
                                 </button>
 
-                                <button id="apps-awaiting" class="btn btn-outline-primary col toggle-output">
+                                <button id="apps-awaiting" class="btn btn-outline-primary col me-2 toggle-output">
                                     Awaiting
                                     <span class="badge text-bg-secondary">
                                         <?= isset($_GET["t"]) ? $admin->fetchTotalAwaitingResultsByFormType($_SESSION["admin_period"], $_GET["t"])[0]["total"] : ""; ?>
@@ -125,6 +125,13 @@ require_once('../inc/page-data.php');
                                     In Progress
                                     <span class="badge text-bg-secondary">
                                         <?= isset($_GET["t"]) ? $admin->fetchTotalUnsubmittedApps($_SESSION["admin_period"], $_GET["t"])[0]["total"] : ""; ?>
+                                    </span>
+                                </button>
+
+                                <button id="apps-shortlisted" class="btn btn-outline-primary col me-2 toggle-output">
+                                    Shortlisted
+                                    <span class="badge text-bg-secondary">
+                                        <?= isset($_GET["t"]) ? $admin->fetchTotalShortlistedApplicants($_SESSION["admin_period"], $_GET["t"])[0]["total"] : ""; ?>
                                     </span>
                                 </button>
 
@@ -466,6 +473,7 @@ require_once('../inc/page-data.php');
                     data: data,
                     success: function(result) {
                         console.log(result);
+                        alert(result.message);
                         if (result.message == "logout") window.location.href = "?logout=true";
                     },
                     error: function(error) {

@@ -3,10 +3,8 @@ session_start();
 
 if (!isset($_SESSION["lastAccessed"])) $_SESSION["lastAccessed"] = time();
 $_SESSION["currentAccess"] = time();
-
 $diff = $_SESSION["currentAccess"] - $_SESSION["lastAccessed"];
-
-if ($diff >  1800) die(json_encode(array("success" => false, "message" => "logout")));
+if ($diff > 1800) die(json_encode(array("success" => false, "message" => "logout")));
 
 /*
 * Designed and programmed by
@@ -980,6 +978,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
     // admit an applicant to a particular programme and generate admission letter
     elseif ($_GET["url"] == "admit-individual-applicant") {
+
         if (!isset($_POST["app-prog-id-check"]) || empty($_POST["app-prog-id-check"]))
             die(json_encode(array("success" => false, "message" => "No program provided!")));
 
@@ -987,10 +986,10 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "No match found for this applicant!")));
 
         if (!isset($_POST["app-stream-check"]) || empty($_POST["app-stream-check"]))
-            die(json_encode(array("success" => false, "message" => "No stream provide for this applicant!")));
+            die(json_encode(array("success" => false, "message" => "No stream provided for this applicant!")));
 
         if (!isset($_POST["app-level-admit-check"]) || empty($_POST["app-level-admit-check"]))
-            die(json_encode(array("success" => false, "message" => "No stream provide for this applicant!")));
+            die(json_encode(array("success" => false, "message" => "No level provided for this applicant!")));
 
         if (!isset($_POST["app-email-check"]))
             die(json_encode(array("success" => false, "message" => "Choose an option to send email to applicant or not!")));
@@ -998,7 +997,47 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         if (!isset($_POST["app-sms-check"]))
             die(json_encode(array("success" => false, "message" => "Choose an option to send SMS to applicant or not!")));
 
-        die(json_encode($admin->admitIndividualApplicant($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-level-admit-check"], $_POST["app-email-check"], $_POST["app-sms-check"])));
+        $setting = $admin->fetchSettingByName('direct_admit');
+
+        if (!empty($setting) && strtolower($setting[0]["value"]) == 'false') {
+            if ($admin->shortlistedApplication($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-level-admit-check"], $_POST["app-email-check"], $_POST["app-sms-check"])) {
+                die(json_encode(array("success" => true, "message" => "Applicant shortlisted successfully!")));
+            } else {
+                die(json_encode(array("success" => false, "message" => "Failed to shortlisted applicant!")));
+            }
+        } else {
+            die(json_encode($admin->admitIndividualApplicant($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-level-admit-check"], $_POST["app-email-check"], $_POST["app-sms-check"])));
+        }
+    }
+
+    //
+    elseif ($_GET["url"] == "shortlisted-application") {
+
+        if (!isset($_POST["action"]) || empty($_POST["action"])) {
+            die(json_encode(array("success" => false, "message" => "Action parameter is required!")));
+        }
+
+        if (!isset($_POST["app-login"]) || empty($_POST["app-login"])) {
+            die(json_encode(array("success" => false, "message" => "Some application details are missing!")));
+        }
+
+        switch ($_POST["action"]) {
+            case 'approve':
+                $app_login = $expose->validateNumber($_POST["app-login"]);
+                die(json_encode($admin->approveShortlistedApplications($app_login)));
+                break;
+
+            case 'decline':
+                $app_login = $expose->validateNumber($_POST["app-login"]);
+                die(json_encode($admin->declineShortlistedApplications($app_login)));
+                break;
+
+            default:
+                die(json_encode(array("success" => false, "message" => "Action unavailable!")));
+                break;
+        }
+
+        die(json_encode(array("success" => false, "message" => "Action unavailable!")));
     }
 
     // decline applicant admission
@@ -1072,7 +1111,6 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Invalid request received!")));
         die(json_encode($admin->unsubmitApplication($_POST["app"])));
     }
-
     // All PUT request will be sent here
 } else if ($_SERVER['REQUEST_METHOD'] == "PUT") {
     parse_str(file_get_contents("php://input"), $_PUT);

@@ -26,6 +26,7 @@ if (isset($_GET['logout']) || !$isUser) {
 
     header('Location: ../index.php');
 }
+
 if (!isset($_GET['t']) || empty($_GET['t'])) header("Location: index.php");
 if (!isset($_GET['q']) || empty($_GET['q'])) header("Location: applications.php?t={$_GET['t']}");
 
@@ -44,22 +45,27 @@ $user = new UsersController($db, $user, $pass);
 
 $photo = $user->fetchApplicantPhoto($_GET['q']);
 $personal = $user->fetchApplicantPersI($_GET['q']);
-
 $pre_uni_rec = $user->fetchApplicantPreUni($_GET['q']);
 $academic_BG = $user->fetchApplicantAcaB($_GET['q']);
 $app_type = $user->getApplicationType($_GET['q']);
-
 $personal_AB = $user->fetchApplicantProgI($_GET['q']);
 $about_us = $user->fetchHowYouKnowUs($_GET['q']);
-
 $uploads = $user->fetchUploadedDocs($_GET['q']);
-
 $form_name = $admin->getFormTypeName($_GET["t"]);
 $app_number = $admin->getApplicantAppNum($_GET["q"]);
+$app_statuses = $admin->fetchApplicationStatus($_GET['q']);
+$direct_admit = $admin->fetchSettingByName('direct_admit');
 
 $admin->updateApplicationStatus($_GET["q"], 'reviewed', 1);
 
-$app_statuses = $admin->fetchApplicationStatus($_GET['q']);
+$only_reviewed = 0;
+if (!empty($app_statuses)) {
+    if ($app_statuses[0]["shortlisted"] || $app_statuses[0]["admitted"] || $app_statuses[0]["enrolled"]) {
+        $only_reviewed = 1;
+    } else {
+        $only_reviewed = 0;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -144,7 +150,6 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
 
 <body>
     <?= require_once("../inc/header.php") ?>
-
     <?= require_once("../inc/sidebar.php") ?>
 
     <main id="main" class="main">
@@ -219,6 +224,8 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                                 <span class="badge rounded-pill text-bg-success">ADMITTED</span>
                                                             <?php } else if ($app_statuses[0]["declined"]) { ?>
                                                                 <span class="badge rounded-pill text-bg-danger">DECLINED</span>
+                                                            <?php } else if ($app_statuses[0]["shortlisted"]) { ?>
+                                                                <span class="badge rounded-pill text-bg-warning">SHORTLISTED</span>
                                                             <?php } else if ($app_statuses[0]["reviewed"]) { ?>
                                                                 <span class="badge rounded-pill text-bg-warning">REVIEWED</span>
                                                         <?php }
@@ -541,7 +548,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                         <td><?= ucwords(strtoupper($personal_AB[0]["first_prog"])) ?></td>
                                                         <td>
                                                             <div class="form-check">
-                                                                <input class="form-check-input app-prog-admit" style="cursor: pointer; float: right" type="radio" name="admit-prog" value="<?= $personal_AB[0]["first_prog"] ?>" data-prog="<?= $personal_AB[0]["first_prog"] ?>">
+                                                                <input readonly class="form-check-input app-prog-admit" style="cursor: pointer; float: right" type="radio" name="admit-prog" value="<?= $personal_AB[0]["first_prog"] ?>" data-prog="<?= $personal_AB[0]["first_prog"] ?>" <?= ($only_reviewed) ? 'disabled' : '' ?>>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -550,7 +557,7 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                                         <td><?= ucwords(strtoupper($personal_AB[0]["second_prog"])) ?></td>
                                                         <td>
                                                             <div class="form-check">
-                                                                <input class="form-check-input app-prog-admit" style="cursor: pointer; float: right" type="radio" name="admit-prog" value="<?= $personal_AB[0]["second_prog"] ?>" data-prog="<?= $personal_AB[0]["second_prog"] ?>">
+                                                                <input class="form-check-input app-prog-admit" style="cursor: pointer; float: right" type="radio" name="admit-prog" value="<?= $personal_AB[0]["second_prog"] ?>" data-prog="<?= $personal_AB[0]["second_prog"] ?>" <?= ($only_reviewed) ? 'disabled' : '' ?>>
                                                             </div>
                                                         </td>
                                                     </tr>
@@ -558,41 +565,52 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                                             </table>
 
                                             <?php
-                                            $programData = $admin->fetchAllFromProgramByName($personal_AB[0]["first_prog"]);
-                                            if ($programData[0]["type"] < 4) {
+                                            if (!$only_reviewed) {
+                                                $programData = $admin->fetchAllFromProgramByName($personal_AB[0]["first_prog"]);
+                                                if ($programData[0]["type"] < 4) {
                                             ?>
-                                                <h5 style="font-size: 16px;" class="form-label mt-4"><b>Award a different programme</b></h5>
-                                                <div class="mb-4">
-                                                    <label for="">Programme Type: </label>
-                                                    <select name="choose-other-prog" id="choose-other-prog" class="form-select">
-                                                        <option value="" hidden>Choose...</option>
-                                                        <option value="1">MASTERS</option>
-                                                        <option value="2">DEGREE</option>
-                                                        <option value="3">DIPLOMA</option>
-                                                    </select>
-                                                </div>
-                                                <div class="mb-4">
-                                                    <label class="form-label" for="admit-other-prog">Choose a programme <span class="input-required">*</span></label>
-                                                    <select name="admit-other-prog" id="admit-other-prog" class="transform-text form-select mb-3">
-                                                        <option hidden value="">Choose...</option>
-                                                    </select>
-                                                </div>
+                                                    <h5 style="font-size: 16px;" class="form-label mt-4"><b>Award a different programme</b></h5>
+                                                    <div class="mb-4">
+                                                        <label for="">Programme Type: </label>
+                                                        <select name="choose-other-prog" id="choose-other-prog" class="form-select">
+                                                            <option value="" hidden>Choose...</option>
+                                                            <option value="1">MASTERS</option>
+                                                            <option value="2">DEGREE</option>
+                                                            <option value="3">DIPLOMA</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-4">
+                                                        <label class="form-label" for="admit-other-prog">Choose a programme <span class="input-required">*</span></label>
+                                                        <select name="admit-other-prog" id="admit-other-prog" class="transform-text form-select mb-3">
+                                                            <option hidden value="">Choose...</option>
+                                                        </select>
+                                                    </div>
                                         <?php
+                                                }
                                             }
                                         }
                                         ?>
                                     </div>
                                 </div>
+                                <?php
 
-                                <div class="col" style="margin-top:100px">
-                                    <div style="display: flex; justify-content: space-around">
-                                        <button class="btn btn-success" id="app-application-check-btn" type="button" style="min-width: 200px;" data-bs-toggle="modal" data-bs-target="#admissionSummary">Admit</button>
-                                        <form method="post" id="decline-applicant-form">
-                                            <input type="hidden" name="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
-                                            <button class="btn btn-danger" type="submit" style="min-width: 200px;">Decline</button>
-                                        </form>
+                                if (!$only_reviewed) {
+                                ?>
+                                    <div class="col" style="margin-top:100px">
+                                        <div style="display: flex; justify-content: space-around">
+                                            <button class="btn btn-success" id="app-application-check-btn" type="button" style="min-width: 200px;" data-bs-toggle="modal" data-bs-target="#admissionSummary">
+                                                <?php
+                                                if (!empty($direct_admit) && $direct_admit[0]["value"] == "true") echo 'Admit';
+                                                else echo 'Shortlist';
+                                                ?>
+                                            </button>
+                                            <form method="post" id="decline-applicant-form">
+                                                <input type="hidden" name="app-login" value="<?= $personal_AB[0]["app_login"] ?>">
+                                                <button class="btn btn-danger" type="submit" style="min-width: 200px;">Decline</button>
+                                            </form>
+                                        </div>
                                     </div>
-                                </div>
+                                <?php } ?>
                             </div>
                         </div>
 
@@ -703,7 +721,12 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
                         </form>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-success" style="min-width: 200px;" id="admit-applicant-btn">Admit</button>
+                        <button type="button" class="btn btn-success" style="min-width: 200px;" id="admit-applicant-btn">
+                            <?php
+                            if (!empty($direct_admit) && $direct_admit[0]["value"] == "true") echo 'Admit';
+                            else echo 'Shortlist'
+                            ?>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -823,10 +846,11 @@ $app_statuses = $admin->fetchApplicationStatus($_GET['q']);
 
                 var c = confirm("Are you sure you want to admit this applicant?");
                 if (c) {
+                    var formData = new FormData(this);
                     $.ajax({
                         type: "POST",
                         url: "../endpoint/admit-individual-applicant",
-                        data: new FormData(this),
+                        data: formData,
                         contentType: false,
                         cache: false,
                         processData: false,

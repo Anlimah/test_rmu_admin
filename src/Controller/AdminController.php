@@ -3,8 +3,6 @@
 namespace Src\Controller;
 
 use Exception;
-use PhpOffice\PhpWord\IOFactory;
-use PhpOffice\PhpWord\Settings;
 use Src\System\DatabaseMethods;
 use Src\Controller\ExposeDataController;
 use Src\Controller\PaymentController;
@@ -994,6 +992,10 @@ class AdminController
                 $result = $this->fetchAllUnsubmittedApplication($admin_period, $SQL_COND);
                 break;
 
+            case 'apps-shortlisted':
+                $result = $this->fetchAllShortlistedApplication($admin_period, $SQL_COND);
+                break;
+
             case 'apps-admitted':
                 $result = $this->fetchAllAdmittedApplication($admin_period, $SQL_COND);
                 break;
@@ -1025,8 +1027,7 @@ class AdminController
                     form_sections_chek AS fs, admission_period AS ap 
                 WHERE 
                     p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
-                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND 
-                    ap.id = :ai$SQL_COND";
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
@@ -1042,8 +1043,8 @@ class AdminController
                     form_sections_chek AS fs, admission_period AS ap 
                 WHERE 
                     p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
-                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND 
-                    ap.id = :ai AND fs.declaration = 1 AND fs.admitted = 0 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai AND 
+                    fs.declaration = 1 AND fs.admitted = 0 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
@@ -1059,8 +1060,25 @@ class AdminController
                     form_sections_chek AS fs, admission_period AS ap 
                 WHERE 
                     p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
-                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND 
-                    ap.id = :ai AND fs.declaration = 0 AND fs.admitted = 0 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai AND 
+                    fs.declaration = 0 AND fs.admitted = 0 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
+        return $this->dm->getData($query, array(":ai" => $admin_period));
+    }
+
+    public function fetchAllShortlistedApplication($admin_period, $SQL_COND)
+    {
+        $query = "SELECT 
+                    al.id, CONCAT(p.first_name, ' ', IFNULL(p.middle_name, ''), ' ', p.last_name) AS fullname, 
+                    p.nationality, ft.name AS app_type, pi.first_prog, pi.second_prog, fs.declaration, fs.printed,
+                    p.phone_no1_code, p.phone_no1, pd.country_code, pd.phone_number  
+                FROM 
+                    personal_information AS p, applicants_login AS al, 
+                    forms AS ft, purchase_detail AS pd, program_info AS pi, 
+                    form_sections_chek AS fs, admission_period AS ap 
+                WHERE 
+                    p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai AND 
+                    fs.declaration = 1 AND fs.shortlisted = 1 AND fs.admitted = 0 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
@@ -1076,8 +1094,8 @@ class AdminController
                     form_sections_chek AS fs, admission_period AS ap 
                 WHERE 
                     p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
-                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND 
-                    ap.id = :ai AND fs.declaration = 1 AND fs.admitted = 1 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai AND 
+                    fs.declaration = 1 AND fs.admitted = 1 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
@@ -1093,8 +1111,8 @@ class AdminController
                     form_sections_chek AS fs, admission_period AS ap 
                 WHERE 
                     p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
-                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND 
-                    ap.id = :ai AND fs.declaration = 1 AND fs.admitted = 0 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai AND 
+                    fs.declaration = 1 AND fs.admitted = 0 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
@@ -1110,8 +1128,8 @@ class AdminController
                     form_sections_chek AS fs, admission_period AS ap, academic_background AS ab 
                 WHERE 
                     p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND ab.app_login = al.id AND
-                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND 
-                    ap.id = :ai AND fs.declaration = 1 AND ab.awaiting_result = 1 AND ab.cert_type = 'WASSCE'$SQL_COND";
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai AND 
+                    fs.declaration = 1 AND ab.awaiting_result = 1 AND ab.cert_type = 'WASSCE'$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
@@ -1127,8 +1145,8 @@ class AdminController
                     form_sections_chek AS fs, admission_period AS ap 
                 WHERE 
                     p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
-                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND 
-                    ap.id = :ai AND fs.declaration = 1 AND fs.admitted = 1 AND fs.enrolled = 1 AND fs.declined = 0$SQL_COND";
+                    pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai AND 
+                    fs.declaration = 1 AND fs.admitted = 1 AND fs.enrolled = 1 AND fs.declined = 0$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
@@ -1225,6 +1243,15 @@ class AdminController
                 FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
                 WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id 
                 AND pd.form_id = ft.id AND fc.declaration = 0 AND fc.admitted = 0  AND fc.declined = 0 AND ft.id = :f";
+        return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
+    }
+
+    public function fetchTotalShortlistedApplicants($admin_period, int $form_id)
+    {
+        $query = "SELECT COUNT(*) AS total 
+                FROM purchase_detail AS pd, admission_period AS ap, form_sections_chek AS fc, applicants_login AS al, forms AS ft 
+                WHERE ap.id = pd.admission_period AND ap.id = :ai AND fc.app_login = al.id AND al.purchase_id = pd.id 
+                AND pd.form_id = ft.id AND fc.declaration = 1 AND fc.shortlisted = 1 AND fc.admitted = 0  AND fc.declined = 0 AND ft.id = :f";
         return $this->dm->getData($query, array(":f" => $form_id, ":ai" => $admin_period));
     }
 
@@ -1897,7 +1924,7 @@ class AdminController
         }
     }
 
-    private function generateApplicantAdmissionLetter($letter_data, $letter_type = "undergrade", $admission_period = [], $program): mixed
+    private function generateApplicantAdmissionLetter($letter_data, $program, $letter_type = "undergrade", $admission_period = []): mixed
     {
         try {
             $dir_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR;
@@ -2214,14 +2241,9 @@ class AdminController
         $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$data["data"]["Program_Offered_2"]}. ";
         $message .= "Kindly check your mail box for more details.";
         $response = json_decode($this->expose->sendSMS($to, $message));
+        return $response;
         if (!$response->status) return 1;
         return 0;
-    }
-
-    private function sendNotification($title, $message, $type, $to = null)
-    {
-        $query = "INSERT INTO notifications (`title`,`message`,`type`,`to`) VALUES (:t,:m,:p,:w)";
-        return ($this->dm->inputData($query, array(":t" => $title, ":m" => $message, ":p" => $type, ":w" => $to)));
     }
 
     public function admitIndividualApplicant($appID, $prog_id, $stream_applied, $level, bool $email_letter = false, bool $sms_notify = false)
@@ -2229,25 +2251,18 @@ class AdminController
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied, $level);
         if (!$l_res["success"]) return $l_res;
 
-        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["type"], $l_res["period"], $l_res["program"]);
+        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["program"], $l_res["type"], $l_res["period"]);
         if (!$g_res["success"]) return $g_res;
 
         $file_paths = [];
         array_push($file_paths, $g_res["letter_pdf_path"], $g_res["acceptance_form_path"]);
         $status_update_extras = [];
 
-        if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        //return $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
+        //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
         $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $l_res["program_dur"], $l_res["level_admitted"], $status_update_extras);
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
-
-        $title = 'Admission Status';
-        $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$l_res["data"]["Program_Offered_2"]}.";
-        $type = 'applicant';
-        $to = $appID;
-        $this->sendNotification($title, $message, $type, $to);
         return array("success" => true, "message" => "Successfully admitted applicant!");
     }
 
@@ -2269,7 +2284,7 @@ class AdminController
     public function fetchAllFromProgramWithDepartByProgID($prog_id)
     {
         $query = "SELECT pg.*, dp.`id` AS department_id, dp.`name` AS department_name 
-        FROM `programs` AS pg, `department` AS dp WHERE pg.`id` = :i AND pg.`fk_department` = dp.`id`";
+        FROM `programs` AS pg, `department` AS dp WHERE pg.`id` = :i AND pg.`department` = dp.`id`";
         return $this->dm->getData($query, array(":i" => $prog_id));
     }
 
@@ -2548,13 +2563,6 @@ class AdminController
         //$this->smsApplicantEnrollmentStatus($data);
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
-
-        $title = 'Admission Status';
-        $message = "Congratulations! Your enrollement to Regional Maritime University has been completed.";
-        $type = 'applicant';
-        $to = $appID;
-        $this->sendNotification($title, $message, $type, $to);
-
         return array(
             "success" => true,
             "message" => "Applicant successfully enrolled!",
@@ -3053,7 +3061,7 @@ class AdminController
 
     public function fetchApplicationStatus($appID)
     {
-        $query = "SELECT `declaration`, `reviewed`, `enrolled`, `admitted`, `declined`, `printed`, `programme_awarded`, `programme_duration` , `level_admitted` 
+        $query = "SELECT `declaration`, `reviewed`, `shortlisted`, `enrolled`, `admitted`, `declined`, `printed`, `programme_awarded`, `programme_duration` , `level_admitted` 
                     FROM `form_sections_chek` WHERE `app_login` = :i";
         return $this->dm->getData($query, array(":i" => $appID));
     }
@@ -3110,11 +3118,108 @@ class AdminController
         return $this->dm->getData($query, array(":s" => $status));
     }
 
-    public function unsubmitApplication($app_id)
+    public function unsubmitApplication($appID)
     {
         $query = "UPDATE `form_sections_chek` SET `declaration` = 0 WHERE `app_login` = :i";
-        if ($this->dm->getData($query, array(":i" => $app_id)))
-            return array("success" => true, "message" => "Applicant form has been unsubmitted!");
+        if ($this->dm->getData($query, array(":i" => $appID))) {
+
+            $contactInfo = $this->getApplicantContactInfo($appID);
+            // Prepare SMS message
+            $message = 'Hi ' . ucfirst(strtolower($contactInfo[0]["first_name"])) . " " . ucfirst(strtolower($contactInfo[0]["last_name"])) . '. ';
+            $message .= 'Your application to Regional Maritime University has been unsubmitted for you provide missing details of your application. ';
+            $message .= 'Kindly visit the application portal at https://admissions.rmuictonline.com to complete your application. Thank you';
+            $to = $contactInfo[0]["phone_no1_code"] . $contactInfo[0]["phone_no1"];
+            $smsSent = false;
+
+            // Send SMS message
+            $response = json_decode($this->expose->sendSMS($to, $message));
+            if (!$response->status) $smsSent = true;
+            if ($smsSent) return array("success" => true, "message" => "Application form has been unsubmitted successfully and SMS notification sent to applicant!");
+            else return array("success" => true, "message" => "Application form has been unsubmitted successfully but SMS notification failed!");
+        }
         return array("success" => false, "message" => "Failed to unsubmit applicant form!");
+    }
+
+    public function fetchSettingByName($setting)
+    {
+        $query = "SELECT * FROM `settings` WHERE `name` = :n";
+        return $this->dm->getData($query, array(":n" => $setting));
+    }
+
+    public function shortlistedApplication($appLogin, $programId, $stream, $level, $sendEmail, $sendSms)
+    {
+        $query = "INSERT INTO shortlisted_applications (`app_login`, `program_id`, `stream`, `level`, `send_email`, `send_sms`) 
+                     VALUES (:login, :program, :stream, :level, :email, :sms)";
+
+        $result = $this->dm->inputData($query, array(
+            ':login' => $appLogin,
+            ':program' => $programId,
+            ':stream' => $stream,
+            ':level' => $level,
+            ':email' => $sendEmail ? 1 : 0,
+            ':sms' => $sendSms ? 1 : 0
+        ));
+
+        if (!empty($result)) {
+            $query = "UPDATE `form_sections_chek` SET `shortlisted` = 1,  `programme_awarded` = :p, `level_admitted` = :l WHERE `app_login` = :i";
+            $this->dm->inputData($query, array(":i" => $appLogin, ":p" => $programId, ":l" => $level));
+            return array("success" => true, "message" => "Successfully shortlisted applicant");
+        }
+        return array("success" => false, "message" => "Failed to shortlist applicant");
+    }
+
+    public function getShortlistedApplicationsCountByStatus($status)
+    {
+        $query = "SELECT COUNT(`id`) AS total FROM `shortlisted_applications` WHERE `status` = :s";
+        return $this->dm->getData($query, array(":s" => $status));
+    }
+
+    // Get list of pending applications
+    public function getAllShortlistedApplicationsByStatus($status)
+    {
+        $query = "SELECT aa.*, pi.first_name, pi.middle_name, pi.last_name, pi.gender, pg.name AS program 
+                FROM shortlisted_applications AS aa, personal_information AS pi, programs AS pg, applicants_login AS al 
+                WHERE aa.status = :s AND aa.app_login = al.id AND aa.program_id = pg.id AND pi.app_login = al.id 
+                ORDER BY created_at DESC";
+        return $this->dm->getData($query, array(":s" => $status));
+    }
+
+    public function getShortlistedApplicationsByApplogin($app_login)
+    {
+        $query = "SELECT * FROM `shortlisted_applications` WHERE `app_login` = :a";
+        return $this->dm->getData($query, array(":a" => $app_login));
+    }
+
+    public function updateShortlistedApplicationsStatus(string $app_login, string|null $status)
+    {
+        $query = "UPDATE `shortlisted_applications` SET `status` = :s WHERE `app_login` = :a";
+        return $this->dm->inputData($query, array(":s" => $status, ":a" => $app_login));
+    }
+
+    public function approveShortlistedApplications($app_login)
+    {
+        $data = $this->getShortlistedApplicationsByApplogin($app_login);
+        if (empty($data)) return array("success" => false, "message" => "Failed to process application");
+        $admission = $this->admitIndividualApplicant(
+            $data[0]["app_login"],
+            $data[0]["program_id"],
+            $data[0]["stream"],
+            $data[0]["level"],
+            $data[0]["send_email"],
+            $data[0]["send_sms"]
+        );
+        if (!empty($admission) && $admission["success"]) {
+            $this->updateShortlistedApplicationsStatus($data[0]["app_login"], 'approved');
+        }
+        return $admission;
+    }
+
+    public function declineShortlistedApplications($app_login)
+    {
+        $result = $this->updateShortlistedApplicationsStatus($app_login, 'declined');
+        if (!empty($result)) {
+            return array("success" => true, "message" => "Application declined successfully");
+        }
+        return array("success" => false, "message" => "Failed to decline application");
     }
 }
