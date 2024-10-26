@@ -3285,12 +3285,95 @@ class AdminController
         }
     }
 
-    public function declineShortlistedApplications($app_login)
+    /**
+     * Decline multiple shortlisted applications
+     * 
+     * @param array $app_logins Array of application login IDs
+     * @return array Response with success status and message
+     */
+    public function declineShortlistedApplications(array $app_logins)
     {
-        $result = $this->updateShortlistedApplicationsStatus($app_login, 'declined');
-        if (!empty($result)) {
-            return array("success" => true, "message" => "Application declined successfully");
+        $declined = 0;
+        $errors = [];
+        $totalApplications = count($app_logins);
+
+        try {
+            // Start transaction
+            $this->dm->beginTransaction();
+
+            foreach ($app_logins as $app_login) {
+                try {
+                    // Get application data to verify it exists and check current status
+                    $data = $this->getShortlistedApplicationsByApplogin($app_login);
+
+                    if (empty($data)) {
+                        throw new Exception("Application not found: $app_login");
+                    }
+
+                    $applicationData = $data[0];
+
+                    // Check if application is already processed
+                    if ($applicationData['status'] === 'declined') {
+                        throw new Exception("Application already declined: $app_login");
+                    }
+
+                    if ($applicationData['status'] === 'approved') {
+                        throw new Exception("Cannot decline an approved application: $app_login");
+                    }
+
+                    // Update application status
+                    $result = $this->updateShortlistedApplicationsStatus($app_login, 'declined');
+
+                    if (!$result) {
+                        throw new Exception("Failed to update application status: $app_login");
+                    }
+
+                    // Optional: Send notification to applicant
+                    // try {
+                    //     $this->sendDeclineNotification($data[0]);
+                    // } catch (Exception $e) {
+                    //     // Log notification error but don't fail the decline process
+                    //     error_log("Failed to send decline notification for $app_login: " . $e->getMessage());
+                    // }
+
+                    $declined++;
+                } catch (Exception $e) {
+                    $errors[] = [
+                        'app_login' => $app_login,
+                        'error' => $e->getMessage()
+                    ];
+                    // Continue with next application
+                }
+            }
+
+            // Commit transaction
+            $this->dm->commit();
+
+            // Prepare response
+            if (empty($errors)) {
+                return [
+                    "success" => true,
+                    "message" => "Successfully declined $declined out of $totalApplications applications."
+                ];
+            } else {
+                $errorCount = count($errors);
+                $successCount = $totalApplications - $errorCount;
+                return [
+                    "success" => $successCount > 0,
+                    "message" => "Processed $successCount applications successfully. Failed to decline $errorCount applications.",
+                    "details" => [
+                        "successful" => $successCount,
+                        "failed" => $errorCount,
+                        "errors" => $errors
+                    ]
+                ];
+            }
+        } catch (Exception $e) {
+            $this->dm->rollBack();
+            return [
+                "success" => false,
+                "message" => "A system error occurred: " . $e->getMessage()
+            ];
         }
-        return array("success" => false, "message" => "Failed to decline application");
     }
 }
