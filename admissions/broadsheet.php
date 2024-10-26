@@ -76,19 +76,18 @@ require_once('../inc/page-data.php');
                             <form id="fetchDataForm" class="mb-4">
                                 <div class="row" style="justify-content: baseline; align-items: center">
                                     <div class="col-3">
-                                        <select name="cert-type" id="cert-type" class="form-select">
+                                        <select name="cert-type" id="cert-type" data-id="cert" class="form-select">
                                             <option value="" hidden>Choose Category</option>
                                             <option value="MASTERS">MASTERS</option>
                                             <option value="DEGREE">DEGREE</option>
                                             <option value="DIPLOMA">DIPLOMA</option>
-                                            <option value="UPGRADERS">UPGRADERS</option>
-                                            <option value="MEM">MARINE ENGINE MECHANICS</option>
-                                            <option value="CDADILT">CILT, DILT AND ADILT</option>
+                                            <option value="UPGRADE">UPGRADERS</option>
+                                            <option value="SHORT">SHORT/OTHER COURSES</option>
                                         </select>
                                     </div>
                                     <div class="col-3" id="bs-masters-prog">
-                                        <select name="prog-type" id="prog-type" class="form-select" data-bs-programme="MASTERS">
-                                            <option value="" hidden>Choose Programme</option>
+                                        <select name="prog-type" id="prog-type" data-id="prog" class="form-select">
+                                            <option value="" hidden>Choose Program</option>
                                         </select>
                                     </div>
                                 </div>
@@ -189,16 +188,39 @@ require_once('../inc/page-data.php');
                 });
             });
 
-            $("#cert-type").change("blur", function() {
+            var data = [];
+            var triggeredBy = 0;
 
-                if ($('#cert-type').val() == "") {
-                    alert("Choose Certificate type");
-                    return;
-                }
+            var fetchPrograms = function(data) {
+                $.ajax({
+                    type: "GET",
+                    url: "../endpoint/programsByCategory",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
 
-                data = {
-                    "cert-type": $(this).val()
-                }
+                        if (result.success) {
+                            $("#prog-type").html('<option value="" hidden>Choose Programme</option>');
+                            $.each(result.message, function(index, value) {
+                                $("#prog-type").append(
+                                    '<option value="' + value.id + '">' + value.name + '</option>'
+                                );
+                            });
+                        } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            }
+
+            var fetchBroadsheet = function(data) {
+                console.log(data);
 
                 $.ajax({
                     type: "POST",
@@ -207,45 +229,6 @@ require_once('../inc/page-data.php');
                     success: function(result) {
                         console.log(result);
                         if (result.success) {
-                            /*if (data["cert-type"] == "DIPLOMA" || data["cert-type"] == "DEGREE") {
-                                $("#wassce-apps").html('');
-                                $.each(result.message, function(index, value) {
-                                    $("#wassce-apps").append(
-                                        '<tr>' +
-                                        '<th scope="row">' + (index + 1) + '</th>' +
-                                        '<td>' + value.full_name + '</td>' +
-                                        '<td>' + value.age + '</td>' +
-                                        '<td>' + value.sex + '</td>' +
-                                        '<td>' + value.nationality + '</td>' +
-                                        '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[0].subject + '">' + value.sch_rslt[0].grade + '</td>' +
-                                        '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[1].subject + '">' + value.sch_rslt[1].grade + '</td>' +
-                                        '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[2].subject + '">' + value.sch_rslt[2].grade + '</td>' +
-                                        '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[3].subject + '">' + value.sch_rslt[3].grade + '</td>' +
-                                        '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[4].subject + '">' + value.sch_rslt[4].grade + '</td>' +
-                                        '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[5].subject + '">' + value.sch_rslt[5].grade + '</td>' +
-                                        '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[6].subject + '">' + value.sch_rslt[6].grade + '</td>' +
-                                        '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[7].subject + '">' + value.sch_rslt[7].grade + '</td>' +
-                                        '</tr>'
-                                    );
-                                });
-                                $(".wassce-apps").show();
-                            } else {
-                                $("#postgrad-apps").html('');
-                                $.each(result.message, function(index, value) {
-                                    $("#postgrad-apps").append(
-                                        '<tr>' +
-                                        '<th scope="row">' + (index + 1) + '</th>' +
-                                        '<td>' + value.full_name + '</td>' +
-                                        '<td>' + value.age + '</td>' +
-                                        '<td>' + value.sex + '</td>' +
-                                        '<td>' + value.academic_background + '</td>' +
-                                        '<td>' + value.nationality + '</td>' +
-                                        '<td>' + value.first_prog + '</td>' +
-                                        '</tr>'
-                                    );
-                                });
-                                $(".postgrad-apps").show();
-                            }*/
                             $("#postgrad-apps").html('');
                             $.each(result.message, function(index, value) {
                                 $("#postgrad-apps").append(
@@ -275,14 +258,36 @@ require_once('../inc/page-data.php');
                                 '</div>'
                             );
                         }
-
                     },
                     error: function(error) {
                         console.log(error);
                     }
                 });
+            }
+
+            $("#cert-type, #prog-type").change("blur", function() {
+                data = {
+                    "cert-type": $("#cert-type").val()
+                };
+                if (this.dataset.id === "cert") {
+                    fetchPrograms(data);
+                    data["prog-type"] = "";
+                }
+                if (this.dataset.id === "prog") data["prog-type"] = $("#prog-type").val();
+
+                fetchBroadsheet(data);
             });
 
+            $(document).on({
+                ajaxStart: function() {
+                    if (triggeredBy == 1) $("#submitBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> sending...');
+                    if (triggeredBy == 2) $("#admit-all-bs").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
+                },
+                ajaxStop: function() {
+                    if (triggeredBy == 1) $("#submitBtn").prop("disabled", false).html('Fetch Data');
+                    if (triggeredBy == 2) $("#admit-all-bs").prop("disabled", false).html('Admit All Qualified');
+                }
+            });
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>

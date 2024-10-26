@@ -126,7 +126,7 @@ $adminSetup = true;
                             <div class="card info-card text-success">
                                 <div class="card-body">
                                     <a href="awaiting-results.php" style="text-decoration: none;">
-                                        <h5 class="card-title">Awaiting Results - WASSCE</h5>
+                                        <h5 class="card-title">Awaiting Results</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-queue-64.png" style="width: 48px;" alt="">
@@ -172,7 +172,8 @@ $adminSetup = true;
                                                 <img src="../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">List of enrolled applicants</span>
+                                                <h6><?= $admin->getshortlistedApplicationsCountByStatus('pending')[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
                                             </div>
                                         </div>
                                     </a>

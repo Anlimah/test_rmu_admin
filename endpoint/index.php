@@ -1012,32 +1012,37 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
     //
     elseif ($_GET["url"] == "shortlisted-application") {
+        try {
 
-        if (!isset($_POST["action"]) || empty($_POST["action"])) {
-            die(json_encode(array("success" => false, "message" => "Action parameter is required!")));
+            if (!isset($_POST['_FFToken']) || $_POST['_FFToken'] !== $_SESSION['_shortlistedFormToken']) {
+                throw new Exception("Invalid security token!");
+            }
+
+            if (empty($_POST["action"])) {
+                throw new Exception("Action parameter is required!");
+            }
+
+            if (empty($_POST["app-login"]) || !is_array($_POST["app-login"])) {
+                throw new Exception("Please select at least one application!");
+            }
+
+            $app_logins = array_map('trim', $_POST["app-login"]);
+            $app_logins = array_filter($app_logins);
+
+            if (empty($app_logins)) {
+                throw new Exception("Invalid application data provided!");
+            }
+
+            $result = match ($_POST["action"]) {
+                'approve' => $admin->approveShortlistedApplications($app_logins),
+                'decline' => $admin->declineShortlistedApplications($app_logins),
+                default => throw new Exception("Invalid action specified!"),
+            };
+
+            die(json_encode($result));
+        } catch (Exception $e) {
+            die(json_encode(["success" => false, "message" => $e->getMessage()]));
         }
-
-        if (!isset($_POST["app-login"]) || empty($_POST["app-login"])) {
-            die(json_encode(array("success" => false, "message" => "Some application details are missing!")));
-        }
-
-        switch ($_POST["action"]) {
-            case 'approve':
-                $app_login = $expose->validateNumber($_POST["app-login"]);
-                die(json_encode($admin->approveShortlistedApplications($app_login)));
-                break;
-
-            case 'decline':
-                $app_login = $expose->validateNumber($_POST["app-login"]);
-                die(json_encode($admin->declineShortlistedApplications($app_login)));
-                break;
-
-            default:
-                die(json_encode(array("success" => false, "message" => "Action unavailable!")));
-                break;
-        }
-
-        die(json_encode(array("success" => false, "message" => "Action unavailable!")));
     }
 
     // decline applicant admission

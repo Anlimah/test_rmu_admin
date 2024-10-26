@@ -132,6 +132,7 @@ require_once('../inc/page-data.php');
         $(document).ready(function() {
 
             var data;
+            let triggeredBy = 0;
 
             var fetchPrograms = function(data) {
                 $.ajax({
@@ -201,8 +202,6 @@ require_once('../inc/page-data.php');
                     }
                 });
             }
-
-            let triggeredBy = 0;
 
             $("#cert-type, #prog-type").change("blur", function() {
                 data = {

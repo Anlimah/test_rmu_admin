@@ -44,6 +44,10 @@ require_once('../inc/admin-database-con.php');
 $admin = new AdminController($db, $user, $pass);
 require_once('../inc/page-data.php');
 
+$pending = $admin->getshortlistedApplicationsCountByStatus('pending')[0]["total"];
+$approved = $admin->getshortlistedApplicationsCountByStatus('approved')[0]["total"];
+$declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["total"];
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -187,7 +191,7 @@ require_once('../inc/page-data.php');
                                                 <img src="../assets/img/icons8-receipt-pending-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <h6><?= $admin->getshortlistedApplicationsCountByStatus('pending')[0]["total"]; ?></h6>
+                                                <h6><?= $pending ?></h6>
                                                 <span class="text-muted small pt-2 ps-1">Applications</span>
                                             </div>
                                         </div>
@@ -207,7 +211,7 @@ require_once('../inc/page-data.php');
                                                 <img src="../assets/img/icons8-receipt-approved-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <h6><?= $admin->getshortlistedApplicationsCountByStatus('approved')[0]["total"]; ?></h6>
+                                                <h6><?= $approved ?></h6>
                                                 <span class="text-muted small pt-2 ps-1">Applications</span>
                                             </div>
                                         </div>
@@ -227,7 +231,7 @@ require_once('../inc/page-data.php');
                                                 <img src="../assets/img/icons8-receipt-declined-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
-                                                <h6><?= $admin->getshortlistedApplicationsCountByStatus('declined')[0]["total"]; ?></h6>
+                                                <h6><?= $declined ?></h6>
                                                 <span class="text-muted small pt-2 ps-1">Applications</span>
                                             </div>
                                         </div>
@@ -250,8 +254,9 @@ require_once('../inc/page-data.php');
 
                         <div class="card-body">
                             <h5 class="card-title">Requests</h5>
-
-                            <div>
+                            <form action="#" method="post" id="shortlist-form">
+                                <input type="hidden" name="_FFToken" value="<?= $_SESSION["_shortlistedFormToken"] ?>">
+                                <input type="hidden" name="action" value="">
                                 <table class="table table-borderless datatable table-striped table-hover">
                                     <thead class="table-dark">
                                         <tr>
@@ -280,18 +285,11 @@ require_once('../inc/page-data.php');
                                                     <td><?= $aa["stream"] ?></td>
                                                     <td><?= $aa["level"] ?></td>
                                                     <td>
-                                                        <form action="#" method="post" id="sfd">
-                                                            <input type="hidden" name="app-login" value="<?= $aa["app_login"] ?>">
-                                                            <input type="hidden" name="_FFToken" value="<?= $_SESSION["_shortlistedFormToken"] ?>">
-                                                            <input type="hidden" name="action" value="" id="action-<?= $aa["app_login"] ?>">
-                                                            <a href="applicant-info.php?t=2&c=DEGREE&q=<?= $aa["app_login"] ?>" class="btn btn-primary btn-xs approve-btn" id="<?= $aa["app_login"] ?>">View</a>
-                                                            <button class="btn btn-success btn-xs approve-btn" id="<?= $aa["app_login"] ?>">Approve</button>
-                                                            <button class="btn btn-danger btn-xs decline-btn" id="<?= $aa["app_login"] ?>">Decline</button>
-                                                        </form>
+                                                        <a href="applicant-info.php?t=2&c=DEGREE&q=<?= $aa["app_login"] ?>"
+                                                            class="btn btn-primary btn-xs view-btn">View</a>
+                                                        <input class="form-check-input" type="checkbox"
+                                                            name="app-login[]" value="<?= $aa["app_login"] ?>">
                                                     </td>
-                                                    <!-- <td>
-                                                        <button class="btn btn-primary btn-xs rounded-pill more-btn" id="<?= $aa["app_login"] ?>">More</button>
-                                                    </td> -->
                                                 </tr>
                                         <?php
                                                 $index++;
@@ -300,7 +298,15 @@ require_once('../inc/page-data.php');
                                         ?>
                                     </tbody>
                                 </table>
-                            </div>
+                                <?php
+                                if ($pending) {
+                                ?>
+                                    <div class="mt-3" style="display: flex; justify-content:flex-end;">
+                                        <button type="button" id="approve-btn" class="btn btn-success btn-sm me-2">Approve Selected</button>
+                                        <button type="button" id="decline-btn" class="btn btn-danger btn-sm">Decline Selected</button>
+                                    </div>
+                                <?php } ?>
+                            </form>
                         </div>
                     </div>
                 </div>
@@ -342,38 +348,24 @@ require_once('../inc/page-data.php');
                 });
             });
 
-            var formAction;
+            $("#approve-btn, #decline-btn").on("click", function(e) {
+                const formAction = $(this).attr('id') === 'approve-btn' ? 'approve' : 'decline';
+                const selectedCount = $('input[name="app-login[]"]:checked').length;
 
-            $(".approve-btn").on("click", function(e) {
-                formAction = 'approve';
-                action = "action-" + $(this).attr("id");
-                document.getElementById(action).value = 'approve';
-                $("#sfd" + $(this).attr("id")).submit();
-            });
-
-            $(".decline-btn").on("click", function(e) {
-                formAction = 'decline';
-                action = "action-" + $(this).attr("id");
-                document.getElementById(action).value = 'decline';
-                $("#sfd" + $(this).attr("id")).submit();
-            });
-
-            $("form").on("submit", function(e) {
-
-                e.preventDefault();
-
-                if (this.action.value === 'approve') {
-                    var c = confirm("Are you sure you want to approve this application?")
-                    if (!c) return;
+                if (selectedCount === 0) {
+                    alert("Please select at least one application.");
+                    return;
                 }
 
-                if (this.action.value === 'decline') {
-                    var c = confirm("Are you sure you want to decline this application?")
-                    if (!c) return;
-                }
+                const confirmMessage = `Are you sure you want to ${formAction} ${selectedCount} selected application(s)?`;
+                if (!confirm(confirmMessage)) return;
 
-                formData = new FormData(this);
-                triggeredBy = 4;
+                // Set the action value
+                $('input[name="action"]').val(formAction);
+
+                // Submit the form
+                const form = $("#shortlist-form")[0];
+                const formData = new FormData(form);
 
                 $.ajax({
                     type: "POST",
@@ -391,13 +383,14 @@ require_once('../inc/page-data.php');
                             if (result.message == "logout") {
                                 alert('Your session expired. Please refresh the page to continue!');
                                 window.location.href = "?logout=true";
-                            } else alert(result.message);
-                            //console.log("success area: ", result.message);
+                            } else {
+                                alert(result.message);
+                            }
                         }
                     },
                     error: function(error) {
                         console.log("error area: ", error);
-                        flashMessage("alert-danger", error);
+                        alert("An error occurred while processing your request.");
                     }
                 });
             });

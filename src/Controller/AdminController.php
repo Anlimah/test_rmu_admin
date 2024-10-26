@@ -2033,7 +2033,7 @@ class AdminController
                         'app_number' => $app_app_number["app_number"],
                         'Prefix' => ucwords(strtolower($app_pers_info["prefix"])),
                         'First_Name' => ucwords(strtolower($app_pers_info["first_name"])),
-                        'Middle_Name' => ucwords(strtolower($app_pers_info["middle_name"])),
+                        'Middle_Name' => !empty($app_pers_info["middle_name"]) ? ucwords(strtolower($app_pers_info["middle_name"])) : '',
                         'Last_Name' => ucwords(strtolower($app_pers_info["last_name"])),
                         'Full_Name' => ucwords(strtolower(!empty($app_pers_info["middle_name"]) ? $app_pers_info["first_name"] . " " . $app_pers_info["middle_name"] . " " .  $app_pers_info["last_name"] : $app_pers_info["first_name"] . " " . $app_pers_info["last_name"])),
                         'Box_Location' => ucwords(strtolower($app_pers_info["postal_town"] . " - " . $app_pers_info["postal_spr"])),
@@ -3196,22 +3196,93 @@ class AdminController
         return $this->dm->inputData($query, array(":s" => $status, ":a" => $app_login));
     }
 
-    public function approveShortlistedApplications($app_login)
+    public function approveShortlistedApplications(array $app_logins)
     {
-        $data = $this->getShortlistedApplicationsByApplogin($app_login);
-        if (empty($data)) return array("success" => false, "message" => "Failed to process application");
-        $admission = $this->admitIndividualApplicant(
-            $data[0]["app_login"],
-            $data[0]["program_id"],
-            $data[0]["stream"],
-            $data[0]["level"],
-            $data[0]["send_email"],
-            $data[0]["send_sms"]
-        );
-        if (!empty($admission) && $admission["success"]) {
-            $this->updateShortlistedApplicationsStatus($data[0]["app_login"], 'approved');
+        $admitted = 0;
+        $errors = [];
+        $totalApplications = count($app_logins);
+
+        try {
+            // Start transaction if using a database
+            $this->dm->beginTransaction();
+
+            foreach ($app_logins as $app_login) {
+                try {
+                    // Get application data
+                    $data = $this->getShortlistedApplicationsByApplogin($app_login);
+
+                    if (empty($data)) {
+                        throw new Exception("Application data not found for: $app_login");
+                    }
+
+                    $applicationData = $data[0];
+
+                    // Validate application status to prevent double processing
+                    if ($applicationData['status'] === 'approved') {
+                        throw new Exception("Application already approved: $app_login");
+                    }
+
+                    // Process admission
+                    $admission = $this->admitIndividualApplicant(
+                        $applicationData["app_login"],
+                        $applicationData["program_id"],
+                        $applicationData["stream"],
+                        $applicationData["level"],
+                        $applicationData["send_email"],
+                        $applicationData["send_sms"]
+                    );
+
+                    if (!$admission["success"]) {
+                        throw new Exception($admission["message"] ?? "Failed to admit applicant: $app_login");
+                    }
+
+                    // Update application status
+                    $statusUpdate = $this->updateShortlistedApplicationsStatus($app_login, 'approved');
+                    if (!$statusUpdate) {
+                        throw new Exception("Failed to update application status: $app_login");
+                    }
+
+                    $admitted++;
+                } catch (Exception $e) {
+                    $errors[] = [
+                        'app_login' => $app_login,
+                        'error' => $e->getMessage()
+                    ];
+                    // Continue with next application
+                }
+            }
+
+            // Commit transaction if using a database
+            $this->dm->commit();
+
+            // Prepare response
+            if (empty($errors)) {
+                return [
+                    "success" => true,
+                    "message" => "Successfully approved $admitted out of $totalApplications applications."
+                ];
+            } else {
+                $errorCount = count($errors);
+                $successCount = $totalApplications - $errorCount;
+
+                return [
+                    "success" => $successCount > 0,
+                    "message" => "Processed $successCount applications successfully. Failed to process $errorCount applications.",
+                    "details" => [
+                        "successful" => $successCount,
+                        "failed" => $errorCount,
+                        "errors" => $errors
+                    ]
+                ];
+            }
+        } catch (Exception $e) {
+            // Rollback transaction if using a database
+            $this->dm->rollBack();
+            return [
+                "success" => false,
+                "message" => "A system error occurred: " . $e->getMessage()
+            ];
         }
-        return $admission;
     }
 
     public function declineShortlistedApplications($app_login)
