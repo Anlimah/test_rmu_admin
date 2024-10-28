@@ -2171,7 +2171,7 @@ class AdminController
         return $letter_data;
     }
 
-    private function updateApplicantAdmissionStatus($app_id, $prog_id, $program_dur, $level, $extras = []): mixed
+    private function updateApplicantAdmissionStatus($app_id, $prog_id, $program_dur, $level, $stream, $extras = []): mixed
     {
         $extras_query = "";
         if (!empty($extras)) {
@@ -2187,9 +2187,9 @@ class AdminController
             }
         }
         $query = "UPDATE `form_sections_chek` 
-        SET `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p, `programme_duration` = :pr, `level_admitted` = :l 
+        SET `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p, `programme_duration` = :pr, `level_admitted` = :l , `stream_admitted` = :s 
         WHERE `app_login` = :i";
-        return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id, ":pr" => $program_dur, ":l" => $level)));
+        return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id, ":pr" => $program_dur, ":l" => $level, ":s" => $stream)));
     }
 
     private function sendAdmissionLetterViaEmail($data, $file_paths = []): mixed
@@ -2261,7 +2261,7 @@ class AdminController
         //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
         if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
 
-        $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $l_res["program_dur"], $l_res["level_admitted"], $status_update_extras);
+        $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $l_res["program_dur"], $l_res["level_admitted"], $stream_applied, $status_update_extras);
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
         return array("success" => true, "message" => "Successfully admitted applicant!");
     }
@@ -3375,5 +3375,22 @@ class AdminController
                 "message" => "A system error occurred: " . $e->getMessage()
             ];
         }
+    }
+
+    // Get list of pending applications
+    public function getAcceptedAdmissions($status = 0)
+    {
+        $query = "SELECT ar.*, fs.stream_admitted AS stream, fs.level_admitted AS level, pi.first_name, pi.middle_name, pi.last_name, pi.gender, pg.name AS program 
+                FROM acceptance_receipts AS ar, personal_information AS pi, programs AS pg, applicants_login AS al, form_sections_chek AS fs 
+                WHERE ar.status = :s AND 
+                ar.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND fs.programme_awarded = pg.id 
+                ORDER BY created_at DESC";
+        return $this->dm->getData($query, array(":s" => $status));
+    }
+
+    public function getAcceptedAdmissionsCountByStatus($status = 0)
+    {
+        $query = "SELECT COUNT(`id`) AS total FROM `acceptance_receipts` WHERE `status` = :s";
+        return $this->dm->getData($query, array(":s" => $status));
     }
 }
