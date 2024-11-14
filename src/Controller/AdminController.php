@@ -1343,25 +1343,18 @@ class AdminController
         return $this->dm->getData($query);
     }
 
-    public function getAllUnadmitedApplicants($certificate, $progCategory)
+    public function getAllUnadmitedApplicants($certificate, $progCategory, $admission_period)
     {
-        $query = "SELECT l.`id`, p.`first_name`, p.`middle_name`, p.`last_name`, 
-                    p.`email_addr`, i.`$progCategory` AS programme, a.`cert_type` 
+        $query = "SELECT DISTINCT l.`id`, p.`first_name`, p.`middle_name`, p.`last_name`, 
+                    p.`email_addr`, i.`$progCategory` AS programme,  i.study_stream, a.`cert_type`, a.`other_cert_type`, a.`course_of_study`, a.`other_course_studied` 
                 FROM 
-                    `personal_information` AS p, `academic_background` AS a, 
+                    `personal_information` AS p, `academic_background` AS a, `purchase_detail` AS pd, `admission_period` AS ap, 
                     `applicants_login` AS l, `form_sections_chek` AS f, `program_info` AS i 
                 WHERE 
-                    p.`app_login` = l.`id` AND a.`app_login` = l.`id` AND 
-                    f.`app_login` = l.`id` AND i.`app_login` = l.`id` AND
-                    a.`awaiting_result` = 0 AND f.`declaration` = 1 AND 
-                    f.`admitted` = 0 AND f.`declined` = 0";
-        $param = array();
-        if (strtolower($certificate) != "all") {
-            $query .= " AND a.`cert_type` = :c";
-            $param = array(":c" => $certificate);
-        }
-
-        return $this->dm->getData($query, $param);
+                    pd.`id` = l.`purchase_id` AND pd.`admission_period` = ap.`id` AND 
+                    p.`app_login` = l.`id` AND a.`app_login` = l.`id` AND f.`app_login` = l.`id` AND i.`app_login` = l.`id` AND
+                    a.`awaiting_result` = 0 AND f.`declaration` = 1 AND f.`admitted` = 0 AND a.`cert_type` = :c AND ap.id = :a";
+        return $this->dm->getData($query, array(":c" => $certificate, ":a" => $admission_period));
     }
 
     public function getAllSumittedApplicants($cert_type)
@@ -1416,11 +1409,10 @@ class AdminController
         return $store;
     }
 
-    public function fetchAllUnadmittedApplicantsData($certificate, $progCategory)
+    public function fetchAllUnadmittedApplicantsData($certificate, $progCategory, $admission_period = null)
     {
-        $allAppData = $this->getAllUnadmitedApplicants($certificate, $progCategory);
+        $allAppData = $this->getAllUnadmitedApplicants($certificate, $progCategory, $admission_period);
         if (empty($allAppData)) return 0;
-
         $store = $this->bundleApplicantsData($allAppData, $progCategory);
         return $store;
     }
@@ -1494,23 +1486,26 @@ class AdminController
     {
         if (empty($appID) || empty($admin_period) || empty($program_id) || empty($admitted_data)) return 0;
 
-        $query = "INSERT INTO `broadsheets` (`admin_period`,`app_login`,`program_id`,
-                `required_core_passed`,`any_one_core_passed`,`total_core_score`,`any_three_elective_passed`,
-                `total_elective_score`,`total_score`,`program_choice`) 
-                VALUES (:ap, :al, :pi, :rcp, :aocp, :tcs, :atep, :tes, :ts, :pc)";
+        $query = "INSERT INTO `broadsheets` (`admin_period`, `app_login`, `program_id`, 
+        `required_core_passed`, `required_core_subjects`, `total_core_score`, 
+        `required_elective_passed`, `required_elective_subjects`, `any_elective_subjects`, 
+        `total_elective_score`, `total_score`, `program_choice`) 
+                VALUES (:ap, :al, :pi, :rcp, :rcs, :rep, :res, :ates, :tcs, :tes, :ts, :pc)";
         $params = array(
             ":ap" => $admin_period,
             ":al" => $appID,
             ":pi" => $program_id,
             ":rcp" => $admitted_data["required_core_passed"],
-            ":aocp" => $admitted_data["any_one_core_passed"],
+            ":rcs" => $admitted_data["required_core_subjects"],
             ":tcs" => $admitted_data["total_core_score"],
-            ":atep" => $admitted_data["any_three_elective_passed"],
+            ":rep" => $admitted_data["required_elective_passed"],
+            ":res" => $admitted_data["required_elective_subjects"],
+            ":ates" => $admitted_data["any_elective_subjects"],
             ":tes" => $admitted_data["total_elective_score"],
             ":ts" => $admitted_data["total_score"],
             ":pc" => $prog_choice
         );
-        $this->dm->inputData($query, $params);
+        return $this->dm->inputData($query, $params);
     }
 
     /*
@@ -1523,19 +1518,12 @@ class AdminController
         foreach ($data as $std_data) {
             if (in_array($std_data["app_pers"]["cert_type"], $qualifications["A"])) {
                 array_push($final_result, $this->admitByCatA($std_data));
-                continue;
-            }
-            if (in_array($std_data["app_pers"]["cert_type"], $qualifications["B"])) {
+            } else if (in_array($std_data["app_pers"]["cert_type"], $qualifications["B"])) {
                 array_push($final_result, $this->admitByCatB($std_data));
-                continue;
-            }
-            if (in_array($std_data["app_pers"]["cert_type"], $qualifications["C"])) {
+            } else if (in_array($std_data["app_pers"]["cert_type"], $qualifications["C"])) {
                 array_push($final_result, $this->admitByCatC($std_data));
-                continue;
-            }
-            if (in_array($std_data["app_pers"]["cert_type"], $qualifications["D"])) {
+            } else if (in_array($std_data["app_pers"]["cert_type"], $qualifications["D"])) {
                 array_push($final_result, $this->admitByCatD($std_data));
-                continue;
             }
         }
         return $final_result;
@@ -1544,26 +1532,46 @@ class AdminController
     public function admitCatAApplicant($app_result, $prog_choice, $cert_type)
     {
 
+        // $qualified = false;
+        // // Admit applicant
+        // if ($app_result["feed"]["required_core_passed"] == 2 && $app_result["feed"]["any_one_core_passed"] > 0 && $app_result["feed"]["any_three_elective_passed"] >= 3) {
+
+        //     if (in_array($cert_type, ["SSSCE", "NECO", "GBCE"]) && $app_result["feed"]["total_score"] <= 24) {
+        //         $qualified = true;
+        //     }
+
+        //     if (in_array($cert_type, ["WASSCE"]) && $app_result["feed"]["total_score"] <= 36) {
+        //         $qualified = true;
+        //     }
+
+        //     if ($qualified) {
+        //         $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0, `$prog_choice` = 1 WHERE `app_login` = :i";
+        //         $this->dm->getData($query, array(":i" => $app_result["id"]));
+        //         return $qualified;
+        //     }
+        // } else {
+        //     $query = "UPDATE `form_sections_chek` SET `admitted` = 0, `declined` = 1,  `$prog_choice` = 1 WHERE `app_login` = :i";
+        //     $this->dm->getData($query, array(":i" => $app_result["id"]));
+        //     return $qualified;
+        // }
+
         $qualified = false;
-        // Admit applicant
-        if ($app_result["feed"]["required_core_passed"] == 2 && $app_result["feed"]["any_one_core_passed"] > 0 && $app_result["feed"]["any_three_elective_passed"] >= 3) {
 
-            if (in_array($cert_type, ["SSSCE", "NECO", "GBCE"]) && $app_result["feed"]["total_score"] <= 24) {
+        if ($app_result['feed']['required_core_passed'] == 2 && $app_result['feed']['any_one_core_pass'] > 0 && $app_result['feed']['any_three_elective_pass'] >= 3) {
+            if (in_array($cert_type, ['SSSCE', 'NECO', 'GBCE']) && $app_result['feed']['total_score'] <= 24) {
                 $qualified = true;
-            }
-
-            if (in_array($cert_type, ["WASSCE"]) && $app_result["feed"]["total_score"] <= 36) {
+            } elseif (in_array($cert_type, ['WASSCE']) && $app_result['feed']['total_score'] <= 36) {
                 $qualified = true;
             }
 
             if ($qualified) {
-                $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0, `$prog_choice` = 1 WHERE `app_login` = :i";
-                $this->dm->getData($query, array(":i" => $app_result["id"]));
+                $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0, `{$prog_choice}` = 1 WHERE `app_login` = :i";
+                $this->dm->getData($query, [':i' => $app_result['id']]);
                 return $qualified;
             }
         } else {
-            $query = "UPDATE `form_sections_chek` SET `admitted` = 0, `declined` = 1,  `$prog_choice` = 1 WHERE `app_login` = :i";
-            $this->dm->getData($query, array(":i" => $app_result["id"]));
+            $query = "UPDATE `form_sections_chek` SET `admitted` = 0, `declined` = 1, `{$prog_choice}` = 1 WHERE `app_login` = :i";
+            $this->dm->getData($query, [':i' => $app_result['id']]);
             return $qualified;
         }
     }
@@ -1629,18 +1637,6 @@ class AdminController
                     array_push($any_three_elective_scores, $score);
                 }
             }
-
-            /*die(json_encode(
-                array(
-                    "total_core_score" => $total_core_score,
-                    "required_core_passed" => $required_core_passed,
-                    "any_one_core_passed" => $any_one_core_passed,
-                    "any_one_core_score" => $any_one_core_score,
-                    "any_three_elective_passed" => $any_three_elective_passed,
-                    "total_elective_score" => $total_elective_score,
-                    "any_three_elective_scores" => $any_three_elective_scores,
-                )
-            ));*/
         }
 
         $array_before_sort = $any_three_elective_scores;
@@ -1749,10 +1745,9 @@ class AdminController
         return $final_result;
     }
 
-    public function admitQualifiedStudents($certificate, $progCategory)
+    public function admitQualifiedStudents($certificate, $progCategory, $admission_period = null)
     {
-        $students_bs_data = $this->fetchAllUnadmittedApplicantsData($certificate, $progCategory);
-        die(json_encode($students_bs_data));
+        $students_bs_data = $this->fetchAllUnadmittedApplicantsData($certificate, $progCategory, $admission_period);
         if (!empty($students_bs_data)) {
             $qualifications = array(
                 "A" => array('WASSCE', 'SSSCE', 'GBCE', 'NECO'),
@@ -1760,11 +1755,497 @@ class AdminController
                 "C" => array('HND'),
                 "D" => array('IB', 'International Baccalaureate', 'Baccalaureate'),
             );
+            return $this->processApplicants($students_bs_data, $qualifications);
+        }
+        return 0;
+    }
 
-            return $this->admitApplicantsByCertCat($students_bs_data, $qualifications);
+    public function processApplicants(array $applicantData, array $qualifications)
+    {
+        $admitted_list = $failed_list = [];
+        $total_admitted = $total_failed = 0;
+
+        foreach ($applicantData as $applicant) {
+            $category = $this->getApplicantCategory($applicant['app_pers']['cert_type'], $qualifications);
+            switch ($category) {
+                case 'WASSCE':
+                    $admissionState = $this->admitWASSCEApplicant($applicant);
+                    if ($admissionState['status'] && isset($admissionState['status']['admitted']) && $admissionState['status']['admitted']) {
+                        $total_admitted += 1;
+                        $admitted_list[] = $admissionState;
+                    } else {
+                        $total_failed += 1;
+                        $failed_list[] = $admissionState;
+                    }
+                    break;
+
+                case 'SSSCE':
+                    $admissionState = $this->admitSSSCEApplicant($applicant);
+                    if ($admissionState['status'] && isset($admissionState['status']['admitted']) && $admissionState['status']['admitted']) {
+                        $total_admitted += 1;
+                        $admitted_list[] = $admissionState;
+                    } else {
+                        $total_failed += 1;
+                        $failed_list[] = $admissionState;
+                    }
+                    break;
+
+                default:
+                    # code...
+                    break;
+            }
         }
 
-        return 0;
+        // Save the admitted applicants
+        if (!empty($admitted_list)) {
+            foreach ($admitted_list as $admitted) {
+                $this->saveAdmittedApplicantData(
+                    $this->getCurrentAdmissionPeriodId(),
+                    $admitted['app_id'],
+                    $admitted['prog_id'],
+                    $admitted['feed'],
+                    $admitted['prog_category']
+                );
+            }
+        }
+
+        $result = [
+            'success' => true,
+            'admitted' => [
+                'list' => $admitted_list,
+                'count' => $total_admitted
+            ],
+            'failed' => [
+                'list' => $failed_list,
+                'count' => $total_failed
+            ]
+        ];
+
+        return $result;
+    }
+
+    private function getApplicantCategory(string $cert_type, array $qualifications): string
+    {
+        foreach ($qualifications as $category => $qualifications) {
+            if (in_array($cert_type, $qualifications)) {
+                return $cert_type;
+            }
+        }
+        return 'Unknown';
+    }
+
+    private function admitWASSCEApplicant(array $applicant): array
+    {
+        $gradeRange = [
+            ['grade' => 'A1', 'score' => 1],
+            ['grade' => 'B2', 'score' => 2],
+            ['grade' => 'B3', 'score' => 3],
+            ['grade' => 'C4', 'score' => 4],
+            ['grade' => 'C5', 'score' => 5],
+            ['grade' => 'C6', 'score' => 6]
+        ];
+
+        $result = [
+            'app_id' => $applicant['app_pers']['id'],
+            'prog_id' => $applicant['prog_info'][0]['id'],
+            'feed' => $this->evaluateApplicant($applicant, $gradeRange),
+            'prog_category' => $applicant['app_pers']['prog_category'],
+            'mode' => 'WASSCE',
+            "status" => null
+        ];
+
+        $result['status'] = $this->admitApplicant($result, $applicant['app_pers']['study_stream']);
+        return $result;
+    }
+
+    private function admitSSSCEApplicant(array $applicant): array
+    {
+        $gradeRange = [
+            ['grade' => 'A', 'score' => 1],
+            ['grade' => 'B', 'score' => 2],
+            ['grade' => 'C', 'score' => 3],
+            ['grade' => 'D', 'score' => 4]
+        ];
+
+        $result = [
+            'app_id' => $applicant['app_pers']['id'],
+            'prog_id' => $applicant['prog_info'][0]['id'],
+            'feed' => $this->evaluateApplicant($applicant, $gradeRange),
+            'prog_category' => $applicant['app_pers']['prog_category'],
+            'mode' => 'SSSCE',
+            "status" => null
+        ];
+
+        $result['status'] = $this->admitApplicant($result, $applicant['app_pers']['study_stream'], $applicant['app_pers']['cert_type']);
+        return $result;
+    }
+
+    private function evaluateApplicant($applicants, $gradeRange)
+    {
+        $requiredCorePassed = 0;
+        $anyCorePassed = 0;
+        $requiredElectivePassed = 0;
+        $anyElectivePassed = 0;
+
+        $requiredCoreSubjects = [];
+        $anyCoreSubjects = [];
+        $requiredElectiveSubjects = [];
+        $anyElectiveSubjects = [];
+
+        $program_group = $applicants['prog_info'][0]['group'];
+        $program_type = 1;
+        $course_of_study = strtolower($applicants['app_pers']['course_of_study']);
+
+        if ($program_group == 'A') {
+            if ($course_of_study == 'general science' || $course_of_study == 'science') {
+                foreach ($applicants['sch_rslt'] as $result) {
+                    $score = 0;
+                    $subject_type = strtolower($result['type']);
+                    $subject = strtolower($result['subject']);
+
+                    foreach ($gradeRange as $range) {
+                        if ($result['grade'] == $range['grade']) {
+                            $score = $range['score'];
+                            break;
+                        }
+                    }
+
+                    if ($score >= 1 && $score <= 6) {
+                        if ($subject_type == 'core') {
+                            if ($subject == 'core mathematics' || $subject == 'core maths') {
+                                if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                    if ($score < $requiredCoreSubjects['core mathematics']) {
+                                        $requiredCoreSubjects['core mathematics'] = $score;
+                                    }
+                                } else {
+                                    $requiredCoreSubjects['core mathematics'] = $score;
+                                    $requiredCorePassed++;
+                                }
+                            } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                                if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                    if ($score < $requiredCoreSubjects['english language']) {
+                                        $requiredCoreSubjects['english language'] = $score;
+                                    }
+                                } else {
+                                    $requiredCoreSubjects['english language'] = $score;
+                                    $requiredCorePassed++;
+                                }
+                            } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                                if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                    if ($score < $requiredCoreSubjects['integrated science']) {
+                                        $requiredCoreSubjects['integrated science'] = $score;
+                                    }
+                                } else {
+                                    $requiredCoreSubjects['integrated science'] = $score;
+                                    $requiredCorePassed++;
+                                }
+                            } else {
+                                if (array_key_exists($subject, $anyCoreSubjects)) {
+                                    if ($score < $anyCoreSubjects[$subject]) {
+                                        $anyCoreSubjects[$subject] = $score;
+                                    }
+                                } else {
+                                    $anyCoreSubjects[$subject] = $score;
+                                    $anyCorePassed++;
+                                }
+                            }
+                        }
+                        if (strtolower($result['type']) == 'elective') {
+                            if ($subject == 'elective mathematics' || $subject == 'elective maths') {
+                                if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
+                                    if ($score < $anyElectiveSubjects['elective mathematics']) {
+                                        $anyElectiveSubjects['elective mathematics'] = $score;
+                                    }
+                                } else {
+                                    $requiredElectiveSubjects['elective mathematics'] = $score;
+                                    $requiredElectivePassed++;
+                                }
+                            } else {
+                                if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                    if ($score < $anyElectiveSubjects[$subject]) {
+                                        $anyElectiveSubjects[$subject] = $score;
+                                    }
+                                } else {
+                                    $anyElectiveSubjects[$subject] = $score;
+                                    $anyElectiveScores[] = $score;
+                                    $anyElectivePassed++;
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                $program_type = 2;
+                foreach ($applicants['sch_rslt'] as $result) {
+                    $score = 0;
+                    $subject_type = strtolower($result['type']);
+                    $subject = strtolower($result['subject']);
+
+                    foreach ($gradeRange as $range) {
+                        if ($result['grade'] == $range['grade']) {
+                            $score = $range['score'];
+                            break;
+                        }
+                    }
+
+                    if ($score >= 1 && $score <= 6) {
+                        if ($subject_type == 'core') {
+                            if ($subject == 'core mathematics' || $subject == 'core maths') {
+                                if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                    if ($score < $requiredCoreSubjects['core mathematics']) {
+                                        $requiredCoreSubjects['core mathematics'] = $score;
+                                    }
+                                } else {
+                                    $requiredCoreSubjects['core mathematics'] = $score;
+                                    $requiredCorePassed++;
+                                }
+                            } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                                if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                    if ($score < $requiredCoreSubjects['english language']) {
+                                        $requiredCoreSubjects['english language'] = $score;
+                                    }
+                                } else {
+                                    $requiredCoreSubjects['english language'] = $score;
+                                    $requiredCorePassed++;
+                                }
+                            } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                                if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                    if ($score < $requiredCoreSubjects['integrated science']) {
+                                        $requiredCoreSubjects['integrated science'] = $score;
+                                    }
+                                } else {
+                                    $requiredCoreSubjects['integrated science'] = $score;
+                                    $requiredCorePassed++;
+                                }
+                            } else {
+                                if (array_key_exists($subject, $anyCoreSubjects)) {
+                                    if ($score < $anyCoreSubjects[$subject]) {
+                                        $anyCoreSubjects[$subject] = $score;
+                                    }
+                                } else {
+                                    $anyCoreSubjects[$subject] = $score;
+                                    $anyCorePassed++;
+                                }
+                            }
+                        }
+                        if (strtolower($result['type']) == 'elective') {
+                            if ($subject == 'elective mathematics' || $subject == 'elective maths') {
+                                if (array_key_exists('elective mathematics', $requiredElectiveSubjects)) {
+                                    if ($score < $requiredElectiveSubjects['elective mathematics']) {
+                                        $requiredElectiveSubjects['elective mathematics'] = $score;
+                                    }
+                                } else {
+                                    $requiredElectiveSubjects['elective mathematics'] = $score;
+                                    $requiredElectivePassed++;
+                                }
+                            } else if ($subject == 'geography') {
+                                if (array_key_exists('geography', $requiredElectiveSubjects)) {
+                                    if ($score < $requiredElectiveSubjects['geography']) {
+                                        $requiredElectiveSubjects['geography'] = $score;
+                                    }
+                                } else {
+                                    $requiredElectiveSubjects['geography'] = $score;
+                                    $requiredElectivePassed++;
+                                }
+                            } else {
+                                if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                    if ($score < $anyElectiveSubjects[$subject]) {
+                                        $anyElectiveSubjects[$subject] = $score;
+                                    }
+                                } else {
+                                    $anyElectiveSubjects[$subject] = $score;
+                                    $anyElectiveScores[] = $score;
+                                    $anyElectivePassed++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } else if ($program_group == 'B') {
+            foreach ($applicants['sch_rslt'] as $result) {
+                $score = 0;
+                $subject_type = strtolower($result['type']);
+                $subject = strtolower($result['subject']);
+
+                foreach ($gradeRange as $range) {
+                    if ($result['grade'] == $range['grade']) {
+                        $score = $range['score'];
+                        break;
+                    }
+                }
+
+                if ($score >= 1 && $score <= 6) {
+                    if ($subject_type == 'core') {
+                        if ($subject == 'core mathematics' || $subject == 'core maths') {
+                            if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                if ($score < $requiredCoreSubjects['core mathematics']) {
+                                    $requiredCoreSubjects['core mathematics'] = $score;
+                                }
+                            } else {
+                                $requiredCoreSubjects['core mathematics'] = $score;
+                                $requiredCorePassed++;
+                            }
+                        } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                            if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                if ($score < $requiredCoreSubjects['english language']) {
+                                    $requiredCoreSubjects['english language'] = $score;
+                                }
+                            } else {
+                                $requiredCoreSubjects['english language'] = $score;
+                                $requiredCorePassed++;
+                            }
+                        } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                            if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                if ($score < $requiredCoreSubjects['integrated science']) {
+                                    $requiredCoreSubjects['integrated science'] = $score;
+                                }
+                            } else {
+                                $requiredCoreSubjects['integrated science'] = $score;
+                                $requiredCorePassed++;
+                            }
+                        } else {
+                            if (array_key_exists($subject, $anyCoreSubjects)) {
+                                if ($score < $anyCoreSubjects[$subject]) {
+                                    $anyCoreSubjects[$subject] = $score;
+                                }
+                            } else {
+                                $anyCoreSubjects[$subject] = $score;
+                                $anyCorePassed++;
+                            }
+                        }
+                    }
+                    if (strtolower($result['type']) == 'elective') {
+                        if (array_key_exists($subject, $anyElectiveSubjects)) {
+                            if ($score < $anyElectiveSubjects[$subject]) {
+                                $anyElectiveSubjects[$subject] = $score;
+                            }
+                        } else {
+                            $anyElectiveSubjects[$subject] = $score;
+                            $anyElectiveScores[] = $score;
+                            $anyElectivePassed++;
+                        }
+                    }
+                }
+            }
+        }
+
+        asort($anyElectiveSubjects);
+        asort($requiredCoreSubjects);
+        asort($requiredElectiveSubjects);
+
+        $res_count = 1;
+        $aes_count = 2;
+
+        if ($program_group == 'A') {
+            if ($course_of_study == 'general science' || $course_of_study == 'science') {
+                $res_count = 1;
+                $aes_count = 2;
+            } else {
+                $res_count = 2;
+                $aes_count = 1;
+            }
+        } else if ($program_group == 'B') {
+            $res_count = 0;
+            $aes_count = 3;
+        }
+
+        $sortedRequiredCoreSubjects = array_slice($requiredCoreSubjects, 0, 3);
+        $sortedRequiredElectiveSubjects = array_slice($requiredElectiveSubjects, 0, $res_count);
+        $sortedAnyElectiveSubjects = array_slice($anyElectiveSubjects, 0, $aes_count);
+
+        $totalCoreScore = array_sum($sortedRequiredCoreSubjects);
+        $requiredElectiveScore = array_sum($sortedRequiredElectiveSubjects);
+        $anyBestElectiveScore = array_sum($sortedAnyElectiveSubjects);
+
+        $totalElectiveScore = $anyBestElectiveScore + $requiredElectiveScore;
+        $totalScore = $totalCoreScore + $totalElectiveScore;
+
+        if ($program_group == 'B') {
+            $requiredElectivePassed = count($sortedAnyElectiveSubjects);
+        }
+
+        return [
+            'program_group' => $program_group,
+            'program_type' => $program_type,
+            'required_core_passed' => $requiredCorePassed,
+            'required_elective_passed' => $requiredElectivePassed,
+            'required_core_subjects' => $sortedRequiredCoreSubjects,
+            'required_elective_subjects' => $sortedRequiredElectiveSubjects,
+            'any_elective_subjects' => $sortedAnyElectiveSubjects,
+            'total_core_score' => $totalCoreScore,
+            'total_elective_score' => $totalElectiveScore,
+            'total_score' => $totalScore
+        ];
+    }
+
+    private function admitApplicant(array $applicantResult, string $stream)
+    {
+        $qualified = $admitted = false;
+        if ($applicantResult['feed']['program_group'] == 'A' && $applicantResult['feed']['program_type'] == 1) {
+            if ($applicantResult['feed']['required_core_passed'] == 3 && $applicantResult['feed']['required_elective_passed'] == 1 && count($applicantResult['feed']['any_elective_subjects']) >= 2) {
+                if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
+                    $qualified = true;
+                } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                    $qualified = true;
+                }
+
+                if ($qualified) {
+                    $status = $this->admitIndividualApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                    if (!empty($status)) {
+                        if ($status["success"]) {
+                            $admitted = true;
+                        }
+                    }
+                    return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                }
+                return ["qualified" => $qualified, "admitted" => $admitted];
+            } else {
+                return ["qualified" => $qualified, "admitted" => $admitted];
+            }
+        } else if ($applicantResult['feed']['program_group'] == 'A' && $applicantResult['feed']['program_type'] == 2) {
+            if ($applicantResult['feed']['required_core_passed'] >= 3 && $applicantResult['feed']['required_elective_passed'] >= 2 && count($applicantResult['feed']['any_elective_subjects']) >= 1) {
+                if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
+                    $qualified = true;
+                } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                    $qualified = true;
+                }
+
+                if ($qualified) {
+                    $status = $this->admitIndividualApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                    if (!empty($status)) {
+                        if ($status["success"]) {
+                            $admitted = true;
+                        }
+                    }
+                    return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                }
+                return ["qualified" => $qualified, "admitted" => $admitted];
+            } else {
+                return ["qualified" => $qualified, "admitted" => $admitted];
+            }
+        } else if ($applicantResult['feed']['program_group'] == 'B' && $applicantResult['feed']['program_type'] == 1) {
+            if ($applicantResult['feed']['required_core_passed'] >= 3 && count($applicantResult['feed']['any_elective_subjects']) >= 3) {
+                if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
+                    $qualified = true;
+                } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                    $qualified = true;
+                }
+
+                if ($qualified) {
+                    $status = $this->admitIndividualApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                    if (!empty($status)) {
+                        if ($status["success"]) {
+                            $admitted = true;
+                        }
+                    }
+                    return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                }
+                return ["qualified" => $qualified, "admitted" => $admitted];
+            } else {
+                return ["qualified" => $qualified, "admitted" => $admitted];
+            }
+        }
     }
 
     private function getAppProgDetailsByAppID($appID)
@@ -2239,9 +2720,8 @@ class AdminController
     {
         $to = $data["phone_number"];
         $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$data["data"]["Program_Offered_2"]}. ";
-        $message .= "Kindly check your mail box for more details.";
+        $message .= "Kindly log on to the Admission Portal for more details.";
         $response = json_decode($this->expose->sendSMS($to, $message));
-        return $response;
         if (!$response->status) return 1;
         return 0;
     }

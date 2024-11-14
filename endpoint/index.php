@@ -434,7 +434,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Missing input field")));
         }
 
-        $result = $admin->fetchAllUnadmittedApplicantsData($_POST["cert-type"], $_POST["prog-type"]);
+        $result = $admin->fetchAllUnadmittedApplicantsData($_POST["cert-type"], $_POST["prog-type"], $_SESSION["admin_period"]);
 
         if (empty($result)) {
             die(json_encode(array("success" => false, "message" => "No result found!")));
@@ -450,12 +450,11 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Missing input field")));
         }
 
-        $result = $admin->admitQualifiedStudents($_POST["cert-type"], $_POST["prog-type"]);
-
+        $result = $admin->admitQualifiedStudents($_POST["cert-type"], $_POST["prog-type"], $_SESSION["admin_period"]);
         if (empty($result)) {
             die(json_encode(array("success" => false, "message" => "No result found!")));
         }
-        die(json_encode(array("success" => true, "message" => $result)));
+        die(json_encode($result));
     }
     //
     elseif ($_GET["url"] == "downloadBS") {
@@ -879,8 +878,6 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         // Send SMS message
         $to = str_replace(array("+", "(", ")", " "), "", $_POST["recipient"]);
         $response = json_decode($expose->sendSMS($to, $_POST["message"]));
-
-        // Set SMS response status
         if (!$response->status) die(json_encode(array("success" => true, "message" => "Message sent successfully!")));
         die(json_encode(array("success" => true, "message" => "Failed to send message!")));
     }

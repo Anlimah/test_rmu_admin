@@ -19,7 +19,7 @@ class UploadExcelDataController
     {
         $db   = getenv('DB_ADMISSION_DATABASE');
         $user = getenv('DB_ADMISSION_USERNAME');
-        $pass = getenv('DB_ADMISSION_PASSWORD');
+        $pass = getenv('DB_PASSWORD');
 
         $this->fileObj = $fileObj;
         $this->startRow = (int) $startRow;
@@ -131,9 +131,7 @@ class UploadExcelDataController
         if (empty($subjects) || empty($indexNumber)) {
             $this->errorsEncountered += 1;
             return array(
-                "success" => false,
-                "index number" => $indexNumber,
-                "message" => "Empty value inputs!"
+                "success" => false, "index number" => $indexNumber, "message" => "Empty value inputs!"
             );
         }
 
@@ -145,9 +143,7 @@ class UploadExcelDataController
         if (empty($appAcaID)) {
             $this->errorsEncountered += 1;
             return array(
-                "success" => false,
-                "index number" => $indexNumber,
-                "message" => "Applicant data not found in DB!",
+                "success" => false, "index number" => $indexNumber, "message" => "Applicant data not found in DB!",
             );
         }
 

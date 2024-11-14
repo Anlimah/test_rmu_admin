@@ -287,7 +287,7 @@ class ExposeDataController extends DatabaseMethods
         $secret = getenv('HUBTEL_SECRET');
         $secret_key = base64_encode($client . ":" . $secret);
 
-        $httpHeader = array("Authorization: Basic " . $secret_key, "Content-Type: application/json");
+        $httpHeader = ["Authorization: Basic " . $secret_key, "Content-Type: application/json"];
         $gateAccess = new CurlGatewayAccess($url, $httpHeader, $payload);
         return $gateAccess->initiateProcess();
     }
@@ -295,7 +295,11 @@ class ExposeDataController extends DatabaseMethods
     public function sendSMS($to, $message)
     {
         $url = "https://sms.hubtel.com/v1/messages/send";
-        $payload = json_encode(array("From" => "RMU", "To" => $to, "Content" => $message));
+        $payload = json_encode([
+            "From" => "RMU",
+            "To" => $to,
+            "Content" => $message
+        ]);
         return $this->sendHubtelSMS($url, $payload);
     }
 
@@ -304,7 +308,9 @@ class ExposeDataController extends DatabaseMethods
         $otp_code = $this->genCode(4);
         $message = 'Your OTP verification code: ' . $otp_code;
         $response = json_decode($this->sendSMS($to, $message), true);
-        if (!$response["status"]) $response["otp_code"] = $otp_code;
+        if (!$response["status"]) {
+            $response["otp_code"] = $otp_code;
+        }
         return $response;
     }
 

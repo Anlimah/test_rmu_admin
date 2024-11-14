@@ -275,7 +275,7 @@ require_once('../inc/page-data.php');
                                             foreach ($purchaseData as $pd) {
 
                                                 preg_match('/RMUF(\d)/', $pd["reference_number"], $matches);
-                                                $membership = $matches[1] ? "Member" : "Non-Member";
+                                                $membership = isset($matches[1]) && $matches[1] ? "Member" : "Non-Member";
                                         ?>
                                                 <tr>
                                                     <td><?= $index ?></td>

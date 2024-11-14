@@ -9,10 +9,8 @@ use Src\System\DatabaseConnector;
 class DatabaseMethods
 {
     private $conn = null;
-    private $query = "";
-    private $params = [];
-    private $stmt = null;
     private $inTransaction = false;
+    private $logFile = "database_errors.log";
 
     public function __construct($db, $user, $pass)
     {
@@ -27,6 +25,7 @@ class DatabaseMethods
                 $this->inTransaction = $this->conn->beginTransaction();
                 return $this->inTransaction;
             } catch (PDOException $e) {
+                $this->logError($e);
                 exit(json_encode(array("error" => "Transaction start failed: " . $e->getMessage())));
             }
         }
@@ -41,6 +40,7 @@ class DatabaseMethods
                 $this->inTransaction = false;
                 return true;
             } catch (PDOException $e) {
+                $this->logError($e);
                 exit(json_encode(array("error" => "Transaction commit failed: " . $e->getMessage())));
             }
         }
@@ -55,18 +55,18 @@ class DatabaseMethods
                 $this->inTransaction = false;
                 return true;
             } catch (PDOException $e) {
+                $this->logError($e);
                 exit(json_encode(array("error" => "Transaction rollback failed: " . $e->getMessage())));
             }
         }
         return false;
     }
 
-    private function query($str, $params = array())
+    private function query($str, $params = [])
     {
         try {
-            $this->query = $str;
             $stmt = $this->conn->prepare($str);
-            $stmt->execute($params);
+            $stmt->execute(is_array($params) ? $params : [$params]);
 
             if (explode(' ', $str)[0] == 'SELECT' || explode(' ', $str)[0] == 'CALL') {
                 return $stmt->fetchAll();
@@ -74,6 +74,7 @@ class DatabaseMethods
                 return 1;
             }
         } catch (PDOException $e) {
+            $this->logError($e);
             if ($this->inTransaction) {
                 $this->rollback();
             }
@@ -88,10 +89,11 @@ class DatabaseMethods
             if (!empty($result)) return $result[0]["id"];
             return 0;
         } catch (Exception $e) {
+            $this->logError($e);
             if ($this->inTransaction) {
                 $this->rollback();
             }
-            echo $e->getMessage();
+            exit(json_encode(array("error" => $e->getMessage())));
         }
     }
 
@@ -102,10 +104,11 @@ class DatabaseMethods
             if (!empty($result)) return $result;
             return 0;
         } catch (Exception $e) {
+            $this->logError($e);
             if ($this->inTransaction) {
                 $this->rollback();
             }
-            echo $e->getMessage();
+            exit(json_encode(array("error" => $e->getMessage())));
         }
     }
 
@@ -116,22 +119,7 @@ class DatabaseMethods
             if (!empty($result)) return $result;
             return 0;
         } catch (Exception $e) {
-            if ($this->inTransaction) {
-                $this->rollback();
-            }
-            echo $e->getMessage();
-        }
-    }
-
-    public function run($query, $params = [])
-    {
-        $this->query = $query;
-        $this->params = $params;
-        try {
-            $this->stmt = $this->conn->prepare($this->query);
-            $this->stmt->execute($this->params);
-            return $this->stmt;
-        } catch (PDOException $e) {
+            $this->logError($e);
             if ($this->inTransaction) {
                 $this->rollback();
             }
@@ -139,40 +127,12 @@ class DatabaseMethods
         }
     }
 
-    private function type(): mixed
+    private function logError(PDOException $e)
     {
-        return explode(' ', $this->query)[0];
-    }
-
-    public function all()
-    {
-        if ($this->type() == 'SELECT') return $this->stmt->fetchAll();
-    }
-
-    public function one()
-    {
-        if ($this->type() == 'SELECT') return $this->stmt->fetch();
-    }
-
-    public function add($autoIncrementColumn = null, $primaryKeyValue = null)
-    {
-        if ($this->type() == 'INSERT') {
-            if ($autoIncrementColumn) return $this->conn->lastInsertId($autoIncrementColumn);
-            else if ($primaryKeyValue) return $primaryKeyValue;
-            else return true;
+        $logFilePath = dirname(__FILE__) . '/' . $this->logFile;
+        if (!file_exists($logFilePath)) {
+            touch($logFilePath);
         }
-        return false;
-    }
-
-    public function remove()
-    {
-        if ($this->type() == 'DELETE') return $this->stmt->rowCount();
-        return false;
-    }
-
-    public function edit()
-    {
-        if ($this->type() == 'UPDATE') return $this->stmt->rowCount();
-        return false;
+        error_log("Warning: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString(), 3, $logFilePath);
     }
 }

@@ -2,44 +2,61 @@
 
 namespace Src\Gateway;
 
+use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
+
 class CurlGatewayAccess
 {
-    private $url = null;
-    private $payload = null;
-    private $httpHeader = null;
-    private $curl_array = array();
+    private $url;
+    private $headers;
+    private $payload;
+    private $client;
 
-
-    public function __construct($url, $httpHeader, $payload)
+    public function __construct($url, $headers, $payload)
     {
         $this->url = $url;
+        $this->headers = $headers;
         $this->payload = $payload;
-        $this->httpHeader = $httpHeader;
-    }
 
-    private function setCURL_Array()
-    {
-        $this->curl_array = array(
-            CURLOPT_URL => $this->url,
-            CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_ENCODING => "",
-            CURLOPT_MAXREDIRS => 10,
-            CURLOPT_TIMEOUT => 0,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-            CURLOPT_CUSTOMREQUEST => "POST",
-            CURLOPT_POSTFIELDS => $this->payload,
-            CURLOPT_HTTPHEADER => $this->httpHeader,
-        );
+        // Get the path to the bundled cacert.pem file that comes with Guzzle
+        $certPath = dirname(__DIR__, 2) . '/vendor/guzzlehttp/guzzle/src/cacert.pem';
+
+        // If the bundled cert doesn't exist, download it
+        if (!file_exists($certPath)) {
+            $certPath = dirname(__DIR__, 2) . '/cacert.pem';
+            if (!file_exists($certPath)) {
+                file_put_contents($certPath, file_get_contents('https://curl.se/ca/cacert.pem'));
+            }
+        }
+
+        // Initialize client with SSL certificate
+        $this->client = new Client([
+            'verify' => $certPath
+        ]);
     }
 
     public function initiateProcess()
     {
-        $this->setCURL_Array();
-        $curl = curl_init();
-        curl_setopt_array($curl, $this->curl_array);
-        $response = curl_exec($curl);
-        curl_close($curl);
-        return $response;
+        try {
+            // Convert headers array to associative array
+            $headers = [];
+            foreach ($this->headers as $header) {
+                list($key, $value) = explode(': ', $header);
+                $headers[$key] = $value;
+            }
+
+            $response = $this->client->post($this->url, [
+                'headers' => $headers,
+                'body' => $this->payload,
+                'http_errors' => false
+            ]);
+
+            return $response->getBody()->getContents();
+        } catch (GuzzleException $e) {
+            return json_encode([
+                'status' => false,
+                'message' => $e->getMessage()
+            ]);
+        }
     }
 }

@@ -39,6 +39,7 @@ $admin = new AdminController($db, $user, $pass);
 require_once('../inc/page-data.php');
 
 $vendor_id = isset($_SESSION["vendor_id"]) ? (int) $_SESSION["vendor_id"] : "";
+if (!$vendor_id) header('Location: ../index.php?error=Not a vendor');
 $vendorData = $admin->fetchVendor($vendor_id);
 if (!empty($vendorData) && !empty($vendorData[0]["api_user"])) {
     $_SESSION["api_user"] = $vendorData[0]["api_user"];

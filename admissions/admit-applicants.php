@@ -86,10 +86,11 @@ require_once('../inc/page-data.php');
                                         <label for="cert-type" class="form-label">Certificate Type</label>
                                         <select name="cert-type" id="cert-type" class="form-select">
                                             <option value="" hidden>Choose Certificate</option>
-                                            <option value="WASSCE">WASSCE/NECO</option>
-                                            <option value="SSSCE">SSSCE/GBCE</option>
+                                            <option value="WASSCE">WASSCE</option>
+                                            <option value="NECO">NECO</option>
+                                            <option value="SSSCE">SSSCE</option>
+                                            <option value="GBCE">GBCE</option>
                                             <option value="Baccalaureate">BACCALAUREATE</option>
-                                            <option value="ALL">ALL</option>
                                         </select>
                                     </div>
                                     <div class="col-3">

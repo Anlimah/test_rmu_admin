@@ -45,8 +45,19 @@ class EnrollApplicant
 
         $query = "INSERT INTO enrolled_applicants VALUES(`application_number`, `index_number`, `email_address`, `programme`, `first_name`, `middle_name`, `last_name`, `sex`, `dob`, `nationality`, `phone_number`, `term_admitted`, `stream_admitted`)";
         $params = array(
-            $appID, $indexCreation["index_number"], $emailGenerated, $indexCreation["programme"], $appDetails["first_name"], $appDetails["middle_name"], $appDetails["last_name"],
-            $appDetails["gender"], $appDetails["dob"], $appDetails["nationality"], $appDetails["phone_no1_code"] . $appDetails["phone_no1"], $term_admitted, $indexCreation["stream"]
+            $appID,
+            $indexCreation["index_number"],
+            $emailGenerated,
+            $indexCreation["programme"],
+            $appDetails["first_name"],
+            $appDetails["middle_name"],
+            $appDetails["last_name"],
+            $appDetails["gender"],
+            $appDetails["dob"],
+            $appDetails["nationality"],
+            $appDetails["phone_no1_code"] . $appDetails["phone_no1"],
+            $term_admitted,
+            $indexCreation["stream"]
         );
 
         $addStudent = $this->dm->inputData($query, $params)();
@@ -59,16 +70,27 @@ class EnrollApplicant
     function addStudent($data = array()): mixed
     {
 
-        $LOCAL_DB_STUDENT_DATABASE = "rmu_student";
-        $LOCAL_DB_STUDENT_USERNAME = "root";
-        $LOCAL_DB_STUDENT_PASSWORD = "";
+        $DB_STUDENT_DATABASE = "rmu_student";
+        $DB_STUDENT_USERNAME = "root";
+        $DB_STUDENT_PASSWORD = "";
 
-        $new_db = new DatabaseMethods($LOCAL_DB_STUDENT_DATABASE, $LOCAL_DB_STUDENT_USERNAME, $LOCAL_DB_STUDENT_PASSWORD);
+        $new_db = new DatabaseMethods($DB_STUDENT_DATABASE, $DB_STUDENT_USERNAME, $DB_STUDENT_PASSWORD);
 
         $query = "INSERT INTO enrolled_applicants VALUES(`application_number`, `index_number`, `email_address`, `programme`, `first_name`, `middle_name`, `last_name`, `sex`, `dob`, `nationality`, `phone_number`, `term_admitted`, `stream_admitted`)";
         $params = array(
-            $appID, $indexCreation["index_number"], $emailGenerated, $indexCreation["programme"], $appDetails["first_name"], $appDetails["middle_name"], $appDetails["last_name"],
-            $appDetails["gender"], $appDetails["dob"], $appDetails["nationality"], $appDetails["phone_no1_code"] . $appDetails["phone_no1"], $term_admitted, $indexCreation["stream"]
+            $appID,
+            $indexCreation["index_number"],
+            $emailGenerated,
+            $indexCreation["programme"],
+            $appDetails["first_name"],
+            $appDetails["middle_name"],
+            $appDetails["last_name"],
+            $appDetails["gender"],
+            $appDetails["dob"],
+            $appDetails["nationality"],
+            $appDetails["phone_no1_code"] . $appDetails["phone_no1"],
+            $term_admitted,
+            $indexCreation["stream"]
         );
 
         $addStudent = $new_db->inputData($query, $params)();

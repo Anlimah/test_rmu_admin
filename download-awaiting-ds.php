@@ -17,7 +17,7 @@ class Broadsheet
     {
         $db   = getenv('DB_ADMISSION_DATABASE');
         $user = getenv('DB_ADMISSION_USERNAME');
-        $pass = getenv('DB_ADMISSION_PASSWORD');
+        $pass = getenv('DB_PASSWORD');
 
         $this->admin = new AdminController($db, $user, $pass);
         $this->admin_period = $admin_period;

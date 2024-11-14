@@ -416,9 +416,22 @@ class UsersController
                 VALUES (:sr, :sn, :cn, :rg, :ci, :ct, :oct, :im, :ms, :ys, :mc, :yc, :cs, :ocs, :ar, :al)";
 
         $params = array(
-            ":sr" => $serial_number, ":sn" => $sn, ":cn" => $cn, ":rg" => $rg,
-            ":ci" => $ci, ":ct" => $ct, ":oct" => $oct, ":im" => $im, ":ms" => $ms, ":ys" => $ys,
-            ":mc" => $mc, ":yc" => $yc, ":cs" => $cs, ":ocs" => $ocs, ":ar" => $ar, ":al" => $al
+            ":sr" => $serial_number,
+            ":sn" => $sn,
+            ":cn" => $cn,
+            ":rg" => $rg,
+            ":ci" => $ci,
+            ":ct" => $ct,
+            ":oct" => $oct,
+            ":im" => $im,
+            ":ms" => $ms,
+            ":ys" => $ys,
+            ":mc" => $mc,
+            ":yc" => $yc,
+            ":cs" => $cs,
+            ":ocs" => $ocs,
+            ":ar" => $ar,
+            ":al" => $al
         );
 
         if ($this->dm->inputData($sql, $params)) {
@@ -428,6 +441,7 @@ class UsersController
 
         return 0;
     }
+
     public function updateEducation($sn, $cn, $rg, $ci, $ct, $oct, $im, $ms, $ys, $mc, $yc, $cs, $ocs, $ar, $al, $sr)
     {
         $sql = "UPDATE `academic_background` SET 
@@ -437,9 +451,22 @@ class UsersController
                 WHERE  `s_number` = :sr AND `app_login` = :al";
 
         $params = array(
-            ":sr" => $sr, ":sn" => $sn, ":cn" => $cn, ":rg" => $rg,
-            ":ci" => $ci, ":ct" => $ct, ":oct" => $oct, ":im" => $im, ":ms" => $ms, ":ys" => $ys,
-            ":mc" => $mc, ":yc" => $yc, ":cs" => $cs, ":ocs" => $ocs, ":ar" => $ar, ":al" => $al
+            ":sr" => $sr,
+            ":sn" => $sn,
+            ":cn" => $cn,
+            ":rg" => $rg,
+            ":ci" => $ci,
+            ":ct" => $ct,
+            ":oct" => $oct,
+            ":im" => $im,
+            ":ms" => $ms,
+            ":ys" => $ys,
+            ":mc" => $mc,
+            ":yc" => $yc,
+            ":cs" => $cs,
+            ":ocs" => $ocs,
+            ":ar" => $ar,
+            ":al" => $al
         );
 
         if ($this->dm->inputData($sql, $params)) return $sr;
@@ -489,11 +516,6 @@ class UsersController
             return 1;
         }
         return 0;
-    }
-
-    private function binarySearch()
-    {
-        # code...
     }
 
     public function updateSubjectAndGrades($aca_id, $subjects = array())
