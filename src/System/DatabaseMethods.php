@@ -62,11 +62,12 @@ class DatabaseMethods
         return false;
     }
 
-    private function query($str, $params = [])
+    private function query($str, $params = array())
     {
         try {
             $stmt = $this->conn->prepare($str);
-            $stmt->execute(is_array($params) ? $params : [$params]);
+            if (empty($params) || !is_array($params)) $stmt->execute();
+            else $stmt->execute($params);
 
             if (explode(' ', $str)[0] == 'SELECT' || explode(' ', $str)[0] == 'CALL') {
                 return $stmt->fetchAll();

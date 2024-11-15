@@ -1,0 +1,7 @@
+Warning: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':u' at line 2
+Trace: #0 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(69): PDOStatement->execute()
+#1 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(104): Src\System\DatabaseMethods->query('SELECT CONCAT(S...', Array)
+#2 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Controller\AdminController.php(120): Src\System\DatabaseMethods->getData('SELECT CONCAT(S...', Array)
+#3 C:\xampp\htdocs\test\rmu_admissions_admin_test\inc\header.php(39): Src\Controller\AdminController->fetchUserName(1)
+#4 C:\xampp\htdocs\test\rmu_admissions_admin_test\admissions\admit-applicants.php(50): require_once('C:\\xampp\\htdocs...')
+#5 {main}

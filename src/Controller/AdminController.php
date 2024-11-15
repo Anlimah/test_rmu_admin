@@ -1397,13 +1397,12 @@ class AdminController
         $store = [];
         foreach ($data as  $appData) {
             if ($prog_category == "") $prog_category = $appData["program_choice"];
-            $applicant = [];
             $applicant["app_pers"] = $appData;
             $applicant["app_pers"]["prog_category"] = $prog_category;
             $subjs = $this->getAppCourseSubjects($appData["id"]);
             $applicant["sch_rslt"] = $subjs;
             $progs = $this->getAppProgDetails($appData["programme"]);
-            $applicant["prog_info"] = $progs;
+            $applicant["prog_info"] = !empty($progs) ? $progs[0] : [];
             array_push($store, $applicant);
         }
         return $store;
@@ -1511,239 +1510,6 @@ class AdminController
     /*
     * Admit applicants in groups by their certificate category
     */
-    public function admitApplicantsByCertCat($data, $qualifications)
-    {
-        $final_result = [];
-
-        foreach ($data as $std_data) {
-            if (in_array($std_data["app_pers"]["cert_type"], $qualifications["A"])) {
-                array_push($final_result, $this->admitByCatA($std_data));
-            } else if (in_array($std_data["app_pers"]["cert_type"], $qualifications["B"])) {
-                array_push($final_result, $this->admitByCatB($std_data));
-            } else if (in_array($std_data["app_pers"]["cert_type"], $qualifications["C"])) {
-                array_push($final_result, $this->admitByCatC($std_data));
-            } else if (in_array($std_data["app_pers"]["cert_type"], $qualifications["D"])) {
-                array_push($final_result, $this->admitByCatD($std_data));
-            }
-        }
-        return $final_result;
-    }
-
-    public function admitCatAApplicant($app_result, $prog_choice, $cert_type)
-    {
-
-        // $qualified = false;
-        // // Admit applicant
-        // if ($app_result["feed"]["required_core_passed"] == 2 && $app_result["feed"]["any_one_core_passed"] > 0 && $app_result["feed"]["any_three_elective_passed"] >= 3) {
-
-        //     if (in_array($cert_type, ["SSSCE", "NECO", "GBCE"]) && $app_result["feed"]["total_score"] <= 24) {
-        //         $qualified = true;
-        //     }
-
-        //     if (in_array($cert_type, ["WASSCE"]) && $app_result["feed"]["total_score"] <= 36) {
-        //         $qualified = true;
-        //     }
-
-        //     if ($qualified) {
-        //         $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0, `$prog_choice` = 1 WHERE `app_login` = :i";
-        //         $this->dm->getData($query, array(":i" => $app_result["id"]));
-        //         return $qualified;
-        //     }
-        // } else {
-        //     $query = "UPDATE `form_sections_chek` SET `admitted` = 0, `declined` = 1,  `$prog_choice` = 1 WHERE `app_login` = :i";
-        //     $this->dm->getData($query, array(":i" => $app_result["id"]));
-        //     return $qualified;
-        // }
-
-        $qualified = false;
-
-        if ($app_result['feed']['required_core_passed'] == 2 && $app_result['feed']['any_one_core_pass'] > 0 && $app_result['feed']['any_three_elective_pass'] >= 3) {
-            if (in_array($cert_type, ['SSSCE', 'NECO', 'GBCE']) && $app_result['feed']['total_score'] <= 24) {
-                $qualified = true;
-            } elseif (in_array($cert_type, ['WASSCE']) && $app_result['feed']['total_score'] <= 36) {
-                $qualified = true;
-            }
-
-            if ($qualified) {
-                $query = "UPDATE `form_sections_chek` SET `admitted` = 1, `declined` = 0, `{$prog_choice}` = 1 WHERE `app_login` = :i";
-                $this->dm->getData($query, [':i' => $app_result['id']]);
-                return $qualified;
-            }
-        } else {
-            $query = "UPDATE `form_sections_chek` SET `admitted` = 0, `declined` = 1, `{$prog_choice}` = 1 WHERE `app_login` = :i";
-            $this->dm->getData($query, [':i' => $app_result['id']]);
-            return $qualified;
-        }
-    }
-
-    public function admitByCatA($data)
-    {
-        foreach ($data["sch_rslt"] as $result) {
-            die(json_encode($result));
-        }
-
-        // set all qualified grades
-        $grade_range = array(
-            array('grade' => 'A1', 'score' => 1),
-            array('grade' => 'B2', 'score' => 2),
-            array('grade' => 'B3', 'score' => 3),
-            array('grade' => 'C4', 'score' => 4),
-            array('grade' => 'C5', 'score'  => 5),
-            array('grade' => 'C6', 'score'  => 6),
-            array('grade' => 'A', 'score' => 1),
-            array('grade' => 'B', 'score' => 2),
-            array('grade' => 'C', 'score' => 3),
-            array('grade' => 'D', 'score' => 4)
-        );
-
-        $total_core_score = 0;
-        $required_core_passed = 0;
-        $any_one_core_passed = 0;
-        $any_one_core_score = 7;
-
-        $any_three_elective_passed = 0;
-        $total_elective_score = 0;
-        $any_three_elective_scores = [];
-
-        foreach ($data["sch_rslt"] as $result) {
-
-            $score = 7;
-            for ($i = 0; $i < count($grade_range); $i++) {
-                if ($result["grade"] == $grade_range[$i]["grade"]) {
-                    $score = $grade_range[$i]['score'];
-                }
-            }
-
-            if ($score >= 1 && $score <= 6) {
-                if (strtolower($result["type"]) == "core") {
-                    if (strtolower($result["subject"]) == "core mathematics" || strtolower($result["subject"]) == "english language") {
-                        $required_core_passed += 1;
-                        $total_core_score += $score;
-                    } else {
-
-                        if (!empty($any_one_core_passed)) {
-                            $total_core_score -= $any_one_core_score;
-                        }
-                        if (empty($any_one_core_passed)) {
-                            $any_one_core_score = $score;
-                        }
-                        $any_one_core_passed += 1;
-                        $total_core_score += $score;
-                    }
-                }
-
-                if (strtolower($result["type"]) == "elective") {
-                    $any_three_elective_passed += 1;
-                    array_push($any_three_elective_scores, $score);
-                }
-            }
-        }
-
-        $array_before_sort = $any_three_elective_scores;
-        asort($any_three_elective_scores);
-        $array_with_new_values = array_values($any_three_elective_scores);
-        $any_three_elective_scores = array_values($any_three_elective_scores);
-        if (count($any_three_elective_scores) > 3) unset($any_three_elective_scores[count($any_three_elective_scores) - 1]);
-        $total_elective_score = array_sum($any_three_elective_scores);
-
-        $feed["total_core_score"] = $total_core_score;
-        $feed["total_elective_score"] = $total_elective_score;
-        $feed["total_score"] = $total_core_score + $total_elective_score;
-        $feed["required_core_passed"] = $required_core_passed;
-        $feed["any_one_core_passed"] = $any_one_core_passed;
-        $feed["any_one_core_score"] = $any_one_core_score;
-        $feed["any_three_elective_passed"] = $any_three_elective_passed;
-        $feed["any_three_elective_scores"] = $any_three_elective_scores;
-        $feed["array_before_sort"] = $array_before_sort;
-        $feed["array_with_new_values"] = $array_with_new_values;
-
-        $app_result["id"] = $data["app_pers"]["id"];
-        $app_result["feed"] = $feed;
-        $app_result["admitted"] = false;
-        //$app_result["emailed"] = false;
-
-        $prog_choice = $data["app_pers"]["prog_category"] . "_qualified";
-
-        $app_result["admitted"] = $this->admitCatAApplicant($app_result, $prog_choice, $data["app_pers"]["cert_type"]);
-        $admin_period = $this->getCurrentAdmissionPeriodID();
-
-        if ($app_result["admitted"]) {
-            $this->saveAdmittedApplicantData($admin_period, $app_result["id"], $data["prog_info"][0]["id"], $app_result["feed"], $data["app_pers"]["prog_category"]);
-        }
-
-        $this->logActivity(
-            $_SESSION["user"],
-            "INSERT",
-            "Admitted applicants {$app_result["id"]} through mass admit with following: 
-            admission status(addtitted): {$app_result["admitted"]}, admission period = {$admin_period}, 
-            program id: {$data["prog_info"][0]["id"]}, program category: {$data["app_pers"]["prog_category"]}"
-        );
-
-        return $app_result;
-    }
-
-    public function admitByCatB($bs_data)
-    {
-        $final_result = [];
-
-        // set all qualified grades
-        $grade_range = array(
-            array('grade' => 'A1', 'score' => 1),
-            array('grade' => 'B2', 'score' => 2),
-            array('grade' => 'B3', 'score' => 3),
-            array('grade' => 'C4', 'score' => 4),
-            array('grade' => 'C5', 'score'  => 5),
-            array('grade' => 'C6', 'score'  => 6),
-            array('grade' => 'A', 'score' => 1),
-            array('grade' => 'B', 'score' => 2),
-            array('grade' => 'C', 'score' => 3),
-            array('grade' => 'D', 'score' => 4)
-        );
-
-        return $final_result;
-    }
-
-    public function admitByCatC($bs_data)
-    {
-        $final_result = [];
-
-        // set all qualified grades
-        $grade_range = array(
-            array('grade' => 'A1', 'score' => 1),
-            array('grade' => 'B2', 'score' => 2),
-            array('grade' => 'B3', 'score' => 3),
-            array('grade' => 'C4', 'score' => 4),
-            array('grade' => 'C5', 'score'  => 5),
-            array('grade' => 'C6', 'score'  => 6),
-            array('grade' => 'A', 'score' => 1),
-            array('grade' => 'B', 'score' => 2),
-            array('grade' => 'C', 'score' => 3),
-            array('grade' => 'D', 'score' => 4)
-        );
-
-        return $final_result;
-    }
-
-    public function admitByCatD($bs_data)
-    {
-        $final_result = [];
-
-        // set all qualified grades
-        $grade_range = array(
-            array('grade' => 'A1', 'score' => 1),
-            array('grade' => 'B2', 'score' => 2),
-            array('grade' => 'B3', 'score' => 3),
-            array('grade' => 'C4', 'score' => 4),
-            array('grade' => 'C5', 'score'  => 5),
-            array('grade' => 'C6', 'score'  => 6),
-            array('grade' => 'A', 'score' => 1),
-            array('grade' => 'B', 'score' => 2),
-            array('grade' => 'C', 'score' => 3),
-            array('grade' => 'D', 'score' => 4)
-        );
-
-        return $final_result;
-    }
 
     public function admitQualifiedStudents($certificate, $progCategory, $admission_period = null)
     {
@@ -1766,33 +1532,35 @@ class AdminController
         $total_admitted = $total_failed = 0;
 
         foreach ($applicantData as $applicant) {
-            $category = $this->getApplicantCategory($applicant['app_pers']['cert_type'], $qualifications);
-            switch ($category) {
-                case 'WASSCE':
-                    $admissionState = $this->admitWASSCEApplicant($applicant);
-                    if ($admissionState['status'] && isset($admissionState['status']['admitted']) && $admissionState['status']['admitted']) {
-                        $total_admitted += 1;
-                        $admitted_list[] = $admissionState;
-                    } else {
-                        $total_failed += 1;
-                        $failed_list[] = $admissionState;
-                    }
-                    break;
+            if (!empty($applicant['app_pers']) && !empty($applicant['prog_info']) && !empty($applicant['sch_rslt'])) {
+                $category = $this->getApplicantCategory($applicant['app_pers']['cert_type'], $qualifications);
+                switch ($category) {
+                    case 'WASSCE':
+                        $admissionState = $this->admitWASSCEApplicant($applicant);
+                        if ($admissionState['status'] && isset($admissionState['status']['admitted']) && $admissionState['status']['admitted']) {
+                            $total_admitted += 1;
+                            $admitted_list[] = $admissionState;
+                        } else {
+                            $total_failed += 1;
+                            $failed_list[] = $admissionState;
+                        }
+                        break;
 
-                case 'SSSCE':
-                    $admissionState = $this->admitSSSCEApplicant($applicant);
-                    if ($admissionState['status'] && isset($admissionState['status']['admitted']) && $admissionState['status']['admitted']) {
-                        $total_admitted += 1;
-                        $admitted_list[] = $admissionState;
-                    } else {
-                        $total_failed += 1;
-                        $failed_list[] = $admissionState;
-                    }
-                    break;
+                    case 'SSSCE':
+                        $admissionState = $this->admitSSSCEApplicant($applicant);
+                        if ($admissionState['status'] && isset($admissionState['status']['admitted']) && $admissionState['status']['admitted']) {
+                            $total_admitted += 1;
+                            $admitted_list[] = $admissionState;
+                        } else {
+                            $total_failed += 1;
+                            $failed_list[] = $admissionState;
+                        }
+                        break;
 
-                default:
-                    # code...
-                    break;
+                    default:
+                        # code...
+                        break;
+                }
             }
         }
 
@@ -1847,7 +1615,7 @@ class AdminController
 
         $result = [
             'app_id' => $applicant['app_pers']['id'],
-            'prog_id' => $applicant['prog_info'][0]['id'],
+            'prog_id' => $applicant['prog_info']['id'],
             'feed' => $this->evaluateApplicant($applicant, $gradeRange),
             'prog_category' => $applicant['app_pers']['prog_category'],
             'mode' => 'WASSCE',
@@ -1869,7 +1637,7 @@ class AdminController
 
         $result = [
             'app_id' => $applicant['app_pers']['id'],
-            'prog_id' => $applicant['prog_info'][0]['id'],
+            'prog_id' => $applicant['prog_info']['id'],
             'feed' => $this->evaluateApplicant($applicant, $gradeRange),
             'prog_category' => $applicant['app_pers']['prog_category'],
             'mode' => 'SSSCE',
@@ -1892,7 +1660,7 @@ class AdminController
         $requiredElectiveSubjects = [];
         $anyElectiveSubjects = [];
 
-        $program_group = $applicants['prog_info'][0]['group'];
+        $program_group = $applicants['prog_info']['group'];
         $program_type = 1;
         $course_of_study = strtolower($applicants['app_pers']['course_of_study']);
 
