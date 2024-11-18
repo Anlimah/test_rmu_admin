@@ -1,5 +1,7 @@
 <?php
 
+namespace Src\Controller;
+
 class ApplicantEvaluator
 {
     private const CORE_SUBJECTS = [
@@ -94,7 +96,15 @@ class ApplicantEvaluator
             'program_type' => $programCategory,
             'qualified' => $this->isQualified($evaluation, $requirements),
             'scores' => $evaluation['scores'],
-            'subjects_passed' => $evaluation['subjects_passed']
+            'subjects_passed' => $evaluation['subjects_passed'],
+            'required_core_passed' => count($evaluation['subjects_passed']['core']),
+            'required_elective_passed' => count($evaluation['subjects_passed']['required_electives']),
+            'required_core_subjects' => $evaluation['subjects_passed']['core'],
+            'required_elective_subjects' => $evaluation['subjects_passed']['required_electives'],
+            'any_elective_subjects' => $evaluation['subjects_passed']['additional_electives'],
+            'total_core_score' => $evaluation['scores']['core'],
+            'total_elective_score' => $evaluation['scores']['elective'],
+            'total_score' => $evaluation['scores']['total']
         ];
     }
 
