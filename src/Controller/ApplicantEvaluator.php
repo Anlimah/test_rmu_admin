@@ -16,7 +16,8 @@ class ApplicantEvaluator
             'physics',
             'chemistry',
             'biology',
-            'technical drawing'
+            'technical drawing',
+            'ict'
         ],
         'general' => [
             'elective mathematics' => ['elective mathematics', 'elective maths'],
@@ -250,7 +251,7 @@ class ApplicantEvaluator
             }
         }
 
-        arsort($validElectives);
+        asort($validElectives);
         $selectedElectives = array_slice($validElectives, 0, $requiredCount, true);
 
         foreach ($selectedElectives as $subject => $score) {

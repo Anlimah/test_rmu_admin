@@ -1488,7 +1488,7 @@ class AdminController
 
         $query = "INSERT INTO `broadsheets` (`admin_period`, `app_login`, `program_id`, 
         `required_core_passed`, `required_core_subjects`, `total_core_score`, 
-        `required_elective_passed`, `required_elective_subjects`, `any_elective_subjects`, 
+        `required_elective_passed`, `required_elective_subjects`, `additional_elective_subjects`, 
         `total_elective_score`, `total_score`, `program_choice`) 
                 VALUES (:ap, :al, :pi, :rcp, :rcs, :rep, :res, :ates, :tcs, :tes, :ts, :pc)";
         $params = array(
@@ -1500,7 +1500,7 @@ class AdminController
             ":tcs" => $admitted_data["total_core_score"],
             ":rep" => $admitted_data["required_elective_passed"],
             ":res" => $admitted_data["required_elective_subjects"],
-            ":ates" => $admitted_data["any_elective_subjects"],
+            ":ates" => $admitted_data["additional_elective_subjects"],
             ":tes" => $admitted_data["total_elective_score"],
             ":ts" => $admitted_data["total_score"],
             ":pc" => $prog_choice
@@ -2232,7 +2232,7 @@ class AdminController
     //         'required_elective_passed' => $requiredElectivePassed,
     //         'required_core_subjects' => $sortedRequiredCoreSubjects,
     //         'required_elective_subjects' => $sortedRequiredElectiveSubjects,
-    //         'any_elective_subjects' => $sortedAnyElectiveSubjects,
+    //         'additional_elective_subjects' => $sortedAnyElectiveSubjects,
     //         'total_core_score' => $totalCoreScore,
     //         'total_elective_score' => $totalElectiveScore,
     //         'total_score' => $totalScore
@@ -2243,7 +2243,7 @@ class AdminController
     {
         $qualified = $admitted = false;
         if ($applicantResult['feed']['program_group'] == 'A' && $applicantResult['feed']['program_type'] == 1) {
-            if ($applicantResult['feed']['required_core_passed'] == 3 && $applicantResult['feed']['required_elective_passed'] == 1 && count($applicantResult['feed']['any_elective_subjects']) >= 2) {
+            if ($applicantResult['feed']['required_core_passed'] == 3 && $applicantResult['feed']['required_elective_passed'] == 1 && count($applicantResult['feed']['additional_elective_subjects']) >= 2) {
                 if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
                     $qualified = true;
                 } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
@@ -2264,7 +2264,7 @@ class AdminController
                 return ["qualified" => $qualified, "admitted" => $admitted];
             }
         } else if ($applicantResult['feed']['program_group'] == 'A' && $applicantResult['feed']['program_type'] == 2) {
-            if ($applicantResult['feed']['required_core_passed'] >= 3 && $applicantResult['feed']['required_elective_passed'] >= 2 && count($applicantResult['feed']['any_elective_subjects']) >= 1) {
+            if ($applicantResult['feed']['required_core_passed'] >= 3 && $applicantResult['feed']['required_elective_passed'] >= 2 && count($applicantResult['feed']['additional_elective_subjects']) >= 1) {
                 if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
                     $qualified = true;
                 } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
@@ -2285,7 +2285,7 @@ class AdminController
                 return ["qualified" => $qualified, "admitted" => $admitted];
             }
         } else if ($applicantResult['feed']['program_group'] == 'B' && $applicantResult['feed']['program_type'] == 1) {
-            if ($applicantResult['feed']['required_core_passed'] >= 3 && count($applicantResult['feed']['any_elective_subjects']) >= 3) {
+            if ($applicantResult['feed']['required_core_passed'] >= 3 && count($applicantResult['feed']['additional_elective_subjects']) >= 3) {
                 if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
                     $qualified = true;
                 } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
