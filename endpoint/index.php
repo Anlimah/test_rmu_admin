@@ -436,11 +436,10 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
         $result = $admin->fetchAllUnadmittedApplicantsData($_POST["cert-type"], $_POST["prog-type"], $_SESSION["admin_period"]);
 
-        if (empty($result)) {
-            die(json_encode(array("success" => false, "message" => "No result found!")));
-        }
+        if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found!")));
         die(json_encode(array("success" => true, "message" => $result)));
     }
+
     //
     elseif ($_GET["url"] == "admitAll") {
         if (!isset($_POST["cert-type"]) || !isset($_POST["prog-type"])) {
@@ -1113,6 +1112,18 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Invalid request received!")));
         die(json_encode($admin->unsubmitApplication($_POST["app"])));
     }
+
+    //
+    elseif ($_GET["url"] == "program-info") {
+        if (!isset($_POST["prog"]) || empty($_POST["prog"])) {
+            die(json_encode(array("success" => false, "message" => "Missing input field")));
+        }
+        $rslt = $admin->fetchAllFromProgramByName($_POST["prog"]);
+        if (!$rslt) die(json_encode(array("success" => false, "message" => "Failed to fetch program's details for this applicant")));
+        die(json_encode(array("success" => true, "message" => $rslt)));
+    }
+
+
     // All PUT request will be sent here
 } else if ($_SERVER['REQUEST_METHOD'] == "PUT") {
     parse_str(file_get_contents("php://input"), $_PUT);

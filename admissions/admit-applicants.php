@@ -90,7 +90,6 @@ require_once('../inc/page-data.php');
                                             <option value="NECO">NECO</option>
                                             <option value="SSSCE">SSSCE</option>
                                             <option value="GBCE">GBCE</option>
-                                            <option value="Baccalaureate">BACCALAUREATE</option>
                                         </select>
                                     </div>
                                     <div class="col-3">
@@ -115,7 +114,7 @@ require_once('../inc/page-data.php');
                                         <th scope="col" colspan="1">Programme: (<span class="pro-choice">1<sup>st</sup></span>) Choice</th>
                                         <th scope="col" colspan="4" style="text-align: center;">Core Subjects</th>
                                         <th scope="col" colspan="4" style="text-align: center;">Elective Subjects</th>
-                                        <!--<th scope="col" colspan="1" style="text-align: center;">Status</th>-->
+                                        <th scope="col" colspan="1" style="text-align: center;">Actions</th>
                                     </tr>
                                     <tr class="table-grey">
                                         <th scope="col"></th>
@@ -129,7 +128,7 @@ require_once('../inc/page-data.php');
                                         <th scope="col" style="background-color: #999; text-align: center" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Elective 2">E2</th>
                                         <th scope="col" style="background-color: #999; text-align: center" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Elective 3">E3</th>
                                         <th scope="col" style="background-color: #999; text-align: center" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Elective 4">E4</th>
-                                        <!--<th scope="col"></th>-->
+                                        <th scope="col"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -187,8 +186,15 @@ require_once('../inc/page-data.php');
                                     '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[5].subject + '">' + value.sch_rslt[5].grade + '</td>' +
                                     '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[6].subject + '">' + value.sch_rslt[6].grade + '</td>' +
                                     '<td style="cursor: help; text-align: center" title="' + value.sch_rslt[7].subject + '">' + value.sch_rslt[7].grade + '</td>' +
-                                    //'<td style="text-align: center">' + status + '</td>' +
-                                    '</tr>');
+                                    '<td style="text-align: center">' +
+                                    '<form method="POST" id="viewApplicantDetailsForm">' +
+                                    '<input type="hidden" value="' + value.app_pers.programme + '" name="prog">' +
+                                    '<input type="hidden" value="' + value.app_pers.id + '" name="appId" id="appId">' +
+                                    '<button class="btn btn-primary btn-xs" type="submit" id="viewAppDeatilsBtn">View</button>' +
+                                    '</form>' +
+                                    '</td>' +
+                                    '</tr>'
+                                );
                             });
 
                         } else {
@@ -235,7 +241,6 @@ require_once('../inc/page-data.php');
                         console.log(result);
                         if (result.success) fetchBroadsheet();
                         else if (result.message == "logout") window.location.href = "?logout=true";
-
                     },
                     error: function(error) {
                         console.log(error);
@@ -243,14 +248,45 @@ require_once('../inc/page-data.php');
                 });
             });
 
+            $(document).on('submit', "#viewApplicantDetailsForm", function(e) {
+                e.preventDefault();
+                triggeredBy = 3;
+
+                payload = new FormData(this);
+                appId = $("#appId").val();
+
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/program-info",
+                    data: payload,
+                    contentType: false,
+                    cache: false,
+                    processData: false,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.success) {
+                            url = "applicant-info.php?t=" + result.message[0].type + "&c=" + result.message[0].category + "&q=" + appId;
+                            location.href = url;
+                        } else if (result.message == "logout") window.location.href = "?logout=true";
+
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+
+            })
+
             $(document).on({
                 ajaxStart: function() {
                     if (triggeredBy == 1) $("#submitBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> sending...');
                     if (triggeredBy == 2) $("#admit-all-bs").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
+                    if (triggeredBy == 3) $("#viewAppDeatilsBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ...');
                 },
                 ajaxStop: function() {
                     if (triggeredBy == 1) $("#submitBtn").prop("disabled", false).html('Resend code');
                     if (triggeredBy == 2) $("#admit-all-bs").prop("disabled", false).html('Admit All Qualified');
+                    if (triggeredBy == 3) $("#viewAppDeatilsBtn").prop("disabled", false).html('View');
                 }
             });
 

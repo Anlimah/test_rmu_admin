@@ -1350,11 +1350,12 @@ class AdminController
                     p.`email_addr`, i.`$progCategory` AS programme,  i.study_stream, a.`cert_type`, a.`other_cert_type`, a.`course_of_study`, a.`other_course_studied` 
                 FROM 
                     `personal_information` AS p, `academic_background` AS a, `purchase_detail` AS pd, `admission_period` AS ap, 
-                    `applicants_login` AS l, `form_sections_chek` AS f, `program_info` AS i 
+                    `applicants_login` AS l, `form_sections_chek` AS f, `program_info` AS i, programs AS pg 
                 WHERE 
                     pd.`id` = l.`purchase_id` AND pd.`admission_period` = ap.`id` AND 
                     p.`app_login` = l.`id` AND a.`app_login` = l.`id` AND f.`app_login` = l.`id` AND i.`app_login` = l.`id` AND
-                    a.`awaiting_result` = 0 AND f.`declaration` = 1 AND f.`admitted` = 0 AND a.`cert_type` = :c AND ap.id = :a";
+                    a.`awaiting_result` = 0 AND f.`declaration` = 1 AND f.`admitted` = 0 AND a.`cert_type` = :c AND ap.id = :a AND 
+                    i.`$progCategory` = pg.name AND pg.category IN ('DEGREE', 'DIPLOMA')";
         return $this->dm->getData($query, array(":c" => $certificate, ":a" => $admission_period));
     }
 
