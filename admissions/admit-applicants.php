@@ -284,8 +284,8 @@ require_once('../inc/page-data.php');
                     if (triggeredBy == 3) $("#viewAppDeatilsBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ...');
                 },
                 ajaxStop: function() {
-                    if (triggeredBy == 1) $("#submitBtn").prop("disabled", false).html('Resend code');
-                    if (triggeredBy == 2) $("#shortlist-qualified").prop("disabled", false).html('Admit All Qualified');
+                    if (triggeredBy == 1) $("#submitBtn").prop("disabled", false).html('Fetch Data');
+                    if (triggeredBy == 2) $("#shortlist-qualified").prop("disabled", false).html('Shortlist Qualified');
                     if (triggeredBy == 3) $("#viewAppDeatilsBtn").prop("disabled", false).html('View');
                 }
             });

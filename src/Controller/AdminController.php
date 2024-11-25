@@ -1567,17 +1567,17 @@ class AdminController
         }
 
         // Save the admitted applicants
-        if (!empty($admitted_list)) {
-            foreach ($admitted_list as $admitted) {
-                $this->saveAdmittedApplicantData(
-                    $this->getCurrentAdmissionPeriodId(),
-                    $admitted['app_id'],
-                    $admitted['prog_id'],
-                    $admitted['feed'],
-                    $admitted['prog_category']
-                );
-            }
-        }
+        // if (!empty($admitted_list)) {
+        //     foreach ($admitted_list as $admitted) {
+        //         $this->saveAdmittedApplicantData(
+        //             $this->getCurrentAdmissionPeriodId(),
+        //             $admitted['app_id'],
+        //             $admitted['prog_id'],
+        //             $admitted['feed'],
+        //             $admitted['prog_category']
+        //         );
+        //     }
+        // }
 
         $result = [
             'success' => true,
@@ -1956,6 +1956,7 @@ class AdminController
             case 'diploma':
                 if ($program_group == 'A') {
                     if ($course_of_study == 'general science' || $course_of_study == 'science') {
+                        $program_type = 1;
                         foreach ($applicant['sch_rslt'] as $result) {
                             $score = 0;
                             $subject_type = strtolower($result['type']);
@@ -2250,6 +2251,7 @@ class AdminController
 
         return [
             'program_group' => $program_group,
+            'program_category' => $program_category,
             'program_type' => $program_type,
             'required_core_passed' => $requiredCorePassed,
             'required_elective_passed' => $requiredElectivePassed,
@@ -2265,68 +2267,139 @@ class AdminController
     private function checkAndShortlistApplicant(array $applicantResult, string $stream)
     {
         $qualified = $admitted = false;
-        if ($applicantResult['feed']['program_group'] == 'A' && $applicantResult['feed']['program_type'] == 1) {
-            if ($applicantResult['feed']['required_core_passed'] == 3 && $applicantResult['feed']['required_elective_passed'] == 1 && count($applicantResult['feed']['additional_elective_subjects']) >= 2) {
-                if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
-                    $qualified = true;
-                } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
-                    $qualified = true;
-                }
-
-                if ($qualified) {
-                    $status = $this->shortlistApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
-                    if (!empty($status)) {
-                        if ($status["success"]) {
-                            $admitted = true;
+        if ($applicantResult['feed']['program_category'] == 'degree') {
+            if ($applicantResult['feed']['program_group'] == 'A') {
+                if ($applicantResult['feed']['program_type'] == 1) {
+                    if ($applicantResult['feed']['required_core_passed'] == 3 && $applicantResult['feed']['required_elective_passed'] == 1 && count($applicantResult['feed']['additional_elective_subjects']) >= 2) {
+                        if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
+                            $qualified = true;
+                        } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                            $qualified = true;
                         }
+
+                        if ($qualified) {
+                            $status = $this->shortlistApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                            if (!empty($status)) {
+                                if ($status["success"]) {
+                                    $admitted = true;
+                                }
+                            }
+                            return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                        }
+                        return ["qualified" => $qualified, "admitted" => $admitted];
+                    } else {
+                        return ["qualified" => $qualified, "admitted" => $admitted];
                     }
-                    return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                } else if ($applicantResult['feed']['program_type'] == 2) {
+                    if ($applicantResult['feed']['required_core_passed'] >= 3 && $applicantResult['feed']['required_elective_passed'] >= 2 && count($applicantResult['feed']['additional_elective_subjects']) >= 1) {
+                        if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
+                            $qualified = true;
+                        } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                            $qualified = true;
+                        }
+
+                        if ($qualified) {
+                            $status = $this->shortlistApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                            if (!empty($status)) {
+                                if ($status["success"]) {
+                                    $admitted = true;
+                                }
+                            }
+                            return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                        }
+                        return ["qualified" => $qualified, "admitted" => $admitted];
+                    } else {
+                        return ["qualified" => $qualified, "admitted" => $admitted];
+                    }
                 }
-                return ["qualified" => $qualified, "admitted" => $admitted];
-            } else {
-                return ["qualified" => $qualified, "admitted" => $admitted];
+            } else if ($applicantResult['feed']['program_group'] == 'B') {
+                if ($applicantResult['feed']['required_core_passed'] >= 3 && count($applicantResult['feed']['additional_elective_subjects']) >= 3) {
+                    if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
+                        $qualified = true;
+                    } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                        $qualified = true;
+                    }
+
+                    if ($qualified) {
+                        $status = $this->shortlistApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                        if (!empty($status)) {
+                            if ($status["success"]) {
+                                $admitted = true;
+                            }
+                        }
+                        return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                    }
+                    return ["qualified" => $qualified, "admitted" => $admitted];
+                } else {
+                    return ["qualified" => $qualified, "admitted" => $admitted];
+                }
             }
-        } else if ($applicantResult['feed']['program_group'] == 'A' && $applicantResult['feed']['program_type'] == 2) {
-            if ($applicantResult['feed']['required_core_passed'] >= 3 && $applicantResult['feed']['required_elective_passed'] >= 2 && count($applicantResult['feed']['additional_elective_subjects']) >= 1) {
-                if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
-                    $qualified = true;
-                } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
-                    $qualified = true;
-                }
-
-                if ($qualified) {
-                    $status = $this->admitIndividualApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
-                    if (!empty($status)) {
-                        if ($status["success"]) {
-                            $admitted = true;
+        } else if ($applicantResult['feed']['program_category'] == 'diploma') {
+            if ($applicantResult['feed']['program_group'] == 'A') {
+                if ($applicantResult['feed']['program_type'] == 1) {
+                    if ($applicantResult['feed']['required_core_passed'] == 3 && $applicantResult['feed']['required_elective_passed'] == 1 && count($applicantResult['feed']['additional_elective_subjects']) >= 2) {
+                        if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 42) {
+                            $qualified = true;
+                        } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                            $qualified = true;
                         }
-                    }
-                    return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
-                }
-                return ["qualified" => $qualified, "admitted" => $admitted];
-            } else {
-                return ["qualified" => $qualified, "admitted" => $admitted];
-            }
-        } else if ($applicantResult['feed']['program_group'] == 'B' && $applicantResult['feed']['program_type'] == 1) {
-            if ($applicantResult['feed']['required_core_passed'] >= 3 && count($applicantResult['feed']['additional_elective_subjects']) >= 3) {
-                if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 36) {
-                    $qualified = true;
-                } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
-                    $qualified = true;
-                }
 
-                if ($qualified) {
-                    $status = $this->admitIndividualApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
-                    if (!empty($status)) {
-                        if ($status["success"]) {
-                            $admitted = true;
+                        if ($qualified) {
+                            $status = $this->shortlistApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                            if (!empty($status)) {
+                                if ($status["success"]) {
+                                    $admitted = true;
+                                }
+                            }
+                            return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
                         }
+                        return ["qualified" => $qualified, "admitted" => $admitted];
+                    } else {
+                        return ["qualified" => $qualified, "admitted" => $admitted];
                     }
-                    return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                } else if ($applicantResult['feed']['program_type'] == 2) {
+                    if ($applicantResult['feed']['required_core_passed'] >= 3 && $applicantResult['feed']['required_elective_passed'] >= 2 && count($applicantResult['feed']['additional_elective_subjects']) >= 1) {
+                        if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 42) {
+                            $qualified = true;
+                        } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                            $qualified = true;
+                        }
+
+                        if ($qualified) {
+                            $status = $this->shortlistApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                            if (!empty($status)) {
+                                if ($status["success"]) {
+                                    $admitted = true;
+                                }
+                            }
+                            return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                        }
+                        return ["qualified" => $qualified, "admitted" => $admitted];
+                    } else {
+                        return ["qualified" => $qualified, "admitted" => $admitted];
+                    }
                 }
-                return ["qualified" => $qualified, "admitted" => $admitted];
-            } else {
-                return ["qualified" => $qualified, "admitted" => $admitted];
+            } else if ($applicantResult['feed']['program_group'] == 'B') {
+                if ($applicantResult['feed']['required_core_passed'] >= 3 && count($applicantResult['feed']['additional_elective_subjects']) >= 3) {
+                    if ($applicantResult['mode'] == 'WASSCE' && $applicantResult['feed']['total_score'] <= 42) {
+                        $qualified = true;
+                    } elseif ($applicantResult['mode'] == 'SSSCE' && $applicantResult['feed']['total_score'] <= 24) {
+                        $qualified = true;
+                    }
+
+                    if ($qualified) {
+                        $status = $this->shortlistApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                        if (!empty($status)) {
+                            if ($status["success"]) {
+                                $admitted = true;
+                            }
+                        }
+                        return array_merge($status, ["qualified" => $qualified, "admitted" => $admitted]);
+                    }
+                    return ["qualified" => $qualified, "admitted" => $admitted];
+                } else {
+                    return ["qualified" => $qualified, "admitted" => $admitted];
+                }
             }
         }
     }
