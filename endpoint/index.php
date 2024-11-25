@@ -441,7 +441,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     }
 
     //
-    elseif ($_GET["url"] == "admitAll") {
+    elseif ($_GET["url"] == "shortlist-qualified") {
         if (!isset($_POST["cert-type"]) || !isset($_POST["prog-type"])) {
             die(json_encode(array("success" => false, "message" => "Invalid input field")));
         }
@@ -449,7 +449,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
             die(json_encode(array("success" => false, "message" => "Missing input field")));
         }
 
-        $result = $admin->admitQualifiedStudents($_POST["cert-type"], $_POST["prog-type"], $_SESSION["admin_period"]);
+        $result = $admin->shortlistQualifiedStudents($_POST["cert-type"], $_POST["prog-type"], $_SESSION["admin_period"]);
         if (empty($result)) {
             die(json_encode(array("success" => false, "message" => "No result found!")));
         }
@@ -996,7 +996,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         $setting = $admin->fetchSettingByName('direct_admit');
 
         if (!empty($setting) && strtolower($setting[0]["value"]) == 'false') {
-            if ($admin->shortlistedApplication($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-level-admit-check"], $_POST["app-email-check"], $_POST["app-sms-check"])) {
+            if ($admin->shortlistApplicant($_POST["app-login-check"], $_POST["app-prog-id-check"], $_POST["app-stream-check"], $_POST["app-level-admit-check"], $_POST["app-email-check"], $_POST["app-sms-check"])) {
                 die(json_encode(array("success" => true, "message" => "Applicant shortlisted successfully!")));
             } else {
                 die(json_encode(array("success" => false, "message" => "Failed to shortlisted applicant!")));

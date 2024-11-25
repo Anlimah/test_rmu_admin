@@ -1513,7 +1513,7 @@ class AdminController
     * Admit applicants in groups by their certificate category
     */
 
-    public function admitQualifiedStudents($certificate, $progCategory, $admission_period = null)
+    public function shortlistQualifiedStudents($certificate, $progCategory, $admission_period = null)
     {
         $students_bs_data = $this->fetchAllUnadmittedApplicantsData($certificate, $progCategory, $admission_period);
         if (!empty($students_bs_data)) {
@@ -1538,7 +1538,7 @@ class AdminController
                 $category = $this->getApplicantCategory($applicant['app_pers']['cert_type'], $qualifications);
                 switch ($category) {
                     case 'WASSCE':
-                        $admissionState = $this->admitWASSCEApplicant($applicant);
+                        $admissionState = $this->shortlistWASSCEApplicant($applicant);
                         if ($admissionState['status'] && isset($admissionState['status']['admitted']) && $admissionState['status']['admitted']) {
                             $total_admitted += 1;
                             $admitted_list[] = $admissionState;
@@ -1549,7 +1549,7 @@ class AdminController
                         break;
 
                     case 'SSSCE':
-                        $admissionState = $this->admitSSSCEApplicant($applicant);
+                        $admissionState = $this->shortlistSSSCEApplicant($applicant);
                         if ($admissionState['status'] && isset($admissionState['status']['admitted']) && $admissionState['status']['admitted']) {
                             $total_admitted += 1;
                             $admitted_list[] = $admissionState;
@@ -1604,7 +1604,7 @@ class AdminController
         return 'Unknown';
     }
 
-    private function admitWASSCEApplicant(array $applicant): array
+    private function shortlistWASSCEApplicant(array $applicant): array
     {
         $gradeRange = [
             ['grade' => 'A1', 'score' => 1],
@@ -1619,7 +1619,7 @@ class AdminController
         ];
 
         // Create evaluator instance
-        $evaluator = new ApplicantEvaluator($gradeRange);
+        //$evaluator = new ApplicantEvaluator($gradeRange);
         $program_category = strtolower($applicant['prog_info']['category']);
 
         $result = [
@@ -1632,14 +1632,15 @@ class AdminController
         ];
 
         if (in_array($program_category, ['degree', 'diploma'])) {
-            $result['feed'] = $evaluator->evaluateApplicant($applicant, $program_category);
-            $result['status'] = $this->admitApplicant($result, $applicant['app_pers']['study_stream']);
+            //$result['feed'] = $evaluator->evaluateApplicant($applicant, $program_category);
+            $result['feed'] = $this->evaluateApplicant($applicant, $gradeRange);
+            $result['status'] = $this->checkAndShortlistApplicant($result, $applicant['app_pers']['study_stream']);
         }
 
         return $result;
     }
 
-    private function admitSSSCEApplicant(array $applicant): array
+    private function shortlistSSSCEApplicant(array $applicant): array
     {
         $gradeRange = [
             ['grade' => 'A', 'score' => 1],
@@ -1651,7 +1652,7 @@ class AdminController
         ];
 
         // Create evaluator instance
-        $evaluator = new ApplicantEvaluator($gradeRange);
+        //$evaluator = new ApplicantEvaluator($gradeRange);
         $program_category = strtolower($applicant['prog_info']['category']);
 
         $result = [
@@ -1659,588 +1660,609 @@ class AdminController
             'prog_id' => $applicant['prog_info']['id'],
             "feed" => [],
             'prog_category' => $applicant['app_pers']['prog_category'],
-            'mode' => 'WASSCE',
+            'mode' => 'SSSCE',
             "status" => null
         ];
 
         if (in_array($program_category, ['degree', 'diploma'])) {
-            $result['feed'] = $evaluator->evaluateApplicant($applicant, $program_category);
-            $result['status'] = $this->admitApplicant($result, $applicant['app_pers']['study_stream']);
+            //$result['feed'] = $evaluator->evaluateApplicant($applicant, $program_category);
+            $result['feed'] = $this->evaluateApplicant($applicant, $gradeRange);
+            $result['status'] = $this->checkAndShortlistApplicant($result, $applicant['app_pers']['study_stream']);
         }
 
         return $result;
     }
 
-    // private function evaluateApplicant($applicants, $gradeRange)
-    // {
-    //     $requiredCorePassed = 0;
-    //     $anyCorePassed = 0;
-    //     $requiredElectivePassed = 0;
-    //     $anyElectivePassed = 0;
+    private function evaluateApplicant($applicant, $gradeRange)
+    {
+        $requiredCorePassed = 0;
+        $anyCorePassed = 0;
+        $requiredElectivePassed = 0;
+        $anyElectivePassed = 0;
 
-    //     $requiredCoreSubjects = [];
-    //     $anyCoreSubjects = [];
-    //     $requiredElectiveSubjects = [];
-    //     $anyElectiveSubjects = [];
+        $requiredCoreSubjects = [];
+        $anyCoreSubjects = [];
+        $requiredElectiveSubjects = [];
+        $anyElectiveSubjects = [];
 
-    //     $program_group = $applicants['prog_info']['group'];
-    //     $program_name = strtolower($applicants['prog_info']['name']);
-    //     $program_category = strtolower($applicants['prog_info']['category']);
-    //     $program_type = 1;
-    //     $course_of_study = strtolower($applicants['app_pers']['course_of_study']);
+        $program_group = $applicant['prog_info']['group'];
+        $program_name = strtolower($applicant['prog_info']['name']);
+        $program_category = strtolower($applicant['prog_info']['category']);
+        $program_type = 0;
+        $course_of_study = strtolower($applicant['app_pers']['course_of_study']);
 
-    //     switch ($program_category) {
-    //         case 'degree':
-    //             if ($program_group == 'A') {
-    //                 if ($course_of_study == 'general science' || $course_of_study == 'science') {
+        switch ($program_category) {
+            case 'degree':
+                if ($program_group == 'A') {
+                    if ($course_of_study == 'general science' || $course_of_study == 'science') {
+                        $program_type = 1;
+                        foreach ($applicant['sch_rslt'] as $result) {
+                            $score = 0;
+                            $subject_type = strtolower($result['type']);
+                            $subject = strtolower($result['subject']);
 
-    //                     foreach ($applicants['sch_rslt'] as $result) {
-    //                         $score = 0;
-    //                         $subject_type = strtolower($result['type']);
-    //                         $subject = strtolower($result['subject']);
+                            foreach ($gradeRange as $range) {
+                                if ($result['grade'] == $range['grade']) {
+                                    $score = $range['score'];
+                                    break;
+                                }
+                            }
 
-    //                         foreach ($gradeRange as $range) {
-    //                             if ($result['grade'] == $range['grade']) {
-    //                                 $score = $range['score'];
-    //                                 break;
-    //                             }
-    //                         }
+                            if ($score >= 1 && $score <= 6) {
+                                if ($subject_type == 'core') {
+                                    if ($subject == 'core mathematics' || $subject == 'core maths') {
+                                        if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['core mathematics']) {
+                                                $requiredCoreSubjects['core mathematics'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['core mathematics'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                                        if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['english language']) {
+                                                $requiredCoreSubjects['english language'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['english language'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                                        if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['integrated science']) {
+                                                $requiredCoreSubjects['integrated science'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['integrated science'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } else {
+                                        if (array_key_exists($subject, $anyCoreSubjects)) {
+                                            if ($score < $anyCoreSubjects[$subject]) {
+                                                $anyCoreSubjects[$subject] = $score;
+                                            }
+                                        } else {
+                                            $anyCoreSubjects[$subject] = $score;
+                                            $anyCorePassed++;
+                                        }
+                                    }
+                                }
+                                if ($subject_type == 'elective') {
+                                    if ($subject == 'elective mathematics' || $subject == 'elective maths') {
+                                        if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
+                                            if ($score < $anyElectiveSubjects['elective mathematics']) {
+                                                $anyElectiveSubjects['elective mathematics'] = $score;
+                                            }
+                                        } else {
+                                            $requiredElectiveSubjects['elective mathematics'] = $score;
+                                            $requiredElectivePassed++;
+                                        }
+                                    } else {
+                                        if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                            if ($score < $anyElectiveSubjects[$subject]) {
+                                                $anyElectiveSubjects[$subject] = $score;
+                                            }
+                                        } else {
+                                            $anyElectiveSubjects[$subject] = $score;
+                                            $anyElectiveScores[] = $score;
+                                            $anyElectivePassed++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $program_type = 2;
+                        foreach ($applicant['sch_rslt'] as $result) {
+                            $score = 0;
+                            $subject_type = strtolower($result['type']);
+                            $subject = strtolower($result['subject']);
 
-    //                         if ($score >= 1 && $score <= 6) {
-    //                             if ($subject_type == 'core') {
-    //                                 if ($subject == 'core mathematics' || $subject == 'core maths') {
-    //                                     if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['core mathematics']) {
-    //                                             $requiredCoreSubjects['core mathematics'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['core mathematics'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
-    //                                     if (array_key_exists('english language', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['english language']) {
-    //                                             $requiredCoreSubjects['english language'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['english language'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } elseif ($subject == 'integrated science' || $subject == 'int science') {
-    //                                     if (array_key_exists('integrated science', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['integrated science']) {
-    //                                             $requiredCoreSubjects['integrated science'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['integrated science'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } else {
-    //                                     if (array_key_exists($subject, $anyCoreSubjects)) {
-    //                                         if ($score < $anyCoreSubjects[$subject]) {
-    //                                             $anyCoreSubjects[$subject] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $anyCoreSubjects[$subject] = $score;
-    //                                         $anyCorePassed++;
-    //                                     }
-    //                                 }
-    //                             }
-    //                             if (strtolower($result['type']) == 'elective') {
-    //                                 if ($subject == 'elective mathematics' || $subject == 'elective maths') {
-    //                                     if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
-    //                                         if ($score < $anyElectiveSubjects['elective mathematics']) {
-    //                                             $anyElectiveSubjects['elective mathematics'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredElectiveSubjects['elective mathematics'] = $score;
-    //                                         $requiredElectivePassed++;
-    //                                     }
-    //                                 } else {
-    //                                     if (array_key_exists($subject, $anyElectiveSubjects)) {
-    //                                         if ($score < $anyElectiveSubjects[$subject]) {
-    //                                             $anyElectiveSubjects[$subject] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $anyElectiveSubjects[$subject] = $score;
-    //                                         $anyElectiveScores[] = $score;
-    //                                         $anyElectivePassed++;
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 } else {
-    //                     $program_type = 2;
-    //                     foreach ($applicants['sch_rslt'] as $result) {
-    //                         $score = 0;
-    //                         $subject_type = strtolower($result['type']);
-    //                         $subject = strtolower($result['subject']);
+                            foreach ($gradeRange as $range) {
+                                if ($result['grade'] == $range['grade']) {
+                                    $score = $range['score'];
+                                    break;
+                                }
+                            }
 
-    //                         foreach ($gradeRange as $range) {
-    //                             if ($result['grade'] == $range['grade']) {
-    //                                 $score = $range['score'];
-    //                                 break;
-    //                             }
-    //                         }
+                            if ($score >= 1 && $score <= 6) {
+                                if ($subject_type == 'core') {
+                                    if ($subject == 'core mathematics' || $subject == 'core maths') {
+                                        if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['core mathematics']) {
+                                                $requiredCoreSubjects['core mathematics'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['core mathematics'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                                        if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['english language']) {
+                                                $requiredCoreSubjects['english language'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['english language'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                                        if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['integrated science']) {
+                                                $requiredCoreSubjects['integrated science'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['integrated science'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } else {
+                                        if (array_key_exists($subject, $anyCoreSubjects)) {
+                                            if ($score < $anyCoreSubjects[$subject]) {
+                                                $anyCoreSubjects[$subject] = $score;
+                                            }
+                                        } else {
+                                            $anyCoreSubjects[$subject] = $score;
+                                            $anyCorePassed++;
+                                        }
+                                    }
+                                }
 
-    //                         if ($score >= 1 && $score <= 6) {
-    //                             if ($subject_type == 'core') {
-    //                                 if ($subject == 'core mathematics' || $subject == 'core maths') {
-    //                                     if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['core mathematics']) {
-    //                                             $requiredCoreSubjects['core mathematics'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['core mathematics'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
-    //                                     if (array_key_exists('english language', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['english language']) {
-    //                                             $requiredCoreSubjects['english language'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['english language'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } elseif ($subject == 'integrated science' || $subject == 'int science') {
-    //                                     if (array_key_exists('integrated science', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['integrated science']) {
-    //                                             $requiredCoreSubjects['integrated science'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['integrated science'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } else {
-    //                                     if (array_key_exists($subject, $anyCoreSubjects)) {
-    //                                         if ($score < $anyCoreSubjects[$subject]) {
-    //                                             $anyCoreSubjects[$subject] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $anyCoreSubjects[$subject] = $score;
-    //                                         $anyCorePassed++;
-    //                                     }
-    //                                 }
-    //                             }
+                                if ($subject_type == 'elective') {
+                                    if ($program_name == 'b.sc. nautical science') {
+                                        if ($subject == 'elective mathematics' || $subject == 'elective maths') {
+                                            if (array_key_exists('elective mathematics', $requiredElectiveSubjects)) {
+                                                if ($score < $requiredElectiveSubjects['elective mathematics']) {
+                                                    $requiredElectiveSubjects['elective mathematics'] = $score;
+                                                }
+                                            } else {
+                                                $requiredElectiveSubjects['elective mathematics'] = $score;
+                                                $requiredElectivePassed++;
+                                            }
+                                        } else if ($subject == 'geography') {
+                                            if (array_key_exists('geography', $requiredElectiveSubjects)) {
+                                                if ($score < $requiredElectiveSubjects['geography']) {
+                                                    $requiredElectiveSubjects['geography'] = $score;
+                                                }
+                                            } else {
+                                                $requiredElectiveSubjects['geography'] = $score;
+                                                $requiredElectivePassed++;
+                                            }
+                                        } else {
+                                            if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                                if ($score < $anyElectiveSubjects[$subject]) {
+                                                    $anyElectiveSubjects[$subject] = $score;
+                                                }
+                                            } else {
+                                                $anyElectiveSubjects[$subject] = $score;
+                                                $anyElectiveScores[] = $score;
+                                                $anyElectivePassed++;
+                                            }
+                                        }
+                                    } else {
+                                        if ($subject == 'elective mathematics' || $subject == 'elective maths') {
+                                            if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
+                                                if ($score < $anyElectiveSubjects['elective mathematics']) {
+                                                    $anyElectiveSubjects['elective mathematics'] = $score;
+                                                }
+                                            } else {
+                                                $requiredElectiveSubjects['elective mathematics'] = $score;
+                                                $requiredElectivePassed++;
+                                            }
+                                        } else {
+                                            if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                                if ($score < $anyElectiveSubjects[$subject]) {
+                                                    $anyElectiveSubjects[$subject] = $score;
+                                                }
+                                            } else {
+                                                $anyElectiveSubjects[$subject] = $score;
+                                                $anyElectiveScores[] = $score;
+                                                $anyElectivePassed++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if ($program_group == 'B') {
+                    foreach ($applicant['sch_rslt'] as $result) {
+                        $score = 0;
+                        $subject_type = strtolower($result['type']);
+                        $subject = strtolower($result['subject']);
 
-    //                             if (strtolower($result['type']) == 'elective') {
-    //                                 if ($program_name == 'b.sc. nautical science') {
-    //                                     if ($subject == 'elective mathematics' || $subject == 'elective maths') {
-    //                                         if (array_key_exists('elective mathematics', $requiredElectiveSubjects)) {
-    //                                             if ($score < $requiredElectiveSubjects['elective mathematics']) {
-    //                                                 $requiredElectiveSubjects['elective mathematics'] = $score;
-    //                                             }
-    //                                         } else {
-    //                                             $requiredElectiveSubjects['elective mathematics'] = $score;
-    //                                             $requiredElectivePassed++;
-    //                                         }
-    //                                     } else if ($subject == 'geography') {
-    //                                         if (array_key_exists('geography', $requiredElectiveSubjects)) {
-    //                                             if ($score < $requiredElectiveSubjects['geography']) {
-    //                                                 $requiredElectiveSubjects['geography'] = $score;
-    //                                             }
-    //                                         } else {
-    //                                             $requiredElectiveSubjects['geography'] = $score;
-    //                                             $requiredElectivePassed++;
-    //                                         }
-    //                                     }
-    //                                 } else {
-    //                                     if ($subject == 'elective mathematics' || $subject == 'elective maths') {
-    //                                         if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
-    //                                             if ($score < $anyElectiveSubjects['elective mathematics']) {
-    //                                                 $anyElectiveSubjects['elective mathematics'] = $score;
-    //                                             }
-    //                                         } else {
-    //                                             $requiredElectiveSubjects['elective mathematics'] = $score;
-    //                                             $requiredElectivePassed++;
-    //                                         }
-    //                                     } else {
-    //                                         if (array_key_exists($subject, $anyElectiveSubjects)) {
-    //                                             if ($score < $anyElectiveSubjects[$subject]) {
-    //                                                 $anyElectiveSubjects[$subject] = $score;
-    //                                             }
-    //                                         } else {
-    //                                             $anyElectiveSubjects[$subject] = $score;
-    //                                             $anyElectiveScores[] = $score;
-    //                                             $anyElectivePassed++;
-    //                                         }
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             } else if ($program_group == 'B') {
-    //                 foreach ($applicants['sch_rslt'] as $result) {
-    //                     $score = 0;
-    //                     $subject_type = strtolower($result['type']);
-    //                     $subject = strtolower($result['subject']);
+                        foreach ($gradeRange as $range) {
+                            if ($result['grade'] == $range['grade']) {
+                                $score = $range['score'];
+                                break;
+                            }
+                        }
 
-    //                     foreach ($gradeRange as $range) {
-    //                         if ($result['grade'] == $range['grade']) {
-    //                             $score = $range['score'];
-    //                             break;
-    //                         }
-    //                     }
+                        if ($score >= 1 && $score <= 6) {
+                            if ($subject_type == 'core') {
+                                if ($subject == 'core mathematics' || $subject == 'core maths') {
+                                    if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                        if ($score < $requiredCoreSubjects['core mathematics']) {
+                                            $requiredCoreSubjects['core mathematics'] = $score;
+                                        }
+                                    } else {
+                                        $requiredCoreSubjects['core mathematics'] = $score;
+                                        $requiredCorePassed++;
+                                    }
+                                } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                                    if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                        if ($score < $requiredCoreSubjects['english language']) {
+                                            $requiredCoreSubjects['english language'] = $score;
+                                        }
+                                    } else {
+                                        $requiredCoreSubjects['english language'] = $score;
+                                        $requiredCorePassed++;
+                                    }
+                                } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                                    if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                        if ($score < $requiredCoreSubjects['integrated science']) {
+                                            $requiredCoreSubjects['integrated science'] = $score;
+                                        }
+                                    } else {
+                                        $requiredCoreSubjects['integrated science'] = $score;
+                                        $requiredCorePassed++;
+                                    }
+                                } else {
+                                    if (array_key_exists($subject, $anyCoreSubjects)) {
+                                        if ($score < $anyCoreSubjects[$subject]) {
+                                            $anyCoreSubjects[$subject] = $score;
+                                        }
+                                    } else {
+                                        $anyCoreSubjects[$subject] = $score;
+                                        $anyCorePassed++;
+                                    }
+                                }
+                            }
+                            if (strtolower($result['type']) == 'elective') {
+                                if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                    if ($score < $anyElectiveSubjects[$subject]) {
+                                        $anyElectiveSubjects[$subject] = $score;
+                                    }
+                                } else {
+                                    $anyElectiveSubjects[$subject] = $score;
+                                    $anyElectiveScores[] = $score;
+                                    $anyElectivePassed++;
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
 
-    //                     if ($score >= 1 && $score <= 6) {
-    //                         if ($subject_type == 'core') {
-    //                             if ($subject == 'core mathematics' || $subject == 'core maths') {
-    //                                 if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
-    //                                     if ($score < $requiredCoreSubjects['core mathematics']) {
-    //                                         $requiredCoreSubjects['core mathematics'] = $score;
-    //                                     }
-    //                                 } else {
-    //                                     $requiredCoreSubjects['core mathematics'] = $score;
-    //                                     $requiredCorePassed++;
-    //                                 }
-    //                             } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
-    //                                 if (array_key_exists('english language', $requiredCoreSubjects)) {
-    //                                     if ($score < $requiredCoreSubjects['english language']) {
-    //                                         $requiredCoreSubjects['english language'] = $score;
-    //                                     }
-    //                                 } else {
-    //                                     $requiredCoreSubjects['english language'] = $score;
-    //                                     $requiredCorePassed++;
-    //                                 }
-    //                             } elseif ($subject == 'integrated science' || $subject == 'int science') {
-    //                                 if (array_key_exists('integrated science', $requiredCoreSubjects)) {
-    //                                     if ($score < $requiredCoreSubjects['integrated science']) {
-    //                                         $requiredCoreSubjects['integrated science'] = $score;
-    //                                     }
-    //                                 } else {
-    //                                     $requiredCoreSubjects['integrated science'] = $score;
-    //                                     $requiredCorePassed++;
-    //                                 }
-    //                             } else {
-    //                                 if (array_key_exists($subject, $anyCoreSubjects)) {
-    //                                     if ($score < $anyCoreSubjects[$subject]) {
-    //                                         $anyCoreSubjects[$subject] = $score;
-    //                                     }
-    //                                 } else {
-    //                                     $anyCoreSubjects[$subject] = $score;
-    //                                     $anyCorePassed++;
-    //                                 }
-    //                             }
-    //                         }
-    //                         if (strtolower($result['type']) == 'elective') {
-    //                             if (array_key_exists($subject, $anyElectiveSubjects)) {
-    //                                 if ($score < $anyElectiveSubjects[$subject]) {
-    //                                     $anyElectiveSubjects[$subject] = $score;
-    //                                 }
-    //                             } else {
-    //                                 $anyElectiveSubjects[$subject] = $score;
-    //                                 $anyElectiveScores[] = $score;
-    //                                 $anyElectivePassed++;
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //             break;
+            case 'diploma':
+                if ($program_group == 'A') {
+                    if ($course_of_study == 'general science' || $course_of_study == 'science') {
+                        foreach ($applicant['sch_rslt'] as $result) {
+                            $score = 0;
+                            $subject_type = strtolower($result['type']);
+                            $subject = strtolower($result['subject']);
 
-    //         case 'diploma':
-    //             if ($program_group == 'A') {
-    //                 if ($course_of_study == 'general science' || $course_of_study == 'science') {
-    //                     foreach ($applicants['sch_rslt'] as $result) {
-    //                         $score = 0;
-    //                         $subject_type = strtolower($result['type']);
-    //                         $subject = strtolower($result['subject']);
+                            foreach ($gradeRange as $range) {
+                                if ($result['grade'] == $range['grade']) {
+                                    $score = $range['score'];
+                                    break;
+                                }
+                            }
 
-    //                         foreach ($gradeRange as $range) {
-    //                             if ($result['grade'] == $range['grade']) {
-    //                                 $score = $range['score'];
-    //                                 break;
-    //                             }
-    //                         }
+                            if ($score >= 1 && $score <= 7) {
+                                if ($subject_type == 'core') {
+                                    if ($subject == 'core mathematics' || $subject == 'core maths') {
+                                        if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['core mathematics']) {
+                                                $requiredCoreSubjects['core mathematics'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['core mathematics'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                                        if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['english language']) {
+                                                $requiredCoreSubjects['english language'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['english language'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                                        if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['integrated science']) {
+                                                $requiredCoreSubjects['integrated science'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['integrated science'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } else {
+                                        if (array_key_exists($subject, $anyCoreSubjects)) {
+                                            if ($score < $anyCoreSubjects[$subject]) {
+                                                $anyCoreSubjects[$subject] = $score;
+                                            }
+                                        } else {
+                                            $anyCoreSubjects[$subject] = $score;
+                                            $anyCorePassed++;
+                                        }
+                                    }
+                                }
+                                if (strtolower($result['type']) == 'elective') {
+                                    if ($subject == 'elective mathematics' || $subject == 'elective maths') {
+                                        if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
+                                            if ($score < $anyElectiveSubjects['elective mathematics']) {
+                                                $anyElectiveSubjects['elective mathematics'] = $score;
+                                            }
+                                        } else {
+                                            $requiredElectiveSubjects['elective mathematics'] = $score;
+                                            $requiredElectivePassed++;
+                                        }
+                                    } else {
+                                        if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                            if ($score < $anyElectiveSubjects[$subject]) {
+                                                $anyElectiveSubjects[$subject] = $score;
+                                            }
+                                        } else {
+                                            $anyElectiveSubjects[$subject] = $score;
+                                            $anyElectiveScores[] = $score;
+                                            $anyElectivePassed++;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } else {
+                        $program_type = 2;
+                        foreach ($applicant['sch_rslt'] as $result) {
+                            $score = 0;
+                            $subject_type = strtolower($result['type']);
+                            $subject = strtolower($result['subject']);
 
-    //                         if ($score >= 1 && $score <= 7) {
-    //                             if ($subject_type == 'core') {
-    //                                 if ($subject == 'core mathematics' || $subject == 'core maths') {
-    //                                     if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['core mathematics']) {
-    //                                             $requiredCoreSubjects['core mathematics'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['core mathematics'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
-    //                                     if (array_key_exists('english language', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['english language']) {
-    //                                             $requiredCoreSubjects['english language'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['english language'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } elseif ($subject == 'integrated science' || $subject == 'int science') {
-    //                                     if (array_key_exists('integrated science', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['integrated science']) {
-    //                                             $requiredCoreSubjects['integrated science'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['integrated science'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } else {
-    //                                     if (array_key_exists($subject, $anyCoreSubjects)) {
-    //                                         if ($score < $anyCoreSubjects[$subject]) {
-    //                                             $anyCoreSubjects[$subject] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $anyCoreSubjects[$subject] = $score;
-    //                                         $anyCorePassed++;
-    //                                     }
-    //                                 }
-    //                             }
-    //                             if (strtolower($result['type']) == 'elective') {
-    //                                 if ($subject == 'elective mathematics' || $subject == 'elective maths') {
-    //                                     if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
-    //                                         if ($score < $anyElectiveSubjects['elective mathematics']) {
-    //                                             $anyElectiveSubjects['elective mathematics'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredElectiveSubjects['elective mathematics'] = $score;
-    //                                         $requiredElectivePassed++;
-    //                                     }
-    //                                 } else {
-    //                                     if (array_key_exists($subject, $anyElectiveSubjects)) {
-    //                                         if ($score < $anyElectiveSubjects[$subject]) {
-    //                                             $anyElectiveSubjects[$subject] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $anyElectiveSubjects[$subject] = $score;
-    //                                         $anyElectiveScores[] = $score;
-    //                                         $anyElectivePassed++;
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 } else {
-    //                     $program_type = 2;
-    //                     foreach ($applicants['sch_rslt'] as $result) {
-    //                         $score = 0;
-    //                         $subject_type = strtolower($result['type']);
-    //                         $subject = strtolower($result['subject']);
+                            foreach ($gradeRange as $range) {
+                                if ($result['grade'] == $range['grade']) {
+                                    $score = $range['score'];
+                                    break;
+                                }
+                            }
 
-    //                         foreach ($gradeRange as $range) {
-    //                             if ($result['grade'] == $range['grade']) {
-    //                                 $score = $range['score'];
-    //                                 break;
-    //                             }
-    //                         }
+                            if ($score >= 1 && $score <= 7) {
+                                if ($subject_type == 'core') {
+                                    if ($subject == 'core mathematics' || $subject == 'core maths') {
+                                        if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['core mathematics']) {
+                                                $requiredCoreSubjects['core mathematics'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['core mathematics'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                                        if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['english language']) {
+                                                $requiredCoreSubjects['english language'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['english language'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                                        if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                            if ($score < $requiredCoreSubjects['integrated science']) {
+                                                $requiredCoreSubjects['integrated science'] = $score;
+                                            }
+                                        } else {
+                                            $requiredCoreSubjects['integrated science'] = $score;
+                                            $requiredCorePassed++;
+                                        }
+                                    } else {
+                                        if (array_key_exists($subject, $anyCoreSubjects)) {
+                                            if ($score < $anyCoreSubjects[$subject]) {
+                                                $anyCoreSubjects[$subject] = $score;
+                                            }
+                                        } else {
+                                            $anyCoreSubjects[$subject] = $score;
+                                            $anyCorePassed++;
+                                        }
+                                    }
+                                }
+                                if (strtolower($result['type']) == 'elective') {
+                                    if ($program_name == 'b.sc. nautical science') {
+                                        if ($subject == 'elective mathematics' || $subject == 'elective maths') {
+                                            if (array_key_exists('elective mathematics', $requiredElectiveSubjects)) {
+                                                if ($score < $requiredElectiveSubjects['elective mathematics']) {
+                                                    $requiredElectiveSubjects['elective mathematics'] = $score;
+                                                }
+                                            } else {
+                                                $requiredElectiveSubjects['elective mathematics'] = $score;
+                                                $requiredElectivePassed++;
+                                            }
+                                        } else if ($subject == 'geography') {
+                                            if (array_key_exists('geography', $requiredElectiveSubjects)) {
+                                                if ($score < $requiredElectiveSubjects['geography']) {
+                                                    $requiredElectiveSubjects['geography'] = $score;
+                                                }
+                                            } else {
+                                                $requiredElectiveSubjects['geography'] = $score;
+                                                $requiredElectivePassed++;
+                                            }
+                                        } else {
+                                            if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                                if ($score < $anyElectiveSubjects[$subject]) {
+                                                    $anyElectiveSubjects[$subject] = $score;
+                                                }
+                                            } else {
+                                                $anyElectiveSubjects[$subject] = $score;
+                                                $anyElectiveScores[] = $score;
+                                                $anyElectivePassed++;
+                                            }
+                                        }
+                                    } else {
+                                        if ($subject == 'elective mathematics' || $subject == 'elective maths') {
+                                            if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
+                                                if ($score < $anyElectiveSubjects['elective mathematics']) {
+                                                    $anyElectiveSubjects['elective mathematics'] = $score;
+                                                }
+                                            } else {
+                                                $requiredElectiveSubjects['elective mathematics'] = $score;
+                                                $requiredElectivePassed++;
+                                            }
+                                        } else {
+                                            if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                                if ($score < $anyElectiveSubjects[$subject]) {
+                                                    $anyElectiveSubjects[$subject] = $score;
+                                                }
+                                            } else {
+                                                $anyElectiveSubjects[$subject] = $score;
+                                                $anyElectiveScores[] = $score;
+                                                $anyElectivePassed++;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if ($program_group == 'B') {
+                    foreach ($applicant['sch_rslt'] as $result) {
+                        $score = 0;
+                        $subject_type = strtolower($result['type']);
+                        $subject = strtolower($result['subject']);
 
-    //                         if ($score >= 1 && $score <= 7) {
-    //                             if ($subject_type == 'core') {
-    //                                 if ($subject == 'core mathematics' || $subject == 'core maths') {
-    //                                     if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['core mathematics']) {
-    //                                             $requiredCoreSubjects['core mathematics'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['core mathematics'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
-    //                                     if (array_key_exists('english language', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['english language']) {
-    //                                             $requiredCoreSubjects['english language'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['english language'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } elseif ($subject == 'integrated science' || $subject == 'int science') {
-    //                                     if (array_key_exists('integrated science', $requiredCoreSubjects)) {
-    //                                         if ($score < $requiredCoreSubjects['integrated science']) {
-    //                                             $requiredCoreSubjects['integrated science'] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $requiredCoreSubjects['integrated science'] = $score;
-    //                                         $requiredCorePassed++;
-    //                                     }
-    //                                 } else {
-    //                                     if (array_key_exists($subject, $anyCoreSubjects)) {
-    //                                         if ($score < $anyCoreSubjects[$subject]) {
-    //                                             $anyCoreSubjects[$subject] = $score;
-    //                                         }
-    //                                     } else {
-    //                                         $anyCoreSubjects[$subject] = $score;
-    //                                         $anyCorePassed++;
-    //                                     }
-    //                                 }
-    //                             }
-    //                             if (strtolower($result['type']) == 'elective') {
-    //                                 if ($program_name == 'b.sc. nautical science') {
-    //                                     if ($subject == 'elective mathematics' || $subject == 'elective maths') {
-    //                                         if (array_key_exists('elective mathematics', $requiredElectiveSubjects)) {
-    //                                             if ($score < $requiredElectiveSubjects['elective mathematics']) {
-    //                                                 $requiredElectiveSubjects['elective mathematics'] = $score;
-    //                                             }
-    //                                         } else {
-    //                                             $requiredElectiveSubjects['elective mathematics'] = $score;
-    //                                             $requiredElectivePassed++;
-    //                                         }
-    //                                     } else if ($subject == 'geography') {
-    //                                         if (array_key_exists('geography', $requiredElectiveSubjects)) {
-    //                                             if ($score < $requiredElectiveSubjects['geography']) {
-    //                                                 $requiredElectiveSubjects['geography'] = $score;
-    //                                             }
-    //                                         } else {
-    //                                             $requiredElectiveSubjects['geography'] = $score;
-    //                                             $requiredElectivePassed++;
-    //                                         }
-    //                                     }
-    //                                 } else {
-    //                                     if ($subject == 'elective mathematics' || $subject == 'elective maths') {
-    //                                         if (array_key_exists('elective mathematics', $anyElectiveSubjects)) {
-    //                                             if ($score < $anyElectiveSubjects['elective mathematics']) {
-    //                                                 $anyElectiveSubjects['elective mathematics'] = $score;
-    //                                             }
-    //                                         } else {
-    //                                             $requiredElectiveSubjects['elective mathematics'] = $score;
-    //                                             $requiredElectivePassed++;
-    //                                         }
-    //                                     } else {
-    //                                         if (array_key_exists($subject, $anyElectiveSubjects)) {
-    //                                             if ($score < $anyElectiveSubjects[$subject]) {
-    //                                                 $anyElectiveSubjects[$subject] = $score;
-    //                                             }
-    //                                         } else {
-    //                                             $anyElectiveSubjects[$subject] = $score;
-    //                                             $anyElectiveScores[] = $score;
-    //                                             $anyElectivePassed++;
-    //                                         }
-    //                                     }
-    //                                 }
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             } else if ($program_group == 'B') {
-    //                 foreach ($applicants['sch_rslt'] as $result) {
-    //                     $score = 0;
-    //                     $subject_type = strtolower($result['type']);
-    //                     $subject = strtolower($result['subject']);
+                        foreach ($gradeRange as $range) {
+                            if ($result['grade'] == $range['grade']) {
+                                $score = $range['score'];
+                                break;
+                            }
+                        }
 
-    //                     foreach ($gradeRange as $range) {
-    //                         if ($result['grade'] == $range['grade']) {
-    //                             $score = $range['score'];
-    //                             break;
-    //                         }
-    //                     }
+                        if ($score >= 1 && $score <= 7) {
+                            if ($subject_type == 'core') {
+                                if ($subject == 'core mathematics' || $subject == 'core maths') {
+                                    if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
+                                        if ($score < $requiredCoreSubjects['core mathematics']) {
+                                            $requiredCoreSubjects['core mathematics'] = $score;
+                                        }
+                                    } else {
+                                        $requiredCoreSubjects['core mathematics'] = $score;
+                                        $requiredCorePassed++;
+                                    }
+                                } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
+                                    if (array_key_exists('english language', $requiredCoreSubjects)) {
+                                        if ($score < $requiredCoreSubjects['english language']) {
+                                            $requiredCoreSubjects['english language'] = $score;
+                                        }
+                                    } else {
+                                        $requiredCoreSubjects['english language'] = $score;
+                                        $requiredCorePassed++;
+                                    }
+                                } elseif ($subject == 'integrated science' || $subject == 'int science') {
+                                    if (array_key_exists('integrated science', $requiredCoreSubjects)) {
+                                        if ($score < $requiredCoreSubjects['integrated science']) {
+                                            $requiredCoreSubjects['integrated science'] = $score;
+                                        }
+                                    } else {
+                                        $requiredCoreSubjects['integrated science'] = $score;
+                                        $requiredCorePassed++;
+                                    }
+                                } else {
+                                    if (array_key_exists($subject, $anyCoreSubjects)) {
+                                        if ($score < $anyCoreSubjects[$subject]) {
+                                            $anyCoreSubjects[$subject] = $score;
+                                        }
+                                    } else {
+                                        $anyCoreSubjects[$subject] = $score;
+                                        $anyCorePassed++;
+                                    }
+                                }
+                            }
+                            if (strtolower($result['type']) == 'elective') {
+                                if (array_key_exists($subject, $anyElectiveSubjects)) {
+                                    if ($score < $anyElectiveSubjects[$subject]) {
+                                        $anyElectiveSubjects[$subject] = $score;
+                                    }
+                                } else {
+                                    $anyElectiveSubjects[$subject] = $score;
+                                    $anyElectiveScores[] = $score;
+                                    $anyElectivePassed++;
+                                }
+                            }
+                        }
+                    }
+                }
+                break;
+        }
 
-    //                     if ($score >= 1 && $score <= 7) {
-    //                         if ($subject_type == 'core') {
-    //                             if ($subject == 'core mathematics' || $subject == 'core maths') {
-    //                                 if (array_key_exists('core mathematics', $requiredCoreSubjects)) {
-    //                                     if ($score < $requiredCoreSubjects['core mathematics']) {
-    //                                         $requiredCoreSubjects['core mathematics'] = $score;
-    //                                     }
-    //                                 } else {
-    //                                     $requiredCoreSubjects['core mathematics'] = $score;
-    //                                     $requiredCorePassed++;
-    //                                 }
-    //                             } elseif ($subject == 'english language' || $subject == 'english lang' || $subject == 'english') {
-    //                                 if (array_key_exists('english language', $requiredCoreSubjects)) {
-    //                                     if ($score < $requiredCoreSubjects['english language']) {
-    //                                         $requiredCoreSubjects['english language'] = $score;
-    //                                     }
-    //                                 } else {
-    //                                     $requiredCoreSubjects['english language'] = $score;
-    //                                     $requiredCorePassed++;
-    //                                 }
-    //                             } elseif ($subject == 'integrated science' || $subject == 'int science') {
-    //                                 if (array_key_exists('integrated science', $requiredCoreSubjects)) {
-    //                                     if ($score < $requiredCoreSubjects['integrated science']) {
-    //                                         $requiredCoreSubjects['integrated science'] = $score;
-    //                                     }
-    //                                 } else {
-    //                                     $requiredCoreSubjects['integrated science'] = $score;
-    //                                     $requiredCorePassed++;
-    //                                 }
-    //                             } else {
-    //                                 if (array_key_exists($subject, $anyCoreSubjects)) {
-    //                                     if ($score < $anyCoreSubjects[$subject]) {
-    //                                         $anyCoreSubjects[$subject] = $score;
-    //                                     }
-    //                                 } else {
-    //                                     $anyCoreSubjects[$subject] = $score;
-    //                                     $anyCorePassed++;
-    //                                 }
-    //                             }
-    //                         }
-    //                         if (strtolower($result['type']) == 'elective') {
-    //                             if (array_key_exists($subject, $anyElectiveSubjects)) {
-    //                                 if ($score < $anyElectiveSubjects[$subject]) {
-    //                                     $anyElectiveSubjects[$subject] = $score;
-    //                                 }
-    //                             } else {
-    //                                 $anyElectiveSubjects[$subject] = $score;
-    //                                 $anyElectiveScores[] = $score;
-    //                                 $anyElectivePassed++;
-    //                             }
-    //                         }
-    //                     }
-    //                 }
-    //             }
-    //             break;
-    //     }
+        asort($anyElectiveSubjects);
+        asort($requiredCoreSubjects);
+        asort($requiredElectiveSubjects);
 
-    //     asort($anyElectiveSubjects);
-    //     asort($requiredCoreSubjects);
-    //     asort($requiredElectiveSubjects);
+        $res_count = 1;
+        $aes_count = 2;
 
-    //     $res_count = 1;
-    //     $aes_count = 2;
+        if ($program_group == 'A') {
+            if ($course_of_study == 'general science' || $course_of_study == 'science') {
+                $res_count = 1;
+                $aes_count = 2;
+            } else {
+                $res_count = 2;
+                $aes_count = 1;
+            }
+        } else if ($program_group == 'B') {
+            $res_count = 0;
+            $aes_count = 3;
+        }
 
-    //     if ($program_group == 'A') {
-    //         if ($course_of_study == 'general science' || $course_of_study == 'science') {
-    //             $res_count = 1;
-    //             $aes_count = 2;
-    //         } else {
-    //             $res_count = 2;
-    //             $aes_count = 1;
-    //         }
-    //     } else if ($program_group == 'B') {
-    //         $res_count = 0;
-    //         $aes_count = 3;
-    //     }
+        $sortedRequiredCoreSubjects = array_slice($requiredCoreSubjects, 0, 3);
+        $sortedRequiredElectiveSubjects = array_slice($requiredElectiveSubjects, 0, $res_count);
+        $sortedAnyElectiveSubjects = array_slice($anyElectiveSubjects, 0, $aes_count);
 
-    //     $sortedRequiredCoreSubjects = array_slice($requiredCoreSubjects, 0, 3);
-    //     $sortedRequiredElectiveSubjects = array_slice($requiredElectiveSubjects, 0, $res_count);
-    //     $sortedAnyElectiveSubjects = array_slice($anyElectiveSubjects, 0, $aes_count);
+        $totalCoreScore = array_sum($sortedRequiredCoreSubjects);
+        $requiredElectiveScore = array_sum($sortedRequiredElectiveSubjects);
+        $anyBestElectiveScore = array_sum($sortedAnyElectiveSubjects);
 
-    //     $totalCoreScore = array_sum($sortedRequiredCoreSubjects);
-    //     $requiredElectiveScore = array_sum($sortedRequiredElectiveSubjects);
-    //     $anyBestElectiveScore = array_sum($sortedAnyElectiveSubjects);
+        $totalElectiveScore = $anyBestElectiveScore + $requiredElectiveScore;
+        $totalScore = $totalCoreScore + $totalElectiveScore;
 
-    //     $totalElectiveScore = $anyBestElectiveScore + $requiredElectiveScore;
-    //     $totalScore = $totalCoreScore + $totalElectiveScore;
+        if ($program_group == 'B') {
+            $requiredElectivePassed = count($sortedAnyElectiveSubjects);
+        }
 
-    //     if ($program_group == 'B') {
-    //         $requiredElectivePassed = count($sortedAnyElectiveSubjects);
-    //     }
+        return [
+            'program_group' => $program_group,
+            'program_type' => $program_type,
+            'required_core_passed' => $requiredCorePassed,
+            'required_elective_passed' => $requiredElectivePassed,
+            'required_core_subjects' => $sortedRequiredCoreSubjects,
+            'required_elective_subjects' => $sortedRequiredElectiveSubjects,
+            'additional_elective_subjects' => $sortedAnyElectiveSubjects,
+            'total_core_score' => $totalCoreScore,
+            'total_elective_score' => $totalElectiveScore,
+            'total_score' => $totalScore
+        ];
+    }
 
-    //     return [
-    //         'program_group' => $program_group,
-    //         'program_type' => $program_type,
-    //         'required_core_passed' => $requiredCorePassed,
-    //         'required_elective_passed' => $requiredElectivePassed,
-    //         'required_core_subjects' => $sortedRequiredCoreSubjects,
-    //         'required_elective_subjects' => $sortedRequiredElectiveSubjects,
-    //         'additional_elective_subjects' => $sortedAnyElectiveSubjects,
-    //         'total_core_score' => $totalCoreScore,
-    //         'total_elective_score' => $totalElectiveScore,
-    //         'total_score' => $totalScore
-    //     ];
-    // }
-
-    private function admitApplicant(array $applicantResult, string $stream)
+    private function checkAndShortlistApplicant(array $applicantResult, string $stream)
     {
         $qualified = $admitted = false;
         if ($applicantResult['feed']['program_group'] == 'A' && $applicantResult['feed']['program_type'] == 1) {
@@ -2252,7 +2274,7 @@ class AdminController
                 }
 
                 if ($qualified) {
-                    $status = $this->admitIndividualApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
+                    $status = $this->shortlistApplicant($applicantResult['app_id'], $applicantResult['prog_id'], $stream, 100, true, true);
                     if (!empty($status)) {
                         if ($status["success"]) {
                             $admitted = true;
@@ -3687,7 +3709,7 @@ class AdminController
         return $this->dm->getData($query, array(":n" => $setting));
     }
 
-    public function shortlistedApplication($appLogin, $programId, $stream, $level, $sendEmail, $sendSms)
+    public function shortlistApplicant($appLogin, $programId, $stream, $level, $sendEmail, $sendSms)
     {
         $query = "INSERT INTO shortlisted_applications (`app_login`, `program_id`, `stream`, `level`, `send_email`, `send_sms`) 
                      VALUES (:login, :program, :stream, :level, :email, :sms)";
