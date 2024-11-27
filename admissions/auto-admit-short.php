@@ -54,11 +54,11 @@ require_once('../inc/page-data.php');
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Admit Applicants</h1>
+            <h1>Admit Voc/Prof Applicants</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Admit Applicants</li>
+                    <li class="breadcrumb-item active">Admit Voc/Prof Applicants</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
@@ -71,15 +71,8 @@ require_once('../inc/page-data.php');
 
                     <div class="card recent-sales overflow-auto">
 
-                        <div class="filter">
-                            <span id="dbs-progress"></span>
-                            <a class="icon" id="download-bs" href="javascript:void()" data-bs-toggle="tooltip" data-bs-placement="bottom" data-bs-title="Download Broadsheets">
-                                <i class="bi bi-download"></i>
-                            </a>
-                        </div>
-
                         <div class="card-body">
-                            <h5 class="card-title">Admit Applicants</h5>
+                            <h5 class="card-title"></h5>
                             <div id="info-output"></div>
                             <table class="table table-borderless datatable table-striped table-hover">
                                 <thead>
@@ -110,7 +103,7 @@ require_once('../inc/page-data.php');
                                 </tbody>
                             </table>
                             <div class="mt-4" style="float:right">
-                                <button class="btn btn-primary" id="admit-short">Admit Applicants</button>
+                                <button class="btn btn-primary" id="admit-short">Admit</button>
                             </div>
                             <div class="clearfix"></div>
                         </div>
@@ -184,6 +177,7 @@ require_once('../inc/page-data.php');
                                 '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
                                 '</div>'
                             );
+                            $("#admit-short").hide();
                         }
 
                     },
@@ -250,7 +244,7 @@ require_once('../inc/page-data.php');
                 },
                 ajaxStop: function() {
                     if (triggeredBy == 1) $("#submitBtn").prop("disabled", false).html('Fetch Data');
-                    if (triggeredBy == 2) $("#admit-short").prop("disabled", false).html('Shortlist Qualified');
+                    if (triggeredBy == 2) $("#admit-short").prop("disabled", false).html('Admit');
                     if (triggeredBy == 3) $("#viewAppDeatilsBtn").prop("disabled", false).html('View');
                 }
             });

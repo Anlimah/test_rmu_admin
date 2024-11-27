@@ -135,7 +135,7 @@ require_once('../inc/page-data.php');
                                 </tbody>
                             </table>
                             <div class="mt-4" style="float:right">
-                                <button class="btn btn-primary" id="shortlist-qualified">Shortlist Qualified</button>
+                                <button class="btn btn-primary" id="shortlist-qualified" style="display: none;">Shortlist Qualified</button>
                             </div>
                             <div class="clearfix"></div>
                         </div>
@@ -170,6 +170,7 @@ require_once('../inc/page-data.php');
                         console.log(result);
 
                         if (result.success) {
+                            $("#shortlist-qualified").show();
                             $("tbody").html('');
                             $.each(result.message, function(index, value) {
                                 //let status = value.declaration == 1 ? '<span class="badge text-bg-success">Q</span>' : '<span class="badge text-bg-danger">F</span>';
@@ -209,6 +210,7 @@ require_once('../inc/page-data.php');
                                 '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>' +
                                 '</div>'
                             );
+                            $("#shortlist-qualified").show();
                         }
 
                     },
