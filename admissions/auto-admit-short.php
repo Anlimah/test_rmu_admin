@@ -110,7 +110,7 @@ require_once('../inc/page-data.php');
                                 </tbody>
                             </table>
                             <div class="mt-4" style="float:right">
-                                <button class="btn btn-primary" id="shortlist-qualified">Shortlist Qualified</button>
+                                <button class="btn btn-primary" id="admit-short">Admit Applicants</button>
                             </div>
                             <div class="clearfix"></div>
                         </div>
@@ -196,16 +196,11 @@ require_once('../inc/page-data.php');
             let triggeredBy = 1;
             fetchBroadsheet();
 
-            $('#shortlist-qualified').click(function() {
+            $('#admit-short').click(function() {
                 triggeredBy = 2;
-                data = {
-                    "cert-type": $("#cert-type").val(),
-                    "prog-type": $("#prog-type").val(),
-                }
-
                 $.ajax({
                     type: "POST",
-                    url: "../endpoint/shortlist-qualified",
+                    url: "../endpoint/admit-short",
                     data: data,
                     success: function(result) {
                         console.log(result);
@@ -250,12 +245,12 @@ require_once('../inc/page-data.php');
             $(document).on({
                 ajaxStart: function() {
                     if (triggeredBy == 1) $("#submitBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> sending...');
-                    if (triggeredBy == 2) $("#shortlist-qualified").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
+                    if (triggeredBy == 2) $("#admit-short").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Processing...');
                     if (triggeredBy == 3) $("#viewAppDeatilsBtn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> ...');
                 },
                 ajaxStop: function() {
                     if (triggeredBy == 1) $("#submitBtn").prop("disabled", false).html('Fetch Data');
-                    if (triggeredBy == 2) $("#shortlist-qualified").prop("disabled", false).html('Shortlist Qualified');
+                    if (triggeredBy == 2) $("#admit-short").prop("disabled", false).html('Shortlist Qualified');
                     if (triggeredBy == 3) $("#viewAppDeatilsBtn").prop("disabled", false).html('View');
                 }
             });

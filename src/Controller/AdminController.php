@@ -1560,18 +1560,37 @@ class AdminController
         return 0;
     }
 
+    public function admitShortApplicants($app_id, $prog_id, $stream, $extras = []): mixed
+    {
+        $extras_query = "";
+        if (!empty($extras)) {
+            $extras_query = "`emailed_letter` = 1, `notified_sms` = 1, ";
+        } else {
+            if (isset($extras["emailed_letter"])) {
+                if (empty($extras["emailed_letter"])) $extras_query .= "`emailed_letter` = 0, ";
+                else $extras_query .= "`emailed_letter` = 1, ";
+            }
+            if (isset($extras["notified_sms"])) {
+                if (empty($extras["notified_sms"])) $extras_query .= "`notified_sms` = 0, ";
+                else $extras_query .= "`notified_sms` = 1, ";
+            }
+        }
+        $query = "UPDATE `form_sections_chek` 
+        SET shortlisted = 1, `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p, `stream_admitted` = :s 
+        WHERE `app_login` = :i";
+        return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id, ":s" => $stream)));
+    }
+
     public function processShortApplicants(array $applicantData)
     {
         $admitted = 0;
         foreach ($applicantData as $applicant) {
-            $status = $this->admitIndividualApplicant($applicant['app_id'], $applicant['prog_id'], $applicant['app_pers']['study_stream'], 100, true, true);
-            if (!empty($status)) {
-                if ($status["success"]) {
-                    $admitted++;
-                }
+            $status = $this->admitShortApplicants($applicant['app_pers']['id'], $applicant['prog_info']['id'], $applicant['app_pers']['study_stream'], 100, true, true);
+            if ($status) {
+                $admitted++;
             }
         }
-        return array("success" => true, "message" => "successfully admitted {} applicants in vocational/professional courses");
+        return array("success" => true, "message" => "successfully admitted {$admitted} applicants in vocational/professional courses");
     }
 
     public function processApplicants(array $applicantData, array $qualifications)
