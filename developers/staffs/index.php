@@ -3,14 +3,14 @@ session_start();
 
 $_SESSION["lastAccessed"] = time();
 
-require_once('../bootstrap.php');
+require_once('../../bootstrap.php');
 
 use Src\Controller\AdminController;
 
-require_once('../inc/admin-database-con.php');
+require_once('../../inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
-require_once('../inc/page-data.php');
+require_once('../../inc/page-data.php');
 
 $adminSetup = true;
 ?>
@@ -18,7 +18,7 @@ $adminSetup = true;
 <html lang="en">
 
 <head>
-    <?= require_once("../inc/head.php") ?>
+    <?= require_once("../../inc/head.php") ?>
     <style>
         .arrow {
             display: inline-block;
@@ -28,9 +28,9 @@ $adminSetup = true;
 </head>
 
 <body>
-    <?= require_once("../inc/header.php") ?>
+    <?= require_once("../../inc/header.php") ?>
 
-    <?= require_once("../inc/sidebar.php") ?>
+    <?= require_once("../../inc/sidebar.php") ?>
 
     <main id="main" class="main">
 
@@ -59,10 +59,10 @@ $adminSetup = true;
                             <div class="card info-card sales-card">
                                 <div class="card-body">
                                     <a href="applications.php?t=1&c=MASTERS">
-                                        <h5 class="card-title">PROGRAMS</h5>
+                                        <h5 class="card-title">MASTERS</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-masters.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-masters.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "MASTERS")[0]["total"]; ?></h6>
@@ -79,10 +79,10 @@ $adminSetup = true;
                             <div class="card info-card sales-card">
                                 <div class="card-body">
                                     <a href="applications.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">COURSES</h5>
+                                        <h5 class="card-title">UPGRADERS</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-captain.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
@@ -111,7 +111,7 @@ $adminSetup = true;
                                             <h5 class="card-title"><?= $form_type["name"] ?></h5>
                                             <div class="d-flex align-items-center">
                                                 <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                    <img src="../assets/img/icons8-<?= ucfirst(strtolower($form_type["name"])) ?>.png" style="width: 48px;" alt="">
+                                                    <img src="../../assets/img/icons8-<?= ucfirst(strtolower($form_type["name"])) ?>.png" style="width: 48px;" alt="">
                                                 </div>
                                                 <div class="ps-3">
                                                     <h6><?= $admin->fetchTotalApplications($_SESSION["admin_period"], $form_type["id"])[0]["total"]; ?></h6>
@@ -134,7 +134,7 @@ $adminSetup = true;
                                         <h5 class="card-title">WASSCE Awaiting Results</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-queue-64.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-queue-64.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <h6><?= $admin->fetchTotalAwaitingResults()[0]["total"]; ?></h6>
@@ -155,26 +155,7 @@ $adminSetup = true;
                                         <h5 class="card-title">Auto WASSCE Admitting</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-checked-user-male-96.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <span class="text-muted small pt-2 ps-1">Admit (WASSCE, SSSCE, GCBE, NECO) applicants</span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div><!-- End Broadsheets Card -->
-
-                        <!-- Broadsheets Card -->
-                        <div class="col-xxl-3 col-md-3">
-                            <div class="card info-card">
-                                <div class="card-body">
-                                    <a href="auto-admit-short.php" style="text-decoration: none;">
-                                        <h5 class="card-title">Auto VOC/PROF Admitting</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-checked-user-male-96.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-checked-user-male-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <span class="text-muted small pt-2 ps-1">Admit (WASSCE, SSSCE, GCBE, NECO) applicants</span>
@@ -193,7 +174,7 @@ $adminSetup = true;
                                         <h5 class="card-title">Shortlisted Applications</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <h6><?= $admin->getshortlistedApplicationsCountByStatus('pending')[0]["total"]; ?></h6>
@@ -213,7 +194,7 @@ $adminSetup = true;
                                         <h5 class="card-title">Accepted Admissions</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <h6><?= $admin->getAcceptedAdmissionsCountByStatus(0)[0]["total"]; ?></h6>
@@ -233,7 +214,7 @@ $adminSetup = true;
                                         <h5 class="card-title">Enrolled Applicants</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <span class="text-muted small pt-2 ps-1">List of enrolled applicants</span>
@@ -252,7 +233,7 @@ $adminSetup = true;
                                         <h5 class="card-title">Declined Applicants</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-users-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <span class="text-muted small pt-2 ps-1">List of all declined applicants</span>
@@ -271,7 +252,7 @@ $adminSetup = true;
                                         <h5 class="card-title">Broadsheet</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-documents-96.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-documents-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <span class="text-muted small pt-2 ps-1">Download broadsheets</span>
@@ -291,7 +272,7 @@ $adminSetup = true;
                                         <h5 class="card-title">Settings</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-services-96.png" style="width: 48px;" alt="">
+                                                <img src="../../assets/img/icons8-services-96.png" style="width: 48px;" alt="">
                                             </div>
                                             <div class="ps-3">
                                                 <span class="text-muted small pt-2 ps-1">General settings</span>
@@ -310,8 +291,8 @@ $adminSetup = true;
 
     </main><!-- End #main -->
 
-    <?= require_once("../inc/footer-section.php") ?>
-    <script src="../js/jquery-3.6.0.min.js"></script>
+    <?= require_once("../../inc/footer-section.php") ?>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
     <script>
         $(document).ready(function() {
             $("#admission-period").change("blur", function(e) {
@@ -320,7 +301,7 @@ $adminSetup = true;
                 };
                 $.ajax({
                     type: "POST",
-                    url: "../endpoint/set-admission-period",
+                    url: "../../endpoint/set-admission-period",
                     data: data,
                     success: function(result) {
                         console.log(result);

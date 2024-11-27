@@ -1359,6 +1359,21 @@ class AdminController
         return $this->dm->getData($query, array(":c" => $certificate, ":a" => $admission_period));
     }
 
+    public function getAllUnadmitedShortApplicants($admission_period)
+    {
+        $query = "SELECT DISTINCT l.`id`, p.`first_name`, p.`middle_name`, p.`last_name`, 
+                    p.`email_addr`, i.first_prog AS programme,  i.study_stream, a.`cert_type`, a.`other_cert_type`, a.`course_of_study`, a.`other_course_studied` 
+                FROM 
+                    `personal_information` AS p, `academic_background` AS a, `purchase_detail` AS pd, `admission_period` AS ap, 
+                    `applicants_login` AS l, `form_sections_chek` AS f, `program_info` AS i, programs AS pg 
+                WHERE 
+                    pd.`id` = l.`purchase_id` AND pd.`admission_period` = ap.`id` AND 
+                    p.`app_login` = l.`id` AND a.`app_login` = l.`id` AND f.`app_login` = l.`id` AND i.`app_login` = l.`id` AND
+                    a.`awaiting_result` = 0 AND f.`declaration` = 1 AND f.`admitted` = 0 AND ap.id = :a AND 
+                    i.first_prog = pg.name AND pg.category IN ('SHORT', 'VOCATIONAL', 'PROFESSIONAL')";
+        return $this->dm->getData($query, array(':a' => $admission_period));
+    }
+
     public function getAllSumittedApplicants($cert_type)
     {
         $in_query = "";
@@ -1415,6 +1430,14 @@ class AdminController
         $allAppData = $this->getAllUnadmitedApplicants($certificate, $progCategory, $admission_period);
         if (empty($allAppData)) return 0;
         $store = $this->bundleApplicantsData($allAppData, $progCategory);
+        return $store;
+    }
+
+    public function fetchAllUnadmittedShortApplicantsData($admission_period = null)
+    {
+        $allAppData = $this->getAllUnadmitedShortApplicants($admission_period);
+        if (empty($allAppData)) return 0;
+        $store = $this->bundleApplicantsData($allAppData, 'first_prog');
         return $store;
     }
 
@@ -1513,6 +1536,15 @@ class AdminController
     * Admit applicants in groups by their certificate category
     */
 
+    public function admitQualifiedShortApps($admission_period = null)
+    {
+        $students_bs_data = $this->fetchAllUnadmittedShortApplicantsData($admission_period);
+        if (!empty($students_bs_data)) {
+            return $this->processShortApplicants($students_bs_data);
+        }
+        return 0;
+    }
+
     public function shortlistQualifiedStudents($certificate, $progCategory, $admission_period = null)
     {
         $students_bs_data = $this->fetchAllUnadmittedApplicantsData($certificate, $progCategory, $admission_period);
@@ -1526,6 +1558,20 @@ class AdminController
             return $this->processApplicants($students_bs_data, $qualifications);
         }
         return 0;
+    }
+
+    public function processShortApplicants(array $applicantData)
+    {
+        $admitted = 0;
+        foreach ($applicantData as $applicant) {
+            $status = $this->admitIndividualApplicant($applicant['app_id'], $applicant['prog_id'], $applicant['app_pers']['study_stream'], 100, true, true);
+            if (!empty($status)) {
+                if ($status["success"]) {
+                    $admitted++;
+                }
+            }
+        }
+        return array("success" => true, "message" => "successfully admitted {} applicants in vocational/professional courses");
     }
 
     public function processApplicants(array $applicantData, array $qualifications)

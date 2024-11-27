@@ -441,6 +441,14 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     }
 
     //
+    elseif ($_GET["url"] == "getUnadmittedShortApps") {
+        $result = $admin->fetchAllUnadmittedShortApplicantsData($_SESSION["admin_period"]);
+
+        if (empty($result)) die(json_encode(array("success" => false, "message" => "No result found!")));
+        die(json_encode(array("success" => true, "message" => $result)));
+    }
+
+    //
     elseif ($_GET["url"] == "shortlist-qualified") {
         if (!isset($_POST["cert-type"]) || !isset($_POST["prog-type"])) {
             die(json_encode(array("success" => false, "message" => "Invalid input field")));
@@ -455,6 +463,16 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         }
         die(json_encode($result));
     }
+
+    //
+    elseif ($_GET["url"] == "admit-short") {
+        $result = $admin->admitQualifiedShortApps($_SESSION["admin_period"]);
+        if (empty($result)) {
+            die(json_encode(array("success" => false, "message" => "No result found!")));
+        }
+        die(json_encode($result));
+    }
+
     //
     elseif ($_GET["url"] == "downloadBS") {
         if (!isset($_POST["cert-type"]) || empty($_POST["cert-type"]))

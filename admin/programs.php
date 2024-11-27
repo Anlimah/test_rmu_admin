@@ -1,332 +1,447 @@
 <?php
 session_start();
 
-if (!isset($_SESSION["isLoggedIn"]) || $_SESSION["isLoggedIn"] !== true) {
-    // Redirect to index.php
-    header("Location: ./index.php");
-    exit(); // Make sure to exit after redirection
+if (!isset($_SESSION["adminLogSuccess"]) || $_SESSION["adminLogSuccess"] == false || !isset($_SESSION["user"]) || empty($_SESSION["user"])) {
+    header("Location: ../index.php");
 }
-require("../bootstrap.php");
 
-use Core\Base;
-use Controller\Programs;
+$isUser = false;
+if (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "developers") $isUser = true;
 
-$config = require Base::build_path("config/database.php");
+if (isset($_GET['logout']) || !$isUser) {
+    session_destroy();
+    $_SESSION = array();
+    if (ini_get("session.use_cookies")) {
+        $params = session_get_cookie_params();
+        setcookie(
+            session_name(),
+            '',
+            time() - 42000,
+            $params["path"],
+            $params["domain"],
+            $params["secure"],
+            $params["httponly"]
+        );
+    }
 
-$pageTitle = "Programs";
+    header('Location: ../index.php');
+}
+
+if (!isset($_SESSION["_shortlistedFormToken"])) {
+    $rstrong = true;
+    $_SESSION["_shortlistedFormToken"] = hash('sha256', bin2hex(openssl_random_pseudo_bytes(64, $rstrong)));
+    $_SESSION["vendor_type"] = "VENDOR";
+}
+
+$_SESSION["lastAccessed"] = time();
+
+require_once('../bootstrap.php');
+
+use Src\Controller\AdminController;
+
+require_once('../inc/admin-database-con.php');
+
+$admin = new AdminController($db, $user, $pass);
+require_once('../inc/page-data.php');
+
+$pending = $admin->getshortlistedApplicationsCountByStatus('pending')[0]["total"];
+$approved = $admin->getshortlistedApplicationsCountByStatus('approved')[0]["total"];
+$declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["total"];
+
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <?php require Base::build_path("partials/head.php") ?>
+    <?= require_once("../inc/head.php") ?>
+    <style>
+        .hide {
+            display: none;
+        }
+
+        .display {
+            display: block;
+        }
+
+        #wrapper {
+            display: flex;
+            flex-direction: column;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .flex-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flex-container>div {
+            height: 100% !important;
+            width: 100% !important;
+        }
+
+        .flex-column {
+            display: flex !important;
+            flex-direction: column !important;
+        }
+
+        .flex-row {
+            display: flex !important;
+            flex-direction: row !important;
+        }
+
+        .justify-center {
+            justify-content: center !important;
+        }
+
+        .justify-space-between {
+            justify-content: space-between !important;
+        }
+
+        .align-items-center {
+            align-items: center !important;
+        }
+
+        .align-items-baseline {
+            align-items: baseline !important;
+        }
+
+        .flex-card {
+            display: flex !important;
+            justify-content: center !important;
+            flex-direction: row !important;
+        }
+
+        .form-card {
+            height: 100% !important;
+            max-width: 425px !important;
+            padding: 15px 10px 20px 10px !important;
+        }
+
+        .flex-card>.form-card {
+            height: 100% !important;
+            width: 100% !important;
+        }
+
+        .purchase-card-header {
+            padding: 0 !important;
+            width: 100% !important;
+            height: 40px !important;
+        }
+
+        .purchase-card-header>h1 {
+            font-size: 22px !important;
+            font-weight: 600 !important;
+            color: #003262 !important;
+            text-align: center;
+            width: 100%;
+        }
+
+        .purchase-card-step-info {
+            color: #003262;
+            padding: 0px;
+            font-size: 14px;
+            font-weight: 400;
+            width: 100%;
+        }
+
+        .purchase-card-footer {
+            width: 100% !important;
+        }
+    </style>
 </head>
 
 <body>
+    <?= require_once("../inc/header.php") ?>
 
-    <?php require Base::build_path("partials/header.php") ?>
-
-    <?php require Base::build_path("partials/aside.php") ?>
+    <?= require_once("../inc/sidebar.php") ?>
 
     <main id="main" class="main">
 
-        <?php require Base::build_path("partials/page-title.php") ?>
+        <div class="pagetitle">
+            <h1>Shortlisted Applications</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
+                    <li class="breadcrumb-item active">Shortlisted Applications</li>
+                </ol>
+            </nav>
+        </div><!-- End Page Title -->
 
         <section class="section dashboard">
-        <div class="row">
-        <div class="col-lg-12">
-              <div class="card">
-            <div class="card-body">
-                <p></p>
-              <!-- Vertically centered Modal -->
-              <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addNewProgram">
-               ADD
-              </button> <div class="modal fade" id="addNewProgram" tabindex="-1">
-            <div class="modal-dialog modal-fullscreen">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Add new Program</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" style="display: grid; place-items: center; height: 100vh; margin: 0;">
-                        <div style="display: flex; width:600px">
-                            <!-- Multi Columns Form -->
-                            <form id="addNewProgForm" class="row g-3" method="POST">
-                               
-                                <div class="col-md-8">
-                                    <label for="add-prog-code" class="form-label">Program Code</label>
-                                    <input type="text" class="form-control" id="add-prog-code" name="add-prog-code" value="">
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="add-prog-name" class="form-label">Program Name</label>
-                                    <input type="text" class="form-control" id="add-prog-name" name="add-prog-name" value="">
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="add-prog-duration" class="form-label">Duration</label>
-                                    <input type="text" class="form-control" id="add-prog-duration" name="add-prog-duration" value="" placeholder="Duration for that program" >
-                                </div>
-                              
-                           
-                                <input type="hidden" name="department" value="<?= $_SESSION["user"]["fk_department"] ?>">
-                            </form><!-- End Multi Columns Form -->
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <label class="btn btn-secondary" data-bs-dismiss="modal">Close</label>
-                        <label class="btn btn-primary" for="add-program" id="addNewProgBtn">Save changes</label>
-                    </div>
-                </div>
-            </div>
-        </div>
-             <!-- End Vertically centered Modal-->
-            
-            </div>
-          </div>
 
-      </div>
-    </div> 
             <div class="row">
-                <!-- Left side columns -->
+
                 <div class="col-lg-12">
                     <div class="row">
-                        <div class="col-lg-12">
-                            <div class="card">
+
+                        <?php //var_dump($admin->fetchTotalAppsByProgCodeAndAdmisPeriod('MSC', 0)[0]["total"]) 
+                        ?>
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Programs</h5>
-                                    <!-- Bordered Table -->
-                                    <table class="table table-borderless datatable">                                        <thead>
-                                            <tr>
-                                                <th scope="col">#</th>
-                                                <th scope="col">Program Code</th>
-                                                <th scope="col">Name</th>
-                                                <th scope="col">Duration</th>
-                                                <th scope="col"></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                            $programs = new Programs($config["database"]["mysql"]);
-                                            $all_programs = $programs->fetchByDepartment($_SESSION["user"]["fk_department"]);
-
-                                            $counter = 1;
-                                            foreach ($all_programs as $programs) :
-                                            ?>
-                                                <tr>
-                                                    <th scope="row"><?= $counter ?></th>
-                                                    <td><?= $programs["programCode"] ?></td>
-                                                    <td><?= $programs["programName"] ?></td>
-                                                    <td><?= trim($programs["programDuration"] . " " . $programs["durationFormat"]) ?></td>
-
-                                                    <td style="display: flex;">
-                                                        <button type="button" class="btn btn-primary btn-sm me-2 editProgramData" data-program="<?= $programs["programCode"] ?>" data-bs-toggle="modal" data-bs-target="#editProgram">Edit</button>
-                                                                                                              <button type="button" class="btn btn-danger btn-sm archiveBtn" id="<?= $programs["programCode"] ?>">Archive</button>
-                                                        </form>
-                                                    </td>
-                                                </tr>
-                                            <?php
-                                                $counter++;
-                                            endforeach
-                                            ?>
-                                        </tbody>
-                                    </table>
-                                    <!-- End Bordered Table -->
-
+                                    <a href="#">
+                                        <h5 class="card-title">Pending</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-receipt-pending-96.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $pending ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
                                 </div>
                             </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="#">
+                                        <h5 class="card-title">Approved</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-receipt-approved-96.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $approved ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="#">
+                                        <h5 class="card-title">Declined</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-receipt-declined-96.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $declined ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                    </div>
+                </div><!-- Forms Sales Card  -->
+            </div>
+
+        </section>
+
+        <section class="section dashboard">
+            <div class="row">
+                <div class="col-12">
+
+                    <div class="card recent-sales overflow-auto">
+
+                        <div class="card-body">
+                            <h5 class="card-title">Requests</h5>
+                            <form action="#" method="post" id="shortlist-form">
+                                <input type="hidden" name="_FFToken" value="<?= $_SESSION["_shortlistedFormToken"] ?>">
+                                <input type="hidden" name="action" value="">
+                                <table class="table table-borderless datatable table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th scope="col">#</th>
+                                            <th scope="col" style="width:150px">Applicant Name</th>
+                                            <th scope="col">Sex</th>
+                                            <th scope="col">Program</th>
+                                            <th scope="col">Stream</th>
+                                            <th scope="col">Level</th>
+                                            <th scope="col">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $acceptedApplications = $admin->getAllShortlistedApplicationsByStatus('pending');
+                                        if (!empty($acceptedApplications)) {
+                                            $index = 1;
+                                            foreach ($acceptedApplications as $aa) {
+                                                $full_name = $aa["first_name"] . ($aa["middle_name"] ? ' ' . $aa["middle_name"] . ' ' : '') . $aa["last_name"];
+                                        ?>
+                                                <tr>
+                                                    <td><?= $index ?></td>
+                                                    <td><?= $full_name ?></td>
+                                                    <td><?= $aa["gender"] ?></td>
+                                                    <td><?= $aa["program"] ?></td>
+                                                    <td><?= $aa["stream"] ?></td>
+                                                    <td><?= $aa["level"] ?></td>
+                                                    <td>
+                                                        <a href="applicant-info.php?t=2&c=DEGREE&q=<?= $aa["app_login"] ?>"
+                                                            class="btn btn-primary btn-xs view-btn">View</a>
+                                                        <input class="form-check-input" type="checkbox"
+                                                            name="app-login[]" value="<?= $aa["app_login"] ?>">
+                                                    </td>
+                                                </tr>
+                                        <?php
+                                                $index++;
+                                            }
+                                        }
+                                        ?>
+                                    </tbody>
+                                </table>
+                                <?php
+                                if ($pending) {
+                                ?>
+                                    <div class="mt-3" style="display: flex; justify-content:flex-end;">
+                                        <button type="button" id="approve-btn" class="btn btn-success btn-sm me-2">Approve Selected</button>
+                                        <button type="button" id="decline-btn" class="btn btn-danger btn-sm">Decline Selected</button>
+                                    </div>
+                                <?php } ?>
+                            </form>
                         </div>
                     </div>
-                </div><!-- End Left side columns -->
-            </div><!-- End Left side columns -->
-
+                </div>
             </div>
         </section>
 
-        <!-- Add new lecturer modal -->
-        <div class="modal fade" id="addNewProgram" tabindex="-1">
-            <div class="modal-dialog modal-fullscreen">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Add new Program</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" style="display: grid; place-items: center; height: 100vh; margin: 0;">
-                        <div style="display: flex; width:600px">
-                            <!-- Multi Columns Form -->
-                            <form id="addNewProgForm" class="row g-3" method="POST">
-                               
-                                <div class="col-md-8">
-                                    <label for="add-prog-code" class="form-label">Program Code</label>
-                                    <input type="text" class="form-control" id="add-prog-code" name="add-prog-code" value="">
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="add-prog-name" class="form-label">Program Name</label>
-                                    <input type="text" class="form-control" id="add-prog-name" name="add-prog-name" value="">
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="add-prog-duration" class="form-label">Duration</label>
-                                    <input type="text" class="form-control" id="add-prog-duration" name="add-prog-duration" value="" placeholder="Duration for that program" >
-                                </div>
-                              
-                           
-                                <input type="hidden" name="department" value="<?= $_SESSION["user"]["fk_department"] ?>">
-                            </form><!-- End Multi Columns Form -->
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <label class="btn btn-secondary" data-bs-dismiss="modal">Close</label>
-                        <label class="btn btn-primary" for="add-program" id="addNewProgBtn">Save changes</label>
-                    </div>
-                </div>
-            </div>
-        </div><!-- End Full Screen Modal-->
-
-        
-        <!-- Edit Lectuer modal -->
-        <div class="modal fade" id="editProgram" tabindex="-1">
-            <div class="modal-dialog modal-fullscreen">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title">Edit Program</h5>
-                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body" style="display: grid; place-items: center; height: 100vh; margin: 0;">
-
-                        <div style="display: flex; width:600px">
-                            <!-- Multi Columns Form -->
-                            <form class="row g-3" method="POST"  id="editProgForm">
-                             
-                                        
-                            <div class="col-md-8">
-                                    <label for="edit-prog-code" class="form-label">Program Code</label>
-                                    <input type="text" class="form-control" id="edit-prog-code" name="edit-prog-code" value="">
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="edit-prog-name" class="form-label">Program Name</label>
-                                    <input type="text" class="form-control" id="edit-prog-name" name="edit-prog-name" value="">
-                                </div>
-                                <div class="col-md-8">
-                                    <label for="edit-prog-duration" class="form-label">Duration</label>
-                                    <input type="text" class="form-control" id="edit-prog-duration" name="edit-prog-duration" value="" placeholder="Duration for that program" >
-                                </div>
-                                 <div class="col-md-8">
-                                    <label for="edit-prog-format" class="form-label">Format</label>
-                                    <input type="text" class="form-control" id="edit-prog-format" name="edit-prog-format" value="" >
-                                <input type="hidden" name="edit-prog-number" id="edit-prog-number" value="">
-                                <input type="hidden" name="department" value="<?= $_SESSION["user"]["fk_department"] ?>">
-
-                            </form><!-- End Multi Columns Form -->
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <label class="btn btn-secondary" data-bs-dismiss="modal">Close</label>
-                        <label class="btn btn-primary" for="edit-program" id="editProgBtn">Save changes</label>
-                    </div>
-                </div>
-            </div>
-        </div><!-- End Full Screen Modal-->
-        <?php
-        // endforeach;
-        // endif;
-        ?>
-
     </main><!-- End #main -->
 
-    <?php require Base::build_path("partials/foot.php") ?>
+    <?= require_once("../inc/footer-section.php") ?>
     <script>
         $(document).ready(function() {
 
-            $(".editProgramData").on("click", function() {
-                progID = this.dataset.program;
-
+            $(".form-select").change("blur", function() {
                 $.ajax({
-                    type: "GET",
-                    url: "../api/program/fetch?program=" + progID,
-                }).done(function(data) {
-                    console.log(data);
-                    if (data.success) {
-                        $("#edit-prog-name").val(data.message["programName"]);
-                        $("#edit-prog-code").val(data.message["programCode"]);
-                        $("#edit-prog-duration").val(data.message["programDuration"]);
-                        $("#edit-prog-number").val(data.message["programCode"]);
-                        $("#edit-prog-format").val(data.message["durationFormat"]);
-
-                        
-                    } else {
-                        alert(data.message)
+                    type: "POST",
+                    url: "../endpoint/formInfo",
+                    data: {
+                        form_id: this.value,
+                    },
+                    success: function(result) {
+                        console.log(result);
+                        if (result.success) {
+                            $("#form-cost-display").show();
+                            $("#form-name").text(result.message[0]["name"]);
+                            $("#form-cost").text(result.message[0]["amount"]);
+                            $("#form_price").val(result.message[0]["amount"]);
+                            //$("#form_type").val(result.message[0]["form_type"]);
+                            $(':input[type="submit"]').prop('disabled', false);
+                        } else {
+                            if (result.message == "logout") {
+                                window.location.href = "?logout=true";
+                                return;
+                            }
+                        }
+                    },
+                    error: function(error) {
+                        console.log(error.statusText);
                     }
-                }).fail(function(err) {
-                    console.log(err);
                 });
             });
 
-            $("#addNewProgBtn").on("click", function() {
-                $("#addNewProgForm").submit();
-            });
+            $("#approve-btn, #decline-btn").on("click", function(e) {
+                const formAction = $(this).attr('id') === 'approve-btn' ? 'approve' : 'decline';
+                const selectedCount = $('input[name="app-login[]"]:checked').length;
 
-            $("#addNewProgForm").on("submit", function(e) {
-                e.preventDefault();
+                if (selectedCount === 0) {
+                    alert("Please select at least one application.");
+                    return;
+                }
+
+                const confirmMessage = `Are you sure you want to ${formAction} ${selectedCount} selected application(s)?`;
+                if (!confirm(confirmMessage)) return;
+
+                // Set the action value
+                $('input[name="action"]').val(formAction);
+
+                // Submit the form
+                const form = $("#shortlist-form")[0];
+                const formData = new FormData(form);
 
                 $.ajax({
                     type: "POST",
-                    url: "../api/program/add",
-                    data: new FormData(this),
+                    url: "../endpoint/shortlisted-application",
+                    data: formData,
                     contentType: false,
-                    processData: false,
                     cache: false,
-                }).done(function(data) {
-                    console.log(data);
-                    alert(data.message);
-                    if (data.success) window.location.reload();
-                }).fail(function(err) {
-                    console.log(err);
-                });
-            });
-
-            $("#editProgBtn").on("click", function() {
-                $("#editProgForm").submit();
-            });
-
-            $("#editProgForm").on("submit", function(e) {
-                e.preventDefault();
-
-                $.ajax({
-                    type: "POST",
-                    url: "../api/program/edit",
-                    data: new FormData(this),
-                    contentType: false,
                     processData: false,
-                    cache: false,
-                }).done(function(data) {
-                    console.log(data);
-                    alert(data.message);
-                    if (data.success) window.location.reload();
-                }).fail(function(err) {
-                    console.log(err);
-                });
-            });
-            $(".archiveBtn").on("click", function() {
-                if (confirm("Are you sure you want to archive this student's information?")) {
-                    formData = {
-                        "archive-prog": $(this).attr("id")
+                    success: function(result) {
+                        console.log(result);
+                        if (result.success) {
+                            alert(result.message);
+                            location.reload();
+                        } else {
+                            if (result.message == "logout") {
+                                alert('Your session expired. Please refresh the page to continue!');
+                                window.location.href = "?logout=true";
+                            } else {
+                                alert(result.message);
+                            }
+                        }
+                    },
+                    error: function(error) {
+                        console.log("error area: ", error);
+                        alert("An error occurred while processing your request.");
                     }
+                });
+            });
 
-                    $.ajax({
-                        type: "POST",
-                        url: "../api/program/archive",
-                        data: formData,
-                    }).done(function(data) {
-                        console.log(data);
-                        alert(data.message);
-                        if (data.success) window.location.reload();
-                    }).fail(function(err) {
-                        console.log(err);
-                    });
+            $("#num1").focus();
+
+            $(".num").on("keyup", function() {
+                if (this.value.length == 4) {
+                    $(this).next(":input").focus().select(); //.val(''); and as well clesr
+                }
+            });
+
+            $("input[type='text']").on("click", function() {
+                $(this).select();
+            });
+
+            function flashMessage(bg_color, message) {
+                const flashMessage = document.getElementById("flashMessage");
+
+                flashMessage.classList.add(bg_color);
+                flashMessage.innerHTML = message;
+
+                setTimeout(() => {
+                    flashMessage.style.visibility = "visible";
+                    flashMessage.classList.add("show");
+                }, 1000);
+
+                setTimeout(() => {
+                    flashMessage.classList.remove("show");
+                    setTimeout(() => {
+                        flashMessage.style.visibility = "hidden";
+                    }, 5000);
+                }, 5000);
+            }
+        });
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $(document).on({
+                ajaxStart: function() {
+                    // Show full page LoadingOverlay
+                    $.LoadingOverlay("show");
+                },
+                ajaxStop: function() {
+                    // Hide it after 3 seconds
+                    $.LoadingOverlay("hide");
                 }
             });
         });
     </script>
-
 </body>
 
 </html>

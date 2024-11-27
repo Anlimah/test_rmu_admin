@@ -1,281 +1,156 @@
 <?php
 session_start();
 
-if (!isset($_SESSION["isLoggedIn"]) || $_SESSION["isLoggedIn"] !== true) {
-    // Redirect to index.php
-    header("Location: ./index.php");
-    exit(); // Make sure to exit after redirection
-}
+$_SESSION["lastAccessed"] = time();
 
-require("../bootstrap.php");
+require_once('../bootstrap.php');
 
-use Controller\Counts;
-use Core\Base;
-use Controller\Sections;
-$config = require Base::build_path("config/database.php");
-$counts = new Counts($config["database"]["mysql"]);
+use Src\Controller\AdminController;
 
-$pageTitle = "Dashboard";
+require_once('../inc/admin-database-con.php');
 
+$admin = new AdminController($db, $user, $pass);
+require_once('../inc/page-data.php');
+
+$adminSetup = true;
 ?>
-
-
 <!DOCTYPE html>
 <html lang="en">
 
 <head>
-    <?php require Base::build_path("partials/head.php") ?>
+    <?= require_once("../inc/head.php") ?>
+    <style>
+        .arrow {
+            display: inline-block;
+            margin-left: 10px;
+        }
+    </style>
 </head>
 
 <body>
+    <?= require_once("../inc/header.php") ?>
 
-    <?php require Base::build_path("partials/header.php") ?>
-
-    <?php require Base::build_path("partials/aside.php") ?>
+    <?= require_once("../inc/sidebar.php") ?>
 
     <main id="main" class="main">
 
-        <?php require Base::build_path("partials/page-title.php") ?>
-    
-        <section class="section dashboard">
-            <?php if (isset($_SESSION["user"]["role"]) && ($_SESSION["user"]["role"] === "secretary" || $_SESSION["user"]["role"] === "hod")) { ?>
-        <div class="row">
+        <div class="pagetitle">
+            <h1>Applications</h1>
+            <nav>
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
+                </ol>
+            </nav>
+        </div><!-- End Page Title -->
+
+        <section class=" section dashboard">
+
+            <!-- Dashboard view -->
+            <div class="row" <?= isset($_GET["a"]) && isset($_GET["s"]) ? 'style="display:none"' : "" ?>>
+
                 <!-- Left side columns -->
                 <div class="col-lg-12">
                     <div class="row">
-                        <!-- Sales Card -->
-                        <div class="col-xxl-3 col-md-6">
+
+                        <?php //var_dump($admin->fetchTotalAppsByProgCodeAndAdmisPeriod('MSC', 0)[0]["total"]) 
+                        ?>
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
-                                    <h5 class="card-title">Total Students</h5>
-
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="ri-contacts-fill"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalStudents($_SESSION["user"]["fk_department"]) ?></h6>
-
-                                        </div>
-                                    </div>
-
-                                </div>
-
-                            </div>
-                        </div><!-- End Sales Card -->
-
-                        <!-- Revenue Card -->
-                        <div class="col-xxl-3 col-md-6">
-                            <div class="card info-card revenue-card">
-                                 <div class="card-body">
-                                    <h5 class="card-title">Total Staff</h5>
-
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="ri-account-pin-box-line"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalLecturers($_SESSION["user"]["fk_department"]) ?></h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div><!-- End Revenue Card -->
-                        <!-- Customers Card -->
-                        <div class="col-xxl-3 col-md-6">
-                            <div class="card info-card customers-card">
-                               <div class="card-body">
-                                    <h5 class="card-title">Total Courses</h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="ri-booklet-fill"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalCourses($_SESSION["user"]["fk_department"]) ?></h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div><!-- End Customers Card -->
-
-                        <!-- Customers Card -->
-                        <div class="col-xxl-3 col-md-6">
-                            <div class="card info-card customers-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Total Programs</h5>
-
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="ri-book-read-line"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalPrograms($_SESSION["user"]["fk_department"]) ?></h6>
-
-                                        </div>
-                                    </div>
-
-                                </div>
-                            </div>
-                        </div><!-- End Reports Card -->
-                    </div>
-                    <div class="row">
-                        <!-- Sales Card -->
-                        <div class="col-xxl-3 col-md-6">
-                            <div class="card info-card report-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Total Classes</h5>
-
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-people"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalClasses($_SESSION["user"]["fk_department"]) ?></h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        <?php }?>
-                  <?php if (isset($_SESSION["user"]["role"]) && ($_SESSION["user"]["role"] === "lecturer" || $_SESSION["user"]["role"] === "hod")) { ?>
-                       <div class = "row ">  
-                        <div class="col-xxl-3 col-md-6">
-                            <div class="card info-card report-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Total Classes Assigned</h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-people"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalLectures($_SESSION["user"]["number"]) ?></h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>                             
-                            </div> 
-                           <div class="col-xxl-3 col-md-6">
-                            <div class="card info-card report-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Total Quizzes Set</h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-people"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalQuizzesSet($_SESSION["user"]["number"]) ?></h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>                             
-                            </div> 
-                            <div class="col-xxl-3 col-md-6">
-                            <div class="card info-card report-card">
-                            <div class="card-body">
-                                    <h5 class="card-title">Total Completed Quizzes</h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-people"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalQuizzesCompleted($_SESSION["user"]["number"]) ?></h6>
-                                        </div>
-                                    </div>
-                            </div>
-                            </div>                             
-                            </div>
-                            <!-- <div class="col-xxl-3 col-md-6">
-                            <div class="card info-card report-card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Total Pending Quizzes</h5>
-                                    <div class="d-flex align-items-center">
-                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                            <i class="bi bi-people"></i>
-                                        </div>
-                                        <div class="ps-3">
-                                            <h6><?= $counts->totalQuizzesActive($_SESSION["user"]["number"]) ?></h6>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>                             
-                            </div>  -->
-                       </div>
-                            <?php }?>
-
-                            
-                    </div><!-- End Left side columns -->
-
-                </div>
-        </section>
-        
-        
-        <?php if (isset($_SESSION["user"]["role"]) && ($_SESSION["user"]["role"] === "lecturer" || $_SESSION["user"]["role"] === "hod")) { ?>
-
-                <section class="section dashboard">
-                <ol class="breadcrumb">
-            <li class="breadcrumb-item">Courses</li>
-        </ol>   
-          
-                        <div class="row">
-                            <?php
-                            $classes = new Sections($config["database"]["mysql"]);
-                            $all_classes = $classes->fetchByStaffID($_SESSION["user"]["number"]);
-
-                            // Group classes by course
-                            $classes_by_course = [];
-                            foreach ($all_classes as $class) {
-                                $course_code = $class["fk_course"];
-                                if (!isset($classes_by_course[$course_code])) {
-                                    $classes_by_course[$course_code] = [];
-                                }
-                                $classes_by_course[$course_code][] = $class;
-                            }
-                            // Display each course with its classes
-                            foreach ($classes_by_course as $course_code => $classes) {
-                                ?>
-                                <div class="col-xxl-3 col-md-6">
-                                    <div class="card info-card sales-card">
-                                        <div class="card-body">
-                                            <h5 class="card-title">Course: <?= $course_code ?></h5>
-                                            <div class="ps-3">
-                                                <p class="m-0">Credit Hours: <?= $class["credit_hours"] ?></p>
+                                    <a href="staffs.php?t=1&c=UPGRADERS">
+                                        <h5 class="card-title">STAFFS</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
                                             </div>
-                                            <?php foreach ($classes as $class) { ?>
-                                                <div class="d-flex align-items-center mb-3">
-                                                    <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                        <i class="ri-contacts-fill"></i>
-                                                    </div>
-                                                    <div class="ps-3">
-                                                        <p class="m-0">Class <?= $class["classCode"] ?></p>
-                                                    </div>
-                                                </div>
-                                            <?php } ?>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
                                         </div>
-                                        <div class="card-footer text-center">
-                                            <button class="btn btn-primary" onclick="redirectToClass('<?= $course_code ?>')">View</button>
-                                        </div>
-                                    </div>
+                                    </a>
                                 </div>
-                            <?php } ?>
-                        </div>
-            <script>
-                function redirectToClass(courseId) {
-                    // Store the course ID in local storage
-                    localStorage.setItem('selectedCourseId', courseId);
-                    
-                    // Redirect to class.php with the course ID as a parameter
-                    window.location.href = 'class.php?course_id=' + courseId;
-                }
-            </script>
+                            </div>
+                        </div><!-- End Applications Card -->
 
-                </section>
-                <?php }?>
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="programs.php?t=1&c=UPGRADERS">
+                                        <h5 class="card-title">PROGRAMS</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="courses.php?t=1&c=MASTERS">
+                                        <h5 class="card-title">COURSES</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-masters.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "MASTERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                    </div>
+                </div><!-- Forms Sales Card  -->
+
+            </div> <!-- End of Dashboard view -->
+        </section>
+
     </main><!-- End #main -->
 
-    <?php require Base::build_path("partials/foot.php") 
-    ?>
-
+    <?= require_once("../inc/footer-section.php") ?>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $("#admission-period").change("blur", function(e) {
+                data = {
+                    "data": $(this).val()
+                };
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/set-admission-period",
+                    data: data,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.message == "logout") {
+                            window.location.href = "?logout=true";
+                            return;
+                        }
+                        if (!result.success) alert(result.message);
+                        else window.location.reload();
+                    },
+                    error: function(error) {
+                        console.log(error);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>
-
