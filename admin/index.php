@@ -45,6 +45,16 @@ $adminSetup = true;
 
         <section class=" section dashboard">
 
+            <div class="row">
+                <div class="col-12">
+                    <div class="card recent-sales overflow-auto">
+                        <div class="card-body">
+                            <p class="card-title">Summary</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Dashboard view -->
             <div class="row" <?= isset($_GET["a"]) && isset($_GET["s"]) ? 'style="display:none"' : "" ?>>
 
@@ -52,15 +62,32 @@ $adminSetup = true;
                 <div class="col-lg-12">
                     <div class="row">
 
-                        <?php //var_dump($admin->fetchTotalAppsByProgCodeAndAdmisPeriod('MSC', 0)[0]["total"]) 
-                        ?>
-
                         <!-- Applications Card -->
                         <div class="col-xxl-4 col-md-4">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
                                     <a href="staffs.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">STAFFS</h5>
+                                        <h5 class="card-title">Staffs</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="students.php?t=1&c=UPGRADERS">
+                                        <h5 class="card-title">Students</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
@@ -80,7 +107,7 @@ $adminSetup = true;
                             <div class="card info-card sales-card">
                                 <div class="card-body">
                                     <a href="programs.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">PROGRAMS</h5>
+                                        <h5 class="card-title">Programs</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
@@ -100,7 +127,93 @@ $adminSetup = true;
                             <div class="card info-card sales-card">
                                 <div class="card-body">
                                     <a href="courses.php?t=1&c=MASTERS">
-                                        <h5 class="card-title">COURSES</h5>
+                                        <h5 class="card-title">Courses</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-masters.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "MASTERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                    </div>
+                </div><!-- Forms Sales Card  -->
+                <!-- Left side columns -->
+                <div class="col-lg-12">
+                    <div class="row">
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="staffs.php?t=1&c=UPGRADERS">
+                                        <h5 class="card-title">Staffs</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="students.php?t=1&c=UPGRADERS">
+                                        <h5 class="card-title">Students</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="programs.php?t=1&c=UPGRADERS">
+                                        <h5 class="card-title">Programs</h5>
+                                        <div class="d-flex align-items-center">
+                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
+                                            </div>
+                                            <div class="ps-3">
+                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
+                                                <span class="text-muted small pt-2 ps-1">Applications</span>
+                                            </div>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div><!-- End Applications Card -->
+
+                        <!-- Applications Card -->
+                        <div class="col-xxl-4 col-md-4">
+                            <div class="card info-card sales-card">
+                                <div class="card-body">
+                                    <a href="courses.php?t=1&c=MASTERS">
+                                        <h5 class="card-title">Courses</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-masters.png" style="width: 48px;" alt="">
