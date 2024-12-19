@@ -403,7 +403,9 @@ class AdminController
 
     public function fetchAllFromProgramByID($prog_id)
     {
-        return $this->dm->getData("SELECT * FROM programs WHERE `id` = :i", array(":i" => $prog_id));
+        $query = "SELECT pg.*, dp.`name` AS department_name FROM programs AS pg, departments AS dp 
+                    WHERE pg.`id` = :i AND pg.`department` = dp.`id`";
+        return $this->dm->getData($query, array(":i" => $prog_id));
     }
 
     public function fetchAllFromProgramByCode($prog_code)
@@ -2563,6 +2565,21 @@ class AdminController
         return $this->dm->getData("SELECT * FROM `admission_letter_data` WHERE `in_use` = 1");
     }
 
+    // public function fetchAdmissionLetterData(): mixed
+    // {
+    //     return $this->dm->getData("SELECT * FROM `admission_letter_data` WHERE `in_use` = 1");
+    // }
+
+    // public function fetchAdmissionLetterData(): mixed
+    // {
+    //     return $this->dm->getData("SELECT * FROM `admission_letter_data` WHERE `in_use` = 1");
+    // }
+
+    // public function fetchAdmissionLetterData(): mixed
+    // {
+    //     return $this->dm->getData("SELECT * FROM `admission_letter_data` WHERE `in_use` = 1");
+    // }
+
     public function fetchApplicantAppNumber(int $appID): mixed
     {
         return $this->dm->getData("SELECT pd.`app_number` FROM `purchase_detail` AS pd, applicants_login AS al 
@@ -2642,8 +2659,13 @@ class AdminController
                 if (!is_dir($path)) mkdir($path, 0755, true);
             }
             $mpdf = new \Mpdf\Mpdf();
-            $html = file_get_contents($dir_path . $letter_type . '_template.html');
 
+            // if (strtolower($letter_data['department_name']) === "ict")
+            //     $html = file_get_contents($dir_path . "ict_" . $letter_type . '_template.html');
+            // else
+            //     $html = file_get_contents($dir_path . $letter_type . '_template.html');
+
+            $html = file_get_contents($dir_path . $letter_type . '_template.php');
             // Perform placeholder replacement
             $html = str_replace('${Letter_Reference}', 'RMU/2024/001', $html);
             //$html = str_replace('${Letter_Reference}', $letter_data['Letter_Reference'], $html);
@@ -2705,9 +2727,25 @@ class AdminController
     {
         $app_pers_info = $this->fetchApplicantPersInfoByAppID($appID)[0];
         $app_app_number = $this->fetchApplicantAppNumber($appID)[0];
-        $static_letter_data = $this->fetchAdmissionLetterData()[0];
         $admission_period = $this->fetchCurrentAdmissionPeriod()[0];
+        $static_letter_data = $this->fetchAdmissionLetterData()[0];
         $prog_info = $this->fetchAllFromProgramByID($prog_id)[0];
+        // $static_letter_data = [];
+        $is_member = in_array($app_pers_info["nationality"], ["CAMEROON", "GAMBIA", "GHANA", "LIBERIA", "SIERRA LEONE"]);
+
+        // if ($is_member) {
+        //     if (strtolower($prog_info["department_name"]) == "ict") {
+        //         $static_letter_data = $this->fetchMemberICTAdmissionLetterData()[0];
+        //     } else {
+        //         $static_letter_data = $this->fetchMemberAdmissionLetterData()[0];
+        //     }
+        // } else {
+        //     if (strtolower($prog_info["department_name"]) == "ict") {
+        //         $static_letter_data = $this->fetchNonMemberICTAdmissionLetterData()[0];
+        //     } else {
+        //         $static_letter_data = $this->fetchNonMemberAdmissionLetterData()[0];
+        //     }
+        // }
 
         $letter_data = [];
 
@@ -2732,6 +2770,7 @@ class AdminController
                     "program_dur" => $program_dur,
                     "level_admitted" => $level,
                     "data" => [
+                        "department" => $prog_info["department_name"],
                         'app_number' => $app_app_number["app_number"],
                         'Prefix' => ucwords(strtolower($app_pers_info["prefix"])),
                         'First_Name' => ucwords(strtolower($app_pers_info["first_name"])),

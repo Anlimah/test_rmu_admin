@@ -59,7 +59,7 @@ $adminSetup = true;
                             <div class="card info-card sales-card">
                                 <div class="card-body">
                                     <a href="applications.php?t=1&c=MASTERS">
-                                        <h5 class="card-title">PROGRAMS</h5>
+                                        <h5 class="card-title">MASTERS</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-masters.png" style="width: 48px;" alt="">
@@ -79,7 +79,7 @@ $adminSetup = true;
                             <div class="card info-card sales-card">
                                 <div class="card-body">
                                     <a href="applications.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">COURSES</h5>
+                                        <h5 class="card-title">UPGRADERS</h5>
                                         <div class="d-flex align-items-center">
                                             <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
                                                 <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
@@ -105,7 +105,7 @@ $adminSetup = true;
                                         <a href="applications.php?t=<?= $form_type["id"] ?>&c=<?= $form_type["name"] ?>">
                                             <?php
                                             if ($form_type["name"] == "VOCATIONAL/PROFESSIONAL COURSES") {
-                                                $form_type["name"] = "VOC/PROF COURSES";
+                                                $form_type["name"] = "VOC/PROF";
                                             }
                                             ?>
                                             <h5 class="card-title"><?= $form_type["name"] ?></h5>
