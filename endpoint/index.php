@@ -25,10 +25,19 @@ use Src\Controller\DownloadAllExcelDataController;
 use Src\Controller\UploadExcelDataController;
 use Src\Controller\ExposeDataController;
 
+use Src\Core\Department;
+use Src\Core\Program;
+use Src\Core\Course;
+use Src\Core\Student;
+
 require_once('../inc/admin-database-con.php');
 
 $expose = new ExposeDataController($db, $user, $pass);
 $admin = new AdminController($db, $user, $pass);
+$department = new Department($db, $user, $pass);
+$program = new Program($db, $user, $pass);
+$course = new Course($db, $user, $pass);
+$student = new Student($db, $user, $pass);
 
 $data = [];
 $errors = [];
@@ -107,6 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
 
     // All POST request will be sent here
 } elseif ($_SERVER['REQUEST_METHOD'] == "POST") {
+
     if ($_GET["url"] == "admin-login") {
 
         if (!isset($_SESSION["_adminLogToken"]) || empty($_SESSION["_adminLogToken"]))
@@ -1141,6 +1151,69 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         die(json_encode(array("success" => true, "message" => $rslt)));
     }
 
+    //Departments
+
+    elseif ($_GET["url"] == "fetch-department") {
+        die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
+    } elseif ($_GET["url"] == "add-department") {
+        die(json_encode($department->add($_POST)));
+    } elseif ($_GET["url"] == "update-department") {
+        die(json_encode($department->update($_POST)));
+    } elseif ($_GET["url"] == "archive-department") {
+        die(json_encode($department->archive($_POST["department"])));
+    } elseif ($_GET["url"] == "delete-department") {
+        die(json_encode($department->delete($_POST["department"])));
+    } elseif ($_GET["url"] == "total-department") {
+        die(json_encode($department->total($_POST["archived"])));
+    }
+
+    //programs
+
+    elseif ($_GET["url"] == "fetch-program") {
+        die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
+    } elseif ($_GET["url"] == "add-program") {
+        die(json_encode($program->add($_POST)));
+    } elseif ($_GET["url"] == "update-program") {
+        die(json_encode($program->update($_POST, $_POST["program"])));
+    } elseif ($_GET["url"] == "archive-program") {
+        die(json_encode($program->archive($_POST["program"])));
+    } elseif ($_GET["url"] == "delete-program") {
+        die(json_encode($program->delete($_POST["program"])));
+    } elseif ($_GET["url"] == "total-program") {
+        die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
+    }
+
+    //courses
+
+    elseif ($_GET["url"] == "fetch-course") {
+        die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
+    } elseif ($_GET["url"] == "add-course") {
+        die(json_encode($course->add($_POST)));
+    } elseif ($_GET["url"] == "update-course") {
+        die(json_encode($course->update($_POST)));
+    } elseif ($_GET["url"] == "archive-course") {
+        die(json_encode($course->archive($_POST)));
+    } elseif ($_GET["url"] == "delete-course") {
+        die(json_encode($course->delete($_POST)));
+    } elseif ($_GET["url"] == "total-course") {
+        die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
+    }
+
+    //students
+
+    elseif ($_GET["url"] == "fetch-student") {
+        die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
+    } elseif ($_GET["url"] == "add-student") {
+        die(json_encode($student->add($_POST)));
+    } elseif ($_GET["url"] == "update-student") {
+        die(json_encode($student->update($_POST)));
+    } elseif ($_GET["url"] == "archive-student") {
+        die(json_encode($student->archive($_POST)));
+    } elseif ($_GET["url"] == "delete-student") {
+        die(json_encode($student->delete($_POST)));
+    } elseif ($_GET["url"] == "total-student") {
+        die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
+    }
 
     // All PUT request will be sent here
 } else if ($_SERVER['REQUEST_METHOD'] == "PUT") {

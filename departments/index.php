@@ -6,7 +6,7 @@ if (!isset($_SESSION["adminLogSuccess"]) || $_SESSION["adminLogSuccess"] == fals
 }
 
 $isUser = false;
-if (strtolower($_SESSION["role"]) == "admissions" || strtolower($_SESSION["role"]) == "developers") $isUser = true;
+if (strtolower($_SESSION["role"]) == "admin" || strtolower($_SESSION["role"]) == "developers") $isUser = true;
 
 if (isset($_GET['logout']) || !$isUser) {
     session_destroy();
@@ -24,7 +24,7 @@ if (isset($_GET['logout']) || !$isUser) {
         );
     }
 
-    header('Location: ../index.php');
+    header('Location: ../' . $_SESSION["role"] . '/index.php');
 }
 
 if (!isset($_SESSION["_shortlistedFormToken"])) {

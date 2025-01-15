@@ -134,6 +134,6 @@ class DatabaseMethods
         if (!file_exists($logFilePath)) {
             touch($logFilePath);
         }
-        error_log("Warning: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString(), 3, $logFilePath);
+        error_log("Warning: " . $e->getMessage() . "\nTrace: " . $e->getTraceAsString() . "\n", 3, $logFilePath);
     }
 }

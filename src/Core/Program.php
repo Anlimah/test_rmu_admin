@@ -1,8 +1,8 @@
 <?php
 
-namespace Src\Base;
+namespace Src\Core;
 
-use Src\Controller\ExposeDataController;
+use Src\Base\Log;
 use Src\System\DatabaseMethods;
 
 class Program
@@ -17,7 +17,7 @@ class Program
         $this->log = new Log($db, $user, $pass);
     }
 
-    public function fetchPrograms(string $key = "", string $value = "")
+    public function fetch(string $key = "", string $value = "", bool $archived = false)
     {
         switch ($key) {
             case 'id':
@@ -32,8 +32,12 @@ class Program
                 $concat_stmt = "AND p.`name` = :v";
                 break;
 
-            case '':
-                $concat_stmt = "";
+            case 'category':
+                $concat_stmt = "AND p.`category` = :v";
+                break;
+
+            case 'department':
+                $concat_stmt = "AND p.`fk_department` = :v";
                 break;
 
             default:
@@ -41,18 +45,17 @@ class Program
                 break;
         }
 
-        $params = $value ? array(":v" => $value) : array();
-
         $query = "SELECT p.`id`, p.`name`, p.`merit`, p.`department`, p.`regulation`, p.`category`, 
                 p.`code`, p.`index_code`, p.`faculty`, p.`duration`, p.`dur_format`, p.`num_of_semesters`, 
                 p.`type` AS type_id, f.`name` AS `type` , p.`regular`, p.`weekend`, p.`group`, p.`archived` 
-                FROM `programs` AS p, `forms` AS f WHERE p.`type` = f.`id` $concat_stmt";
+                FROM `programs` AS p, `forms` AS f WHERE p.`type` = f.`id` AND p.`archived` = :ar $concat_stmt";
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
         return $this->dm->getData($query, $params);
     }
 
-    public function addProgramme(array $data)
+    public function add(array $data)
     {
-        $query = "INSERT INTO programs (`name`, `merit`, `department`, `regulation`, 
+        $query = "INSERT INTO programs (`name`, `merit`, `fk_department`, `regulation`, 
                 `category`, `code`, `index_code`, `faculty`, `duration`, `dur_format`, 
                 `num_of_semesters`, `type`, `regular`, `weekend`, `group`, `archived`) 
                 VALUES(:n, :m, :dm, :rl, :cg, :c, :ic, :f, :d, :df,  :ns,  :t,  :r,  :w, :g, :ar)";
@@ -80,13 +83,13 @@ class Program
         return $query_result;
     }
 
-    public function updateProgramme(array $data)
+    public function update(array $data)
     {
         $query = "UPDATE programs SET 
         `name`=:n, `merit`=:m, `department`=:dm, `regulation`=:rl, 
         `category`=:cg, `code`=:c, `index_code`=:ic, `faculty`=:f, 
         `duration`=:d, `dur_format`=:df, `num_of_semesters`=:ns, 
-        `type`=:t, `regular`=:r, `weekend`=:w, `group`=:g , `archived`=:ar WHERE id = :i";
+        `type`=:t, `regular`=:r, `weekend`=:w, `group`=:g , `archived`=:ar WHERE `id` = :i";
 
         $params = array(
             ":n" => $data["name"],
@@ -104,14 +107,15 @@ class Program
             ":r" => $data["regular"],
             ":w" => $data["weekend"],
             ":g" => $data["group"],
-            ":ar" => $data["archived"]
+            ":ar" => $data["archived"],
+            ":i" => $data["id"]
         );
         $query_result = $this->dm->inputData($query, $params);
         if ($query_result) $this->log->activity($_SESSION["user"], "UPDATE", "Updated information for program {$data["id"]}");
         return $query_result;
     }
 
-    public function archiveProgramme($id)
+    public function archive($id)
     {
         $query = "UPDATE programs SET archived = 1 WHERE id = :i";
         $query_result = $this->dm->inputData($query, array(":i" => $id));
@@ -119,11 +123,32 @@ class Program
         return $query_result;
     }
 
-    public function deleteProgramme($id)
+    public function delete($id)
     {
         $query = "DELETE FROM programs WHERE id = :i";
         $query_result = $this->dm->inputData($query, array(":i" => $id));
         if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Deleted programme {$id}");
         return $query_result;
+    }
+
+    public function total(string $key = "", string $value = "", bool $archived = false)
+    {
+        switch ($key) {
+            case 'category':
+                $concat_stmt = "AND p.`category` = :v";
+                break;
+
+            case 'department':
+                $concat_stmt = "AND p.`fk_department` = :v";
+                break;
+
+            default:
+                $concat_stmt = "";
+                break;
+        }
+        $query = "SELECT COUNT(p.`id`) FROM `programs` AS p, `forms` AS f 
+                WHERE p.`type` = f.`id` AND p.archived = :ar $concat_stmt";
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+        return $this->dm->getData($query, $params);
     }
 }
