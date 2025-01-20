@@ -26,7 +26,7 @@ class DatabaseMethods
                 return $this->inTransaction;
             } catch (PDOException $e) {
                 $this->logError($e);
-                exit(json_encode(array("error" => "Transaction start failed: " . $e->getMessage())));
+                return json_encode(array("error" => "Transaction start failed: " . $e->getMessage()));
             }
         }
         return false;
@@ -41,7 +41,7 @@ class DatabaseMethods
                 return true;
             } catch (PDOException $e) {
                 $this->logError($e);
-                exit(json_encode(array("error" => "Transaction commit failed: " . $e->getMessage())));
+                return json_encode(array("error" => "Transaction commit failed: " . $e->getMessage()));
             }
         }
         return false;
@@ -56,7 +56,7 @@ class DatabaseMethods
                 return true;
             } catch (PDOException $e) {
                 $this->logError($e);
-                exit(json_encode(array("error" => "Transaction rollback failed: " . $e->getMessage())));
+                return json_encode(array("error" => "Transaction rollback failed: " . $e->getMessage()));
             }
         }
         return false;
@@ -79,7 +79,7 @@ class DatabaseMethods
             if ($this->inTransaction) {
                 $this->rollback();
             }
-            exit(json_encode(array("error" => $e->getMessage())));
+            return json_encode(array("error" => $e->getMessage()));
         }
     }
 
@@ -94,7 +94,7 @@ class DatabaseMethods
             if ($this->inTransaction) {
                 $this->rollback();
             }
-            exit(json_encode(array("error" => $e->getMessage())));
+            return json_encode(array("error" => $e->getMessage()));
         }
     }
 
@@ -109,7 +109,7 @@ class DatabaseMethods
             if ($this->inTransaction) {
                 $this->rollback();
             }
-            exit(json_encode(array("error" => $e->getMessage())));
+            return json_encode(array("error" => $e->getMessage()));
         }
     }
 
@@ -124,7 +124,7 @@ class DatabaseMethods
             if ($this->inTransaction) {
                 $this->rollback();
             }
-            exit(json_encode(array("error" => $e->getMessage())));
+            return json_encode(array("error" => $e->getMessage()));
         }
     }
 

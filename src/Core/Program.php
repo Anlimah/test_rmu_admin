@@ -133,6 +133,7 @@ class Program
 
     public function total(string $key = "", string $value = "", bool $archived = false)
     {
+        $concat_stmt = "";
         switch ($key) {
             case 'category':
                 $concat_stmt = "AND p.`category` = :v";
@@ -146,9 +147,9 @@ class Program
                 $concat_stmt = "";
                 break;
         }
-        $query = "SELECT COUNT(p.`id`) FROM `programs` AS p, `forms` AS f 
+        $query = "SELECT COUNT(p.`id`) AS total FROM `programs` AS p, `forms` AS f 
                 WHERE p.`type` = f.`id` AND p.archived = :ar $concat_stmt";
-        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }
 }

@@ -38,15 +38,13 @@ $_SESSION["lastAccessed"] = time();
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
+use Src\Core\Department;
 
 require_once('../inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
+$department = new Department($db, $user, $pass);
 require_once('../inc/page-data.php');
-
-$pending = $admin->getshortlistedApplicationsCountByStatus('pending')[0]["total"];
-$approved = $admin->getshortlistedApplicationsCountByStatus('approved')[0]["total"];
-$declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["total"];
 
 ?>
 <!DOCTYPE html>
@@ -162,89 +160,14 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Shortlisted Applications</h1>
+            <h1>Departments</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
-                    <li class="breadcrumb-item active">Shortlisted Applications</li>
+                    <li class="breadcrumb-item active">Departments</li>
                 </ol>
             </nav>
         </div><!-- End Page Title -->
-
-        <section class="section dashboard">
-
-            <div class="row">
-
-                <div class="col-lg-12">
-                    <div class="row">
-
-                        <?php //var_dump($admin->fetchTotalAppsByProgCodeAndAdmisPeriod('MSC', 0)[0]["total"]) 
-                        ?>
-                        <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
-                            <div class="card info-card sales-card">
-                                <div class="card-body">
-                                    <a href="#">
-                                        <h5 class="card-title">Pending</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-receipt-pending-96.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $pending ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div><!-- End Applications Card -->
-
-                        <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
-                            <div class="card info-card sales-card">
-                                <div class="card-body">
-                                    <a href="#">
-                                        <h5 class="card-title">Approved</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-receipt-approved-96.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $approved ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div><!-- End Applications Card -->
-
-                        <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
-                            <div class="card info-card sales-card">
-                                <div class="card-body">
-                                    <a href="#">
-                                        <h5 class="card-title">Declined</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-receipt-declined-96.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $declined ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div><!-- End Applications Card -->
-
-                    </div>
-                </div><!-- Forms Sales Card  -->
-            </div>
-
-        </section>
 
         <section class="section dashboard">
             <div class="row">
@@ -253,60 +176,44 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
                     <div class="card recent-sales overflow-auto">
 
                         <div class="card-body">
-                            <h5 class="card-title">Requests</h5>
-                            <form action="#" method="post" id="shortlist-form">
-                                <input type="hidden" name="_FFToken" value="<?= $_SESSION["_shortlistedFormToken"] ?>">
-                                <input type="hidden" name="action" value="">
-                                <table class="table table-borderless datatable table-striped table-hover">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col" style="width:150px">Applicant Name</th>
-                                            <th scope="col">Sex</th>
-                                            <th scope="col">Program</th>
-                                            <th scope="col">Stream</th>
-                                            <th scope="col">Level</th>
-                                            <th scope="col">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $acceptedApplications = $admin->getAllShortlistedApplicationsByStatus('pending');
-                                        if (!empty($acceptedApplications)) {
-                                            $index = 1;
-                                            foreach ($acceptedApplications as $aa) {
-                                                $full_name = $aa["first_name"] . ($aa["middle_name"] ? ' ' . $aa["middle_name"] . ' ' : '') . $aa["last_name"];
-                                        ?>
-                                                <tr>
-                                                    <td><?= $index ?></td>
-                                                    <td><?= $full_name ?></td>
-                                                    <td><?= $aa["gender"] ?></td>
-                                                    <td><?= $aa["program"] ?></td>
-                                                    <td><?= $aa["stream"] ?></td>
-                                                    <td><?= $aa["level"] ?></td>
-                                                    <td>
-                                                        <a href="applicant-info.php?t=2&c=DEGREE&q=<?= $aa["app_login"] ?>"
-                                                            class="btn btn-primary btn-xs view-btn">View</a>
-                                                        <input class="form-check-input" type="checkbox"
-                                                            name="app-login[]" value="<?= $aa["app_login"] ?>">
-                                                    </td>
-                                                </tr>
-                                        <?php
-                                                $index++;
-                                            }
+                            <h5 class="card-title">List</h5>
+                            <table class="table table-borderless datatable table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col" style="width:150px">Name</th>
+                                        <th scope="col">HOD</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $dl = $department->fetch();
+                                    if (!empty($dl) && is_array($dl)) {
+                                        $index = 1;
+                                        foreach ($dl as $aa) {
+                                    ?>
+                                            <tr>
+                                                <td><?= $index ?></td>
+                                                <td><?= $aa["name"] ?></td>
+                                                <td><a href="staff-info.php?s=<?= $aa["hod_id"] ?>"><?= $aa["hod_name"] ?></a></td>
+                                                <td>
+                                                    <a href="department-info.php?d=<?= $aa["id"] ?>"
+                                                        class="btn btn-primary btn-xs view-btn">View</a>
+                                                    <button href="department-info.php?t=<?= $aa["id"] ?>"
+                                                        class="btn btn-warning btn-xs edit-btn">Edit</button>
+                                                    <button href="department-info.php?t=<?= $aa["id"] ?>"
+                                                        class="btn btn-danger btn-xs delete-btn">Delete</button>
+                                                </td>
+                                            </tr>
+                                    <?php
+                                            $index++;
                                         }
-                                        ?>
-                                    </tbody>
-                                </table>
-                                <?php
-                                if ($pending) {
-                                ?>
-                                    <div class="mt-3" style="display: flex; justify-content:flex-end;">
-                                        <button type="button" id="approve-btn" class="btn btn-success btn-sm me-2">Approve Selected</button>
-                                        <button type="button" id="decline-btn" class="btn btn-danger btn-sm">Decline Selected</button>
-                                    </div>
-                                <?php } ?>
-                            </form>
+                                    } else {
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

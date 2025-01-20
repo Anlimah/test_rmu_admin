@@ -6,10 +6,20 @@ $_SESSION["lastAccessed"] = time();
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
+use Src\Core\Course;
+use Src\Core\Department;
+use Src\Core\Program;
+use Src\Core\Staff;
+use Src\Core\Student;
 
 require_once('../inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
+$course = new Course($db, $user, $pass);
+$department = new Department($db, $user, $pass);
+$program = new Program($db, $user, $pass);
+$staff = new Staff($db, $user, $pass);
+$student = new Student($db, $user, $pass);
 require_once('../inc/page-data.php');
 
 $adminSetup = true;
@@ -35,7 +45,7 @@ $adminSetup = true;
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Applications</h1>
+            <h1>Counts</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
@@ -45,7 +55,7 @@ $adminSetup = true;
 
         <section class=" section dashboard">
 
-            <div class="row">
+            <!-- <div class="row">
                 <div class="col-12">
                     <div class="card recent-sales overflow-auto">
                         <div class="card-body">
@@ -53,177 +63,109 @@ $adminSetup = true;
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Dashboard view -->
             <div class="row" <?= isset($_GET["a"]) && isset($_GET["s"]) ? 'style="display:none"' : "" ?>>
-
                 <!-- Left side columns -->
                 <div class="col-lg-12">
                     <div class="row">
 
                         <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
+                        <div class="col-xxl-3 col-md-3">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
-                                    <a href="staffs.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">Staffs</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
+                                    <h5 class="card-title">Departments</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
                                         </div>
-                                    </a>
+                                        <div class="ps-3">
+                                            <h6><?= $department->total()[0]["total"]; ?></h6>
+                                            <span class="text-muted small pt-2 ps-1">Counts</span>
+                                            <a href="departments.php" class="btn btn-xs btn-primary" style="margin-left:10px">Open</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- End Applications Card -->
 
                         <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
+                        <div class="col-xxl-3 col-md-3">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
-                                    <a href="students.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">Students</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
+                                    <h5 class="card-title">Staffs</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
                                         </div>
-                                    </a>
+                                        <div class="ps-3">
+                                            <h6><?= $staff->total()[0]["total"]; ?></h6>
+                                            <span class="text-muted small pt-2 ps-1">Counts</span>
+                                            <a href="staffs.php" class="btn btn-xs btn-primary" style="margin-left:10px">Open</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- End Applications Card -->
 
                         <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
+                        <div class="col-xxl-3 col-md-3">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
-                                    <a href="programs.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">Programs</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
+                                    <h5 class="card-title">Programs</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
                                         </div>
-                                    </a>
+                                        <div class="ps-3">
+                                            <h6><?= $program->total()[0]["total"]; ?></h6>
+                                            <span class="text-muted small pt-2 ps-1">Counts</span>
+                                            <a href="programs.php" class="btn btn-xs btn-primary" style="margin-left:10px">Open</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- End Applications Card -->
 
                         <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
+                        <div class="col-xxl-3 col-md-3">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
-                                    <a href="courses.php?t=1&c=MASTERS">
-                                        <h5 class="card-title">Courses</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-masters.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "MASTERS")[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
+                                    <h5 class="card-title">Courses</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
                                         </div>
-                                    </a>
+                                        <div class="ps-3">
+                                            <h6><?= $course->total()[0]["total"]; ?></h6>
+                                            <span class="text-muted small pt-2 ps-1">Counts</span>
+                                            <a href="courses.php" class="btn btn-xs btn-primary" style="margin-left:10px">Open</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- End Applications Card -->
 
                     </div>
-                </div><!-- Forms Sales Card  -->
-                <!-- Left side columns -->
-                <div class="col-lg-12">
+
                     <div class="row">
 
                         <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
+                        <div class="col-xxl-3 col-md-3">
                             <div class="card info-card sales-card">
                                 <div class="card-body">
-                                    <a href="staffs.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">Staffs</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
+                                    <h5 class="card-title">Students</h5>
+                                    <div class="d-flex align-items-center">
+                                        <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
+                                            <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
                                         </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div><!-- End Applications Card -->
-
-                        <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
-                            <div class="card info-card sales-card">
-                                <div class="card-body">
-                                    <a href="students.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">Students</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
+                                        <div class="ps-3">
+                                            <h6><?= $student->total()[0]["total"]; ?></h6>
+                                            <span class="text-muted small pt-2 ps-1">Counts</span>
+                                            <a href="students.php" class="btn btn-xs btn-primary" style="margin-left:10px">Open</a>
                                         </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div><!-- End Applications Card -->
-
-                        <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
-                            <div class="card info-card sales-card">
-                                <div class="card-body">
-                                    <a href="programs.php?t=1&c=UPGRADERS">
-                                        <h5 class="card-title">Programs</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-captain.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "UPGRADERS")[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
-                                        </div>
-                                    </a>
-                                </div>
-                            </div>
-                        </div><!-- End Applications Card -->
-
-                        <!-- Applications Card -->
-                        <div class="col-xxl-4 col-md-4">
-                            <div class="card info-card sales-card">
-                                <div class="card-body">
-                                    <a href="courses.php?t=1&c=MASTERS">
-                                        <h5 class="card-title">Courses</h5>
-                                        <div class="d-flex align-items-center">
-                                            <div class="card-icon rounded-circle d-flex align-items-center justify-content-center">
-                                                <img src="../assets/img/icons8-masters.png" style="width: 48px;" alt="">
-                                            </div>
-                                            <div class="ps-3">
-                                                <h6><?= $admin->fetchTotalApplicationsForMastersUpgraders($_SESSION["admin_period"], "MASTERS")[0]["total"]; ?></h6>
-                                                <span class="text-muted small pt-2 ps-1">Applications</span>
-                                            </div>
-                                        </div>
-                                    </a>
+                                    </div>
                                 </div>
                             </div>
                         </div><!-- End Applications Card -->

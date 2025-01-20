@@ -4133,4 +4133,6 @@ class AdminController
         $query = "SELECT COUNT(`id`) AS total FROM `acceptance_receipts` WHERE `status` = :s";
         return $this->dm->getData($query, array(":s" => $status));
     }
+
+    
 }

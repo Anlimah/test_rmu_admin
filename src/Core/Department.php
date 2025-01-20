@@ -37,15 +37,16 @@ class Department
                 break;
         }
 
-        $query = "SELECT d.`id`, d.`name`, d.`hod` AS hod_id, s.`fullname` AS hod, d.`archived` 
-                FROM `departments` AS d, `staff` AS s WHERE d.id = s.`fk_department` AND d.`archived` = :ar $concat_stmt";
-        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+        $query = "SELECT d.`id`, d.`name`, d.`hod` AS hod_id, 
+                CONCAT(s.prefix, ' ', s.`first_name`, ' ', s.`last_name`) AS hod_name, d.`archived` 
+                FROM `department` AS d, `staff` AS s WHERE d.id = s.`fk_department` AND d.`archived` = :ar $concat_stmt";
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }
 
     public function add(array $data)
     {
-        $query = "INSERT INTO `departments`(`name`, `hod`, `archived`) VALUES(:n, :h, :ar)";
+        $query = "INSERT INTO `department`(`name`, `hod`, `archived`) VALUES(:n, :h, :ar)";
         $params = array(":n" => $data["name"], ":h" => $data["hod"], ":ar" => 0);
         $query_result = $this->dm->inputData($query, $params);
         if ($query_result)
@@ -55,7 +56,7 @@ class Department
 
     public function update(array $data)
     {
-        $query = "UPDATE `departments` SET `name`=:n, `hod`=:h, `archived`=:ar WHERE id = :i";
+        $query = "UPDATE `department` SET `name`=:n, `hod`=:h, `archived`=:ar WHERE id = :i";
         $params = array(":n" => $data["name"], ":h" => $data["hod"], ":ar" => $data["archived"], ":i" => $data["id"]);
         $query_result = $this->dm->inputData($query, $params);
         if ($query_result) $this->log->activity($_SESSION["user"], "UPDATE", "Updated information for department {$data["id"]}");
@@ -64,7 +65,7 @@ class Department
 
     public function archive(int $id)
     {
-        $query = "UPDATE `departments` SET `archived` = 1 WHERE id = :i";
+        $query = "UPDATE `department` SET `archived` = 1 WHERE id = :i";
         $query_result = $this->dm->inputData($query, array(":i" => $id));
         if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Archived department {$id}");
         return $query_result;
@@ -72,7 +73,7 @@ class Department
 
     public function delete(int $id)
     {
-        $query = "DELETE FROM `departments` WHERE `id` = :i";
+        $query = "DELETE FROM `department` WHERE `id` = :i";
         $query_result = $this->dm->inputData($query, array(":i" => $id));
         if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Deleted department {$id}");
         return $query_result;
@@ -80,7 +81,7 @@ class Department
 
     public function total(bool $archived = false)
     {
-        $query = "SELECT COUNT(d.`id`) FROM `departments` AS d, `staff` AS s 
+        $query = "SELECT COUNT(d.`id`) AS total FROM `department` AS d, `staff` AS s 
                 WHERE d.`id` = s.`fk_department` AND d.`archived` = :ar";
         $params = array(":ar" => $archived);
         return $this->dm->getData($query, $params);

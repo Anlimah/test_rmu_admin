@@ -16,3 +16,8 @@ ADD COLUMN `total_core_score` INT AFTER `required_core_subjects`,
 ADD COLUMN `required_elective_passed` INT AFTER `required_core_subjects`,
 ADD COLUMN `required_elective_subjects` TEXT AFTER `required_elective_passed`,
 ADD COLUMN `any_elective_subjects` TEXT AFTER `required_elective_subjects`;
+
+/*NOT DONE YET ON LIVE SERVER MAIN DB*/
+ALTER TABLE `departments` 
+ADD COLUMN `hod` VARCHAR(10) AFTER `name`,
+ADD CONSTRAINT `fk_department_hod` FOREIGN KEY (`hod`) REFERENCES `staff`(`number`);

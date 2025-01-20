@@ -66,8 +66,8 @@ class Student
                 s.`fk_academic_year`, s.`fk_applicant`, s.`fk_department`, s.`fk_program`, s.`fk_class`, 
                 d.`name` AS department, s.`archived` 
                 FROM 
-                `students` AS s, `academic_year` AS ay, `applicant_login` AS al, 
-                `departments` AS d, `programs` AS p, `class` AS c 
+                `student` AS s, `academic_year` AS ay, `applicants_login` AS al, 
+                `department` AS d, `programs` AS p, `class` AS c 
                 WHERE 
                 s.`fk_academic_year` = ay.`id` AND s.`fk_applicant` = al.`id` AND 
                 s.`fk_department` = d.`id` AND s.`fk_program` = p.`id` AND s.`fk_class` = c.`code` AND 
@@ -78,7 +78,7 @@ class Student
 
     public function add(array $data)
     {
-        $query = "INSERT INTO `students` (`index_number`, `email`, `password`, `first_name`, `middle_name`, 
+        $query = "INSERT INTO `student` (`index_number`, `email`, `password`, `first_name`, `middle_name`, 
                 `last_name`, `prefix`, `gender`, `role`, `fk_department`, `archived`) 
                 VALUES(:n, :e, :fn, :mn, :ln, :p, :g, :r, :d, :ar)";
         $params = array(
@@ -101,7 +101,7 @@ class Student
 
     public function update(array $data)
     {
-        $query = "UPDATE `students` SET 
+        $query = "UPDATE `student` SET 
         `index_number`=:n, `email`=:e, `password`=:fn, `first_name`=:mn, 
         `middle_name`, `last_name`=:ln, `prefix`=:p, `gender`=:g, `role`=:r, 
         `fk_department`=:d, `archived`=:ar WHERE s.`index_number` = :i";
@@ -125,7 +125,7 @@ class Student
 
     public function archive($index_number)
     {
-        $query = "UPDATE `students` SET archived = 1 WHERE `index_number` = :i";
+        $query = "UPDATE `student` SET archived = 1 WHERE `index_number` = :i";
         $query_result = $this->dm->inputData($query, array(":i" => $index_number));
         if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Archived student {$index_number}");
         return $query_result;
@@ -133,7 +133,7 @@ class Student
 
     public function delete($index_number)
     {
-        $query = "DELETE FROM `students` WHERE `index_number` = :i";
+        $query = "DELETE FROM `student` WHERE `index_number` = :i";
         $query_result = $this->dm->inputData($query, array(":i" => $index_number));
         if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Deleted student {$index_number}");
         return $query_result;
@@ -141,6 +141,7 @@ class Student
 
     public function total(string $key = "", string $value = "", bool $archived = false)
     {
+        $concat_stmt = "";
         switch ($key) {
             case 'gender':
                 $concat_stmt = "AND s.`gender` = :v";
@@ -163,15 +164,15 @@ class Student
                 break;
         }
 
-        $query = "SELECT COUNT(s.`index_number`) 
+        $query = "SELECT COUNT(s.`index_number`) AS total 
                 FROM 
-                `students` AS s, `academic_year` AS ay, `applicant_login` AS al, 
-                `departments` AS d, `programs` AS p, `class` AS c 
+                `student` AS s, `academic_year` AS ay, `applicants_login` AS al, 
+                `department` AS d, `programs` AS p, `class` AS c 
                 WHERE 
                 s.`fk_academic_year` = ay.`id` AND s.`fk_applicant` = al.`id` AND 
                 s.`fk_department` = d.`id` AND s.`fk_program` = p.`id` AND s.`fk_class` = c.`code` AND 
                 d.`archived` = :ar $concat_stmt";
-        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }
 }

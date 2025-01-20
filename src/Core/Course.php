@@ -43,7 +43,7 @@ class Course
 
         $query = "SELECT `code`, c.`name`, c.`credit_hours`, c.`contact_hours`, c.`semester`, c.`level`, c.`archived`, 
                 c.`fk_category`, c.`fk_department`, cg.`name` AS category, d.`name` AS `department` 
-                FROM `courses` AS c, `category` AS cg, `department` AS d 
+                FROM `course` AS c, `course_category` AS cg, `department` AS d 
                 WHERE c.`fk_category` = cg.`id` AND c.`fk_department` = d.`id` AND c.`archived` = :ar $concat_stmt";
         $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
         return $this->dm->getData($query, $params);
@@ -51,7 +51,7 @@ class Course
 
     public function add(array $data)
     {
-        $query = "INSERT INTO courses (`code`, `name`, `credit_hours`, `contact_hours`, `semester`, `level`, 
+        $query = "INSERT INTO course (`code`, `name`, `credit_hours`, `contact_hours`, `semester`, `level`, 
                 `fk_category`, `fk_department`, `archived`) 
                 VALUES(:c, :n, :ch, :th, :s, :l, :cg, :dm, :ar)";
         $params = array(
@@ -72,7 +72,7 @@ class Course
 
     public function update(array $data)
     {
-        $query = "UPDATE courses SET 
+        $query = "UPDATE course SET 
         `code`=:c, `name`=:n, `credit_hours`=:ch, `contact_hours`=:th, `semester`=:s, `level`=:l, 
         `fk_category`=:cg, `fk_department`=:dm, `archived`=:ar WHERE `code` = :c";
         $params = array(
@@ -93,7 +93,7 @@ class Course
 
     public function archive($code)
     {
-        $query = "UPDATE courses SET archived = 1 WHERE `code` = :c";
+        $query = "UPDATE course SET archived = 1 WHERE `code` = :c";
         $query_result = $this->dm->inputData($query, array(":c" => $code));
         if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Archived course {$code}");
         return $query_result;
@@ -101,7 +101,7 @@ class Course
 
     public function delete($code)
     {
-        $query = "DELETE FROM courses WHERE code = :c";
+        $query = "DELETE FROM course WHERE code = :c";
         $query_result = $this->dm->inputData($query, array(":c" => $code));
         if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Deleted courseme {$code}");
         return $query_result;
@@ -109,6 +109,7 @@ class Course
 
     public function total(string $key = "", string $value = "", bool $archived = false)
     {
+        $concat_stmt = "";
         switch ($key) {
             case 'category':
                 $concat_stmt = "AND c.`fk_category` = :v";
@@ -122,9 +123,9 @@ class Course
                 $concat_stmt = "";
                 break;
         }
-        $query = "SELECT COUNT(c.`code`) FROM `courses` AS c, `category` AS cg, `department` AS d 
+        $query = "SELECT COUNT(c.`code`) AS total FROM `course` AS c, `course_category` AS cg, `department` AS d 
         WHERE c.`fk_category` = cg.`id` AND c.`fk_department` = d.`id` AND c.`archived` = :ar $concat_stmt";
-        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }
 }
