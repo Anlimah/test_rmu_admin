@@ -45,11 +45,12 @@ class Program
                 break;
         }
 
-        $query = "SELECT p.`id`, p.`name`, p.`merit`, p.`department`, p.`regulation`, p.`category`, 
-                p.`code`, p.`index_code`, p.`faculty`, p.`duration`, p.`dur_format`, p.`num_of_semesters`, 
-                p.`type` AS type_id, f.`name` AS `type` , p.`regular`, p.`weekend`, p.`group`, p.`archived` 
-                FROM `programs` AS p, `forms` AS f WHERE p.`type` = f.`id` AND p.`archived` = :ar $concat_stmt";
-        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+        $query = "SELECT p.`id`, p.`name`, p.`merit`, p.`department` AS department_id, d.`name` AS department_name, 
+                p.`regulation`, p.`category`, p.`code`, p.`index_code`, p.`faculty`, p.`duration`, p.`dur_format`, 
+                p.`num_of_semesters`, p.`type` AS type_id, f.`name` AS `type` , p.`regular`, p.`weekend`, p.`group`, p.`archived` 
+                FROM `programs` AS p, `forms` AS f, `department` AS d 
+                WHERE p.`type` = f.`id` AND p.`department` = d.`id` AND p.`archived` = :ar $concat_stmt";
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }
 
@@ -147,8 +148,8 @@ class Program
                 $concat_stmt = "";
                 break;
         }
-        $query = "SELECT COUNT(p.`id`) AS total FROM `programs` AS p, `forms` AS f 
-                WHERE p.`type` = f.`id` AND p.archived = :ar $concat_stmt";
+        $query = "SELECT COUNT(p.`id`) AS total FROM `programs` AS p, `forms` AS f, `department` AS d 
+                WHERE p.`type` = f.`id` AND p.`department` = d.`id` AND p.archived = :ar $concat_stmt";
         $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }

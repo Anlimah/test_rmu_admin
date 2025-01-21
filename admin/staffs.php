@@ -38,15 +38,13 @@ $_SESSION["lastAccessed"] = time();
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
+use Src\Core\Staff;
 
 require_once('../inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
+$staff = new Staff($db, $user, $pass);
 require_once('../inc/page-data.php');
-
-$pending = $admin->getshortlistedApplicationsCountByStatus('pending')[0]["total"];
-$approved = $admin->getshortlistedApplicationsCountByStatus('approved')[0]["total"];
-$declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["total"];
 
 ?>
 <!DOCTYPE html>
@@ -179,59 +177,43 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
 
                         <div class="card-body">
                             <h5 class="card-title">Requests</h5>
-                            <form action="#" method="post" id="shortlist-form">
-                                <input type="hidden" name="_FFToken" value="<?= $_SESSION["_shortlistedFormToken"] ?>">
-                                <input type="hidden" name="action" value="">
-                                <table class="table table-borderless datatable table-striped table-hover">
-                                    <thead class="table-dark">
-                                        <tr>
-                                            <th scope="col">#</th>
-                                            <th scope="col" style="width:150px">Applicant Name</th>
-                                            <th scope="col">Sex</th>
-                                            <th scope="col">Program</th>
-                                            <th scope="col">Stream</th>
-                                            <th scope="col">Level</th>
-                                            <th scope="col">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $acceptedApplications = $admin->getAllShortlistedApplicationsByStatus('pending');
-                                        if (!empty($acceptedApplications)) {
-                                            $index = 1;
-                                            foreach ($acceptedApplications as $aa) {
-                                                $full_name = $aa["first_name"] . ($aa["middle_name"] ? ' ' . $aa["middle_name"] . ' ' : '') . $aa["last_name"];
-                                        ?>
-                                                <tr>
-                                                    <td><?= $index ?></td>
-                                                    <td><?= $full_name ?></td>
-                                                    <td><?= $aa["gender"] ?></td>
-                                                    <td><?= $aa["program"] ?></td>
-                                                    <td><?= $aa["stream"] ?></td>
-                                                    <td><?= $aa["level"] ?></td>
-                                                    <td>
-                                                        <a href="applicant-info.php?t=2&c=DEGREE&q=<?= $aa["app_login"] ?>"
-                                                            class="btn btn-primary btn-xs view-btn">View</a>
-                                                        <input class="form-check-input" type="checkbox"
-                                                            name="app-login[]" value="<?= $aa["app_login"] ?>">
-                                                    </td>
-                                                </tr>
-                                        <?php
-                                                $index++;
-                                            }
+                            <table class="table table-borderless datatable table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th scope="col">#</th>
+                                        <th scope="col" style="width:150px">Name</th>
+                                        <th scope="col">Sex</th>
+                                        <th scope="col">Role</th>
+                                        <th scope="col">Department</th>
+                                        <th scope="col">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $s_list = $staff->fetch();
+                                    if (!empty($s_list) && is_array($s_list)) {
+                                        $index = 1;
+                                        foreach ($s_list as $aa) {
+                                    ?>
+                                            <tr>
+                                                <td><?= $index ?></td>
+                                                <td><a href="staff-info.php?s=<?= $aa["number"] ?>"><?= $aa["name"] ?></a></td>
+                                                <td><?= $aa["gender"] ?></td>
+                                                <td><?= $aa["role"] ?></td>
+                                                <td><a href="department-info.php?d=<?= $aa["department_id"] ?>"><?= $aa["department_name"] ?></a></td>
+                                                <td>
+                                                    <a href="staff-info.php?s=<?= $aa["number"] ?>" class="btn btn-primary btn-xs view-btn">View</a>
+                                                    <button id="<?= $aa["number"] ?>" class="btn btn-warning btn-xs edit-btn">Edit</button>
+                                                    <button id="<?= $aa["number"] ?>" class="btn btn-danger btn-xs delete-btn">Delete</button>
+                                                </td>
+                                            </tr>
+                                    <?php
+                                            $index++;
                                         }
-                                        ?>
-                                    </tbody>
-                                </table>
-                                <?php
-                                if ($pending) {
-                                ?>
-                                    <div class="mt-3" style="display: flex; justify-content:flex-end;">
-                                        <button type="button" id="approve-btn" class="btn btn-success btn-sm me-2">Approve Selected</button>
-                                        <button type="button" id="decline-btn" class="btn btn-danger btn-sm">Decline Selected</button>
-                                    </div>
-                                <?php } ?>
-                            </form>
+                                    }
+                                    ?>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

@@ -198,12 +198,9 @@ require_once('../inc/page-data.php');
                                                 <td><?= $aa["name"] ?></td>
                                                 <td><a href="staff-info.php?s=<?= $aa["hod_id"] ?>"><?= $aa["hod_name"] ?></a></td>
                                                 <td>
-                                                    <a href="department-info.php?d=<?= $aa["id"] ?>"
-                                                        class="btn btn-primary btn-xs view-btn">View</a>
-                                                    <button href="department-info.php?t=<?= $aa["id"] ?>"
-                                                        class="btn btn-warning btn-xs edit-btn">Edit</button>
-                                                    <button href="department-info.php?t=<?= $aa["id"] ?>"
-                                                        class="btn btn-danger btn-xs delete-btn">Delete</button>
+                                                    <a href="department-info.php?d=<?= $aa["id"] ?>" class="btn btn-primary btn-xs view-btn">View</a>
+                                                    <button id="<?= $aa["id"] ?>" class="btn btn-warning btn-xs edit-btn">Edit</button>
+                                                    <button id="<?= $aa["id"] ?>" class="btn btn-danger btn-xs delete-btn">Delete</button>
                                                 </td>
                                             </tr>
                                     <?php

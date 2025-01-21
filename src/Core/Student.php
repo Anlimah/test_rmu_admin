@@ -59,20 +59,20 @@ class Student
 
         $query = "SELECT 
                 s.`index_number`, s.`app_number`, s.`email`, s.`password`, s.`phone_number`, 
+                CONCAT(s.prefix, ' ', s.`first_name`, ' ', s.`last_name`, ' ', s.`suffix`) AS full_name, 
                 s.`prefix`, s.`first_name`, s.`middle_name`, s.`last_name`, s.`suffix`, s.`gender`, 
                 s.`dob`, s.`nationality`, s.`photo`, s.`marital_status`, s.`disability`, 
                 s.`date_admitted`, s.`term_admitted`, s.`stream_admitted`, s.`level_admitted`, 
                 s.`programme_duration`, s.`default_password`, s.`semester_setup`, s.`archived`, 
-                s.`fk_academic_year`, s.`fk_applicant`, s.`fk_department`, s.`fk_program`, s.`fk_class`, 
-                d.`name` AS department, s.`archived` 
+                s.`fk_academic_year` AS acad_year_id, s.`fk_applicant` AS applicant_id, 
+                s.`fk_department` AS department_id, s.`fk_program` AS program_id, s.`fk_class` AS class_code, 
+                ay.`name` AS acad_year_name, d.`name` AS department_name, p.`name` AS program_name 
                 FROM 
-                `student` AS s, `academic_year` AS ay, `applicants_login` AS al, 
-                `department` AS d, `programs` AS p, `class` AS c 
+                `student` AS s, `academic_year` AS ay, `department` AS d, `programs` AS p, `class` AS c 
                 WHERE 
-                s.`fk_academic_year` = ay.`id` AND s.`fk_applicant` = al.`id` AND 
-                s.`fk_department` = d.`id` AND s.`fk_program` = p.`id` AND s.`fk_class` = c.`code` AND 
-                d.`archived` = :ar $concat_stmt";
-        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+                s.`fk_academic_year` = ay.`id` AND s.`fk_department` = d.`id` AND 
+                s.`fk_program` = p.`id` AND s.`fk_class` = c.`code` AND s.`archived` = :ar $concat_stmt";
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }
 
@@ -166,12 +166,10 @@ class Student
 
         $query = "SELECT COUNT(s.`index_number`) AS total 
                 FROM 
-                `student` AS s, `academic_year` AS ay, `applicants_login` AS al, 
-                `department` AS d, `programs` AS p, `class` AS c 
+                `student` AS s, `academic_year` AS ay, `department` AS d, `programs` AS p, `class` AS c 
                 WHERE 
-                s.`fk_academic_year` = ay.`id` AND s.`fk_applicant` = al.`id` AND 
-                s.`fk_department` = d.`id` AND s.`fk_program` = p.`id` AND s.`fk_class` = c.`code` AND 
-                d.`archived` = :ar $concat_stmt";
+                s.`fk_academic_year` = ay.`id` AND  s.`fk_department` = d.`id` AND s.`fk_program` = p.`id` AND 
+                s.`fk_class` = c.`code` AND s.`archived` = :ar $concat_stmt";
         $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }

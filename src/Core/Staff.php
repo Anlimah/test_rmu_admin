@@ -45,10 +45,10 @@ class Staff
                 break;
         }
 
-        $query = "SELECT s.`number`, s.`email`, s.`password`, s.`first_name`, s.`middle_name`, s.`last_name`, 
-                s.`prefix`, s.`gender`, s.`role`, s.`archived`, s.`fk_department`, d.`name` AS department, s.`archived` 
-                FROM `staff` AS s, `department` AS d WHERE s.`fk_department` = d.`id` AND d.`archived` = :ar $concat_stmt";
-        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+        $query = "SELECT s.`number`, s.`email`, s.`password`, CONCAT(s.`prefix`, ' ', s.`first_name`, ' ', s.`last_name`) AS `name`, 
+                s.`gender`, s.`role`, s.`archived`, s.`fk_department` AS department_id, d.`name` AS department_name, s.`archived` 
+                FROM `staff` AS s, `department` AS d WHERE s.`fk_department` = d.`id` AND s.`archived` = :ar $concat_stmt";
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }
 

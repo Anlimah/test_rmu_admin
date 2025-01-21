@@ -42,10 +42,10 @@ class Course
         }
 
         $query = "SELECT `code`, c.`name`, c.`credit_hours`, c.`contact_hours`, c.`semester`, c.`level`, c.`archived`, 
-                c.`fk_category`, c.`fk_department`, cg.`name` AS category, d.`name` AS `department` 
+                c.`fk_category`, cg.`name` AS category, c.`fk_department` AS `department_id`, d.`name` AS `department_name` 
                 FROM `course` AS c, `course_category` AS cg, `department` AS d 
                 WHERE c.`fk_category` = cg.`id` AND c.`fk_department` = d.`id` AND c.`archived` = :ar $concat_stmt";
-        $params = $value ? array(":v" => $value, ":ar" => $archived) : array();
+        $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
         return $this->dm->getData($query, $params);
     }
 

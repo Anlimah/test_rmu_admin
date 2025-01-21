@@ -21,3 +21,6 @@ ADD COLUMN `any_elective_subjects` TEXT AFTER `required_elective_subjects`;
 ALTER TABLE `departments` 
 ADD COLUMN `hod` VARCHAR(10) AFTER `name`,
 ADD CONSTRAINT `fk_department_hod` FOREIGN KEY (`hod`) REFERENCES `staff`(`number`);
+
+ALTER TABLE `course` CHANGE `credits` `credit_hours` INT NOT NULL;
+ALTER TABLE `course` ADD COLUMN `contact_hours` INT AFTER `credit_hours`;

@@ -3,6 +3,9 @@ session_start();
 
 $_SESSION["lastAccessed"] = time();
 
+$isAdmin = false;
+if (strtolower($_SESSION["role"]) == "admin" || strtolower($_SESSION["role"]) == "developers") $isAdmin = true;
+
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
@@ -22,7 +25,7 @@ $staff = new Staff($db, $user, $pass);
 $student = new Student($db, $user, $pass);
 require_once('../inc/page-data.php');
 
-$adminSetup = true;
+$adminSetup = false;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -38,6 +41,7 @@ $adminSetup = true;
 </head>
 
 <body>
+
     <?= require_once("../inc/header.php") ?>
 
     <?= require_once("../inc/sidebar.php") ?>
@@ -45,7 +49,7 @@ $adminSetup = true;
     <main id="main" class="main">
 
         <div class="pagetitle">
-            <h1>Counts</h1>
+            <h1>Administrator</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
