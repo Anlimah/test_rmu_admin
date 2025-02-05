@@ -15,7 +15,7 @@ class UploadExcelDataController
     private $errorsEncountered = 0;
     private $successEncountered = 0;
 
-    public function __construct($fileObj, $startRow, $endRow)
+    public function __construct($fileObj, $startRow = 1, $endRow = 0)
     {
         $db   = getenv('DB_ADMISSION_DATABASE');
         $user = getenv('DB_ADMISSION_USERNAME');
@@ -27,7 +27,7 @@ class UploadExcelDataController
         $this->dm = new DatabaseMethods($db, $user, $pass);
     }
 
-    public function saveDataFile()
+    public function saveDataFile($folder_name)
     {
         $allowedFileType = [
             'application/vnd.ms-excel',
@@ -46,7 +46,7 @@ class UploadExcelDataController
             $name = time() . '-' . 'awaiting.xlsx';
 
             // Create the full path to the file
-            $this->targetPath = UPLOAD_DIR . "/awaiting/" . $name;
+            $this->targetPath = UPLOAD_DIR . "/$folder_name/" . $name;
 
             // Delete file if exsists
             if (file_exists($this->targetPath)) {
@@ -61,69 +61,105 @@ class UploadExcelDataController
         return array("success" => false, "message" => "Error: Invalid file object!");
     }
 
-    public function extractExcelData()
+    public function extractExcelData($item_name)
     {
-        $Reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
-        $spreadSheet = $Reader->load($this->targetPath);
-        $excelSheet = $spreadSheet->getActiveSheet();
-        $spreadSheetArray = $excelSheet->toArray();
+        if ($item_name == "awaiting") {
+            $Reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+            $spreadSheet = $Reader->load($this->targetPath);
+            $excelSheet = $spreadSheet->getActiveSheet();
+            $spreadSheetArray = $excelSheet->toArray();
 
-        if ($this->endRow == 0) $this->endRow = count($spreadSheetArray);
-        if ($this->startRow > 1) $this->startRow -= 1;
+            if ($this->endRow == 0) $this->endRow = count($spreadSheetArray);
+            if ($this->startRow > 1) $this->startRow -= 1;
 
-        $dataset = array();
+            $dataset = array();
 
-        for ($i = $this->startRow; $i <= $this->endRow - 1; $i++) {
-            //$admisNum = $spreadSheetArray[$i][0];
-            $indexNum = $spreadSheetArray[$i][1];
-            //$examMonth = $spreadSheetArray[$i][2];
-            //$examYear = $spreadSheetArray[$i][3];
+            for ($i = $this->startRow; $i <= $this->endRow - 1; $i++) {
+                //$admisNum = $spreadSheetArray[$i][0];
+                $indexNum = $spreadSheetArray[$i][1];
+                //$examMonth = $spreadSheetArray[$i][2];
+                //$examYear = $spreadSheetArray[$i][3];
 
-            // Get all the courses
+                // Get all the courses
 
-            $endRowData = count($spreadSheetArray[$i]);
-            $examResults = array();
+                $endRowData = count($spreadSheetArray[$i]);
+                $examResults = array();
 
-            for ($j = 6; $j < $endRowData; $j += 2) {
-                if ($spreadSheetArray[$i][$j] == "") break;
+                for ($j = 6; $j < $endRowData; $j += 2) {
+                    if ($spreadSheetArray[$i][$j] == "") break;
 
-                if (preg_match("/^english lang$/i", $spreadSheetArray[$i][$j])) {
-                    array_push($examResults, array(
-                        "type" => "core",
-                        "subject" => "ENGLISH LANGUAGE",
-                        "grade" => $spreadSheetArray[$i][($j + 1)]
-                    ));
-                } elseif (preg_match("/(?i)mathematics.*core/", $spreadSheetArray[$i][$j])) {
-                    array_push($examResults, array(
-                        "type" => "core",
-                        "subject" => "MATHEMATICS (CORE)",
-                        "grade" => $spreadSheetArray[$i][($j + 1)]
-                    ));
-                } elseif (preg_match("/^social studies$/i", $spreadSheetArray[$i][$j])) {
-                    array_push($examResults, array(
-                        "type" => "core",
-                        "subject" => "SOCIAL STUDIES",
-                        "grade" => $spreadSheetArray[$i][($j + 1)]
-                    ));
-                } elseif (preg_match("/^integrated science$/i", $spreadSheetArray[$i][$j])) {
-                    array_push($examResults, array(
-                        "type" => "core",
-                        "subject" => "INTEGRATED SCIENCE",
-                        "grade" => $spreadSheetArray[$i][($j + 1)]
-                    ));
-                } else {
-                    array_push($examResults, array(
-                        "type" => "elective",
-                        "subject" => $spreadSheetArray[$i][$j],
-                        "grade" => $spreadSheetArray[$i][($j + 1)]
-                    ));
+                    if (preg_match("/^english lang$/i", $spreadSheetArray[$i][$j])) {
+                        array_push($examResults, array(
+                            "type" => "core",
+                            "subject" => "ENGLISH LANGUAGE",
+                            "grade" => $spreadSheetArray[$i][($j + 1)]
+                        ));
+                    } elseif (preg_match("/(?i)mathematics.*core/", $spreadSheetArray[$i][$j])) {
+                        array_push($examResults, array(
+                            "type" => "core",
+                            "subject" => "MATHEMATICS (CORE)",
+                            "grade" => $spreadSheetArray[$i][($j + 1)]
+                        ));
+                    } elseif (preg_match("/^social studies$/i", $spreadSheetArray[$i][$j])) {
+                        array_push($examResults, array(
+                            "type" => "core",
+                            "subject" => "SOCIAL STUDIES",
+                            "grade" => $spreadSheetArray[$i][($j + 1)]
+                        ));
+                    } elseif (preg_match("/^integrated science$/i", $spreadSheetArray[$i][$j])) {
+                        array_push($examResults, array(
+                            "type" => "core",
+                            "subject" => "INTEGRATED SCIENCE",
+                            "grade" => $spreadSheetArray[$i][($j + 1)]
+                        ));
+                    } else {
+                        array_push($examResults, array(
+                            "type" => "elective",
+                            "subject" => $spreadSheetArray[$i][$j],
+                            "grade" => $spreadSheetArray[$i][($j + 1)]
+                        ));
+                    }
                 }
+
+                array_push($dataset, array("index_number" => $indexNum, "exam_results" => $examResults));
             }
 
-            array_push($dataset, array("index_number" => $indexNum, "exam_results" => $examResults));
-        }
+            return $dataset;
+        } else if ($item_name == "course") {
+            $Reader = new \PhpOffice\PhpSpreadsheet\Reader\Xlsx();
+            $spreadSheet = $Reader->load($this->targetPath);
+            $excelSheet = $spreadSheet->getActiveSheet();
+            $spreadSheetArray = $excelSheet->toArray();
 
-        return $dataset;
+            if ($this->endRow == 0) $this->endRow = count($spreadSheetArray);
+            if ($this->startRow > 1) $this->startRow -= 1;
+
+            $dataset = array();
+
+            for ($i = $this->startRow; $i <= $this->endRow - 1; $i++) {
+                $code = $spreadSheetArray[$i][0];
+                $name = $spreadSheetArray[$i][1];
+                $credit = $spreadSheetArray[$i][2];
+                $contact = $spreadSheetArray[$i][3];
+                $semester = $spreadSheetArray[$i][4];
+                $level = $spreadSheetArray[$i][5];
+                $category = $spreadSheetArray[$i][6];
+                $department = $spreadSheetArray[0][1];
+
+                array_push($dataset, array(
+                    "code" => $code,
+                    "name" => $name,
+                    "credit_hours" => $credit,
+                    "contact_hours" => $contact,
+                    "semester" => $semester,
+                    "level" => $level,
+                    "category" => $category,
+                    "department" => $department
+                ));
+            }
+
+            return $dataset;
+        }
     }
 
     public function saveSubjectAndGrades($indexNumber, $subjects = array())
@@ -131,7 +167,9 @@ class UploadExcelDataController
         if (empty($subjects) || empty($indexNumber)) {
             $this->errorsEncountered += 1;
             return array(
-                "success" => false, "index number" => $indexNumber, "message" => "Empty value inputs!"
+                "success" => false,
+                "index number" => $indexNumber,
+                "message" => "Empty value inputs!"
             );
         }
 
@@ -143,7 +181,9 @@ class UploadExcelDataController
         if (empty($appAcaID)) {
             $this->errorsEncountered += 1;
             return array(
-                "success" => false, "index number" => $indexNumber, "message" => "Applicant data not found in DB!",
+                "success" => false,
+                "index number" => $indexNumber,
+                "message" => "Applicant data not found in DB!",
             );
         }
 
@@ -169,33 +209,121 @@ class UploadExcelDataController
         return array("success" => true, "index number" => $indexNumber, "message" => "Subjects added!");
     }
 
-    public function extractAwaitingApplicantsResults()
+    public function saveCourseData($course, $departmentID)
     {
-        // save file to uploads folder
-        $file_upload_msg = $this->saveDataFile();
-        if (!$file_upload_msg["success"]) return $file_upload_msg;
-
-        //extraxt data into array
-        $extracted_data = $this->extractExcelData();
-        if (empty($extracted_data)) return array("success" => true, "message" => "Couldn't extract excel data to DB!");
-
-        $error_list = [];
-        $output = [];
-        $count = 0;
-
-        // add results for each applicant to db
-        foreach ($extracted_data as $data) {
-            $result = $this->saveSubjectAndGrades($data["index_number"], $data["exam_results"]);
-            if (!$result["success"]) array_push($error_list, $result);
-            if ($result["success"]) $this->successEncountered += 1;
-            $count++;
+        if (empty($course)) {
+            $this->errorsEncountered += 1;
+            return array(
+                "success" => false,
+                "message" => "Ooops! Empty course data received."
+            );
         }
 
-        array_push($output, array("total_count" => $count));
-        array_push($output, array("success_count" => $this->successEncountered));
-        array_push($output, array("errors_count" => $this->errorsEncountered));
-        array_push($output, array("errors" => $error_list));
+        $selectQuery = "SELECT * FROM `course` WHERE `code` = :c";
+        $courseData = $this->dm->getData($selectQuery, array(":c" => $course["code"]));
+        if (!empty($courseData)) {
+            $this->errorsEncountered += 1;
+            return array(
+                "success" => false,
+                "message" => "{$courseData[0]["name"]} with code {$courseData[0]["code"]} already exist in database!"
+            );
+        }
 
-        return $output;
+        $insertQuery = "INSERT INTO `course` (`code`, `name`, `credit_hours`, `contact_hours`, `semester`, `level`, `fk_category`, `fk_department`) 
+                        VALUES (:c, :n, :ch, :th, :s, :l, :fkc, :fkd)";
+        $params = array(
+            ":c" => $course["code"],
+            ":n" => $course["name"],
+            ":ch" => $course["credit_hours"],
+            ":th" => $course["contact_hours"],
+            ":s" => $course["semester"],
+            ":l" => $course["level"],
+            ":fkc" => strtolower($course["category"]) == "compulsory" ? 1 : (strtolower($course["category"]) == "elective" ? 2 : 3),
+            ":fkd" => $departmentID
+        );
+
+        if ($this->dm->inputData($insertQuery, $params)) {
+            return array(
+                "success" => true,
+                "message" => "Successfully added course!"
+            );
+        } else {
+            $this->errorsEncountered += 1;
+            return array(
+                "success" => false,
+                "message" => "Ooops! Server error: failed to add course!"
+            );
+        }
+    }
+
+    public function run($item_name)
+    {
+        if ($item_name == "awaiting") {
+            // save file to uploads folder
+            $file_upload_msg = $this->saveDataFile($item_name);
+            if (!$file_upload_msg["success"]) return $file_upload_msg;
+
+            //extraxt data into array
+            $extracted_data = $this->extractExcelData($item_name);
+            if (empty($extracted_data)) return array("success" => true, "message" => "Couldn't extract excel data to DB!");
+
+            $error_list = [];
+            $output = [];
+            $count = 0;
+
+            // add results for each applicant to db
+            foreach ($extracted_data as $data) {
+                $result = $this->saveSubjectAndGrades($data["index_number"], $data["exam_results"]);
+                if (!$result["success"]) array_push($error_list, $result);
+                if ($result["success"]) $this->successEncountered += 1;
+                $count++;
+            }
+
+            array_push($output, array("total_count" => $count));
+            array_push($output, array("success_count" => $this->successEncountered));
+            array_push($output, array("errors_count" => $this->errorsEncountered));
+            array_push($output, array("errors" => $error_list));
+
+            return $output;
+        } else if ($item_name == "course") {
+            // save file to uploads folder
+            $file_upload_msg = $this->saveDataFile($item_name);
+            if (!$file_upload_msg["success"]) return $file_upload_msg;
+
+            //extraxt data into array
+            $extracted_data = $this->extractExcelData($item_name);
+            if (empty($extracted_data)) return array("success" => true, "message" => "Ooops! Couldn't extract excel data to the database.");
+
+            $error_list = [];
+            $output = [];
+            $count = 0;
+
+            // Get the department's id
+            $selectQuery = "SELECT `id` FROM `department` WHERE `name` = :d";
+            $departmentID = $this->dm->getData($selectQuery, array(":d" => $extracted_data[0]["department"]));
+
+            if (empty($departmentID)) {
+                $this->errorsEncountered += 1;
+                return array(
+                    "success" => false,
+                    "message" => "{$extracted_data[0]["department"]} department doesn't exist!"
+                );
+            } else {
+                // add results for each applicant to db
+                foreach ($extracted_data as $course) {
+                    $result = $this->saveCourseData($course, $departmentID[0]["id"]);
+                    if (!$result["success"]) array_push($error_list, $result["message"]);
+                    if ($result["success"]) $this->successEncountered += 1;
+                    $count++;
+                }
+            }
+
+            array_push($output, array("total_count" => $count));
+            array_push($output, array("success_count" => $this->successEncountered));
+            array_push($output, array("errors_count" => $this->errorsEncountered));
+            array_push($output, array("errors" => $error_list));
+
+            return $output;
+        }
     }
 }

@@ -536,7 +536,7 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
                 $endRow = $expose->validateNumber($_POST['endRow']);
 
                 $excelData = new UploadExcelDataController($_FILES["awaiting-ds"], $_POST['startRow'], $_POST['endRow']);
-                $result = $excelData->extractAwaitingApplicantsResults();
+                $result = $excelData->run('awaiting');
                 break;
         }
 
@@ -1186,17 +1186,98 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
     //courses
 
     elseif ($_GET["url"] == "fetch-course") {
-        die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
-    } elseif ($_GET["url"] == "add-course") {
+        if (!isset($_POST["code"]) || empty($_POST["code"])) {
+            die(json_encode(array("success" => false, "message" => "Course code is required!")));
+        }
+        die(json_encode(array("success" => true, "data" => $course->fetch("code", $_POST["code"]))));
+    }
+    //add
+    elseif ($_GET["url"] == "add-course") {
+        if (!isset($_POST["code"]) || empty($_POST["code"])) {
+            die(json_encode(array("success" => false, "message" => "Course code is required!")));
+        }
+        if (!isset($_POST["name"]) || empty($_POST["name"])) {
+            die(json_encode(array("success" => false, "message" => "Course name is required!")));
+        }
+        if (!isset($_POST["creditHours"]) || empty($_POST["creditHours"])) {
+            die(json_encode(array("success" => false, "message" => "Course credit hours is required!")));
+        }
+        if (!isset($_POST["contactHours"]) || empty($_POST["contactHours"])) {
+            die(json_encode(array("success" => false, "message" => "Course contact hours is required!")));
+        }
+        if (!isset($_POST["semester"]) || empty($_POST["semester"])) {
+            die(json_encode(array("success" => false, "message" => "Course semester is required!")));
+        }
+        if (!isset($_POST["level"]) || empty($_POST["level"])) {
+            die(json_encode(array("success" => false, "message" => "Course level is required!")));
+        }
+        if (!isset($_POST["category"]) || empty($_POST["category"])) {
+            die(json_encode(array("success" => false, "message" => "Course category is required!")));
+        }
+        if (!isset($_POST["department"]) || empty($_POST["department"])) {
+            die(json_encode(array("success" => false, "message" => "Course department is required!")));
+        }
         die(json_encode($course->add($_POST)));
-    } elseif ($_GET["url"] == "update-course") {
+    }
+    //edit
+    elseif ($_GET["url"] == "edit-course") {
+        if (!isset($_POST["code"]) || empty($_POST["code"])) {
+            die(json_encode(array("success" => false, "message" => "Course code is required!")));
+        }
+        if (!isset($_POST["name"]) || empty($_POST["name"])) {
+            die(json_encode(array("success" => false, "message" => "Course name is required!")));
+        }
+        if (!isset($_POST["creditHours"]) || empty($_POST["creditHours"])) {
+            die(json_encode(array("success" => false, "message" => "Course credit hours is required!")));
+        }
+        if (!isset($_POST["contactHours"]) || empty($_POST["contactHours"])) {
+            die(json_encode(array("success" => false, "message" => "Course contact hours is required!")));
+        }
+        if (!isset($_POST["semester"]) || empty($_POST["semester"])) {
+            die(json_encode(array("success" => false, "message" => "Course semester is required!")));
+        }
+        if (!isset($_POST["level"]) || empty($_POST["level"])) {
+            die(json_encode(array("success" => false, "message" => "Course level is required!")));
+        }
+        if (!isset($_POST["category"]) || empty($_POST["category"])) {
+            die(json_encode(array("success" => false, "message" => "Course category is required!")));
+        }
+        if (!isset($_POST["department"]) || empty($_POST["department"])) {
+            die(json_encode(array("success" => false, "message" => "Course department is required!")));
+        }
         die(json_encode($course->update($_POST)));
-    } elseif ($_GET["url"] == "archive-course") {
-        die(json_encode($course->archive($_POST)));
-    } elseif ($_GET["url"] == "delete-course") {
-        die(json_encode($course->delete($_POST)));
-    } elseif ($_GET["url"] == "total-course") {
+    }
+    //archive
+    elseif ($_GET["url"] == "archive-course") {
+        if (!isset($_POST["code"]) || empty($_POST["code"])) {
+            die(json_encode(array("success" => false, "message" => "Course code is required!")));
+        }
+        die(json_encode($course->archive($_POST["code"])));
+    }
+    //delete
+    elseif ($_GET["url"] == "delete-course") {
+        if (!isset($_POST["code"]) || empty($_POST["code"])) {
+            die(json_encode(array("success" => false, "message" => "Course code is required!")));
+        }
+        die(json_encode($course->archive($_POST["code"])));
+    }
+    //total
+    elseif ($_GET["url"] == "total-course") {
         die(json_encode($program->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
+    }
+    //upload
+    elseif ($_GET["url"] == "upload-course") {
+        $result;
+        if (!isset($_FILES["uploadCourseFile"]) || empty($_FILES["uploadCourseFile"])) {
+            die(json_encode(array("success" => false, "message" => "Invalid request!")));
+        }
+        if ($_FILES["uploadCourseFile"]['error']) {
+            die(json_encode(array("success" => false, "message" => "Failed to upload file!")));
+        }
+
+        $excelData = new UploadExcelDataController($_FILES["uploadCourseFile"], 4, 0);
+        $result = $excelData->run('course');
+        die(json_encode($result));
     }
 
     //students

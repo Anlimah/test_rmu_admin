@@ -5,7 +5,7 @@ namespace Src\Core;
 use Src\Base\Log;
 use Src\System\DatabaseMethods;
 
-class Course
+class Base
 {
 
     private $dm = null;
@@ -15,6 +15,16 @@ class Course
     {
         $this->dm = new DatabaseMethods($db, $user, $pass);
         $this->log = new Log($db, $user, $pass);
+    }
+
+    public function fetchAllCourseCategories()
+    {
+        return $this->dm->getData("SELECT * FROM `course_category`");
+    }
+
+    public function fetchAllDepartments()
+    {
+        return $this->dm->getData("SELECT * FROM `department`");
     }
 
     public function fetch(string $key = "", string $value = "", bool $archived = false)
@@ -42,7 +52,7 @@ class Course
         }
 
         $query = "SELECT `code`, c.`name`, c.`credit_hours`, c.`contact_hours`, c.`semester`, c.`level`, c.`archived`, 
-                c.`fk_category` AS category_id, cg.`name` AS category, c.`fk_department` AS `department_id`, d.`name` AS `department_name` 
+                c.`fk_category`, cg.`name` AS category, c.`fk_department` AS `department_id`, d.`name` AS `department_name` 
                 FROM `course` AS c, `course_category` AS cg, `department` AS d 
                 WHERE c.`fk_category` = cg.`id` AND c.`fk_department` = d.`id` AND c.`archived` = :ar $concat_stmt";
         $params = $value ? array(":v" => $value, ":ar" => $archived) : array(":ar" => $archived);
@@ -51,24 +61,14 @@ class Course
 
     public function add(array $data)
     {
-        $selectQuery = "SELECT * FROM `course` WHERE `code` = :c";
-        $courseData = $this->dm->getData($selectQuery, array(":c" => $data["code"]));
-
-        if (!empty($courseData)) {
-            return array(
-                "success" => false,
-                "message" => "{$courseData[0]["name"]} with code {$courseData[0]["code"]} already exist in database!"
-            );
-        }
-
         $query = "INSERT INTO course (`code`, `name`, `credit_hours`, `contact_hours`, `semester`, `level`, 
                 `fk_category`, `fk_department`, `archived`) 
                 VALUES(:c, :n, :ch, :th, :s, :l, :cg, :dm, :ar)";
         $params = array(
             ":c" => $data["code"],
             ":n" => $data["name"],
-            ":ch" => $data["creditHours"],
-            ":th" => $data["contactHours"],
+            ":ch" => $data["credit_hours"],
+            ":th" => $data["contact_hours"],
             ":s" => $data["semester"],
             ":l" => $data["level"],
             ":cg" => $data["category"],
@@ -76,11 +76,8 @@ class Course
             ":ar" => 0
         );
         $query_result = $this->dm->inputData($query, $params);
-        if ($query_result) {
-            $this->log->activity($_SESSION["user"], "INSERT", "Added new course {$data["name"]}");
-            return array("success" => true, "message" => "New course successfully added!");
-        }
-        return array("success" => false, "message" => "Failed to add new course!");
+        if ($query_result) $this->log->activity($_SESSION["user"], "INSERT", "Added new course {$data["name"]}");
+        return $query_result;
     }
 
     public function update(array $data)
@@ -91,8 +88,8 @@ class Course
         $params = array(
             ":c" => $data["code"],
             ":n" => $data["name"],
-            ":ch" => $data["creditHours"],
-            ":th" => $data["contactHours"],
+            ":ch" => $data["credit_hours"],
+            ":th" => $data["contact_hours"],
             ":s" => $data["semester"],
             ":l" => $data["level"],
             ":cg" => $data["category"],
@@ -100,22 +97,16 @@ class Course
             ":ar" => 0
         );
         $query_result = $this->dm->inputData($query, $params);
-        if ($query_result) {
-            $this->log->activity($_SESSION["user"], "UPDATE", "Updated information for course {$data["code"]}");
-            return array("success" => true, "message" => "Course successfully updated!");
-        }
-        return array("success" => false, "message" => "Failed to update course!");
+        if ($query_result) $this->log->activity($_SESSION["user"], "UPDATE", "Updated information for course {$data["code"]}");
+        return $query_result;
     }
 
     public function archive($code)
     {
         $query = "UPDATE course SET archived = 1 WHERE `code` = :c";
         $query_result = $this->dm->inputData($query, array(":c" => $code));
-        if ($query_result) {
-            $this->log->activity($_SESSION["user"], "DELETE", "Archived course {$code}");
-            return array("success" => true, "message" => "Course with code {$code} successfully deleted!");
-        }
-        return array("success" => false, "message" => "Failed to add new course!");
+        if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Archived course {$code}");
+        return $query_result;
     }
 
     public function delete($code)

@@ -1,6 +1,0 @@
-Warning: SQLSTATE[42000]: Syntax error or access violation: 1064 You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ':ar' at line 15
-Trace: #0 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(69): PDOStatement->execute()
-#1 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(104): Src\System\DatabaseMethods->query('SELECT \r\n      ...', Array)
-#2 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Core\Student.php(76): Src\System\DatabaseMethods->getData('SELECT \r\n      ...', Array)
-#3 C:\xampp\htdocs\test\rmu_admissions_admin_test\admin\students.php(194): Src\Core\Student->fetch()
-#4 {main}

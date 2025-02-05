@@ -507,6 +507,7 @@ require_once('../inc/page-data.php');
     <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.css">
     <link href="../assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <script src="../js/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
@@ -587,6 +588,15 @@ require_once('../inc/page-data.php');
             </nav>
         </div><!-- End Page Title -->
 
+        <section class="mb-4 section dashboard">
+            <div style="display:flex; flex-direction: row-reverse;">
+                <button class="action-btn btn btn-success btn-xs" onclick="openAcademicYearModal()">
+                    <i class="fas fa-plus"></i>
+                    <span>Add</span>
+                </button>
+            </div>
+        </section>
+
         <section class="section dashboard">
             <div class="row">
                 <div class="col-12">
@@ -594,9 +604,8 @@ require_once('../inc/page-data.php');
                     <div class="card recent-sales overflow-auto">
 
                         <div class="card-body">
-                            <h5 class="card-title">List</h5>
                             <table class="table table-borderless datatable table-striped table-hover">
-                                <thead class="table-dark">
+                                <thead class="table-secondary">
                                     <tr>
                                         <th scope="col">#</th>
                                         <th scope="col" style="width:150px">Name</th>

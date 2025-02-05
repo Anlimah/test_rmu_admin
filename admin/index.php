@@ -451,6 +451,7 @@
     <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.css">
     <link href="../assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <script src="../js/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>

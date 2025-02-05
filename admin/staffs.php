@@ -507,6 +507,7 @@ require_once('../inc/page-data.php');
     <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.css">
     <link href="../assets/vendor/simple-datatables/style.css" rel="stylesheet">
+    <script src="../js/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
@@ -587,52 +588,59 @@ require_once('../inc/page-data.php');
             </nav>
         </div><!-- End Page Title -->
 
+        <section class="mb-4 section dashboard">
+            <div style="display:flex; flex-direction: row-reverse;">
+                <button class="action-btn btn btn-success btn-xs" onclick="openAdmissionPeriodModal()">
+                    <i class="fas fa-plus"></i>
+                    <span>Add</span>
+                </button>
+            </div>
+        </section>
+
         <section class="section dashboard">
-            <div class="row">
-                <div class="col-12">
 
-                    <div class="card recent-sales overflow-auto">
+            <div class="col-12">
 
-                        <div class="card-body">
-                            <h5 class="card-title">Requests</h5>
-                            <table class="table table-borderless datatable table-striped table-hover">
-                                <thead class="table-dark">
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col" style="width:150px">Name</th>
-                                        <th scope="col">Sex</th>
-                                        <th scope="col">Role</th>
-                                        <th scope="col">Department</th>
-                                        <th scope="col">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $s_list = $staff->fetch();
-                                    if (!empty($s_list) && is_array($s_list)) {
-                                        $index = 1;
-                                        foreach ($s_list as $aa) {
-                                    ?>
-                                            <tr>
-                                                <td><?= $index ?></td>
-                                                <td><a href="staff-info.php?s=<?= $aa["number"] ?>"><?= $aa["name"] ?></a></td>
-                                                <td><?= $aa["gender"] ?></td>
-                                                <td><?= $aa["role"] ?></td>
-                                                <td><a href="department-info.php?d=<?= $aa["department_id"] ?>"><?= $aa["department_name"] ?></a></td>
-                                                <td>
-                                                    <a href="staff-info.php?s=<?= $aa["number"] ?>" class="btn btn-primary btn-xs view-btn">View</a>
-                                                    <button id="<?= $aa["number"] ?>" class="btn btn-warning btn-xs edit-btn">Edit</button>
-                                                    <button id="<?= $aa["number"] ?>" class="btn btn-danger btn-xs delete-btn">Delete</button>
-                                                </td>
-                                            </tr>
-                                    <?php
-                                            $index++;
-                                        }
+                <div class="card recent-sales overflow-auto">
+
+                    <div class="card-body">
+                        <table class="table table-borderless datatable table-striped table-hover">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col" style="width:150px">Name</th>
+                                    <th scope="col">Sex</th>
+                                    <th scope="col">Role</th>
+                                    <th scope="col">Department</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $s_list = $staff->fetch();
+                                if (!empty($s_list) && is_array($s_list)) {
+                                    $index = 1;
+                                    foreach ($s_list as $aa) {
+                                ?>
+                                        <tr>
+                                            <td><?= $index ?></td>
+                                            <td><a href="staff-info.php?s=<?= $aa["number"] ?>"><?= $aa["name"] ?></a></td>
+                                            <td><?= $aa["gender"] ?></td>
+                                            <td><?= $aa["role"] ?></td>
+                                            <td><a href="department-info.php?d=<?= $aa["department_id"] ?>"><?= $aa["department_name"] ?></a></td>
+                                            <td>
+                                                <a href="staff-info.php?s=<?= $aa["number"] ?>" class="btn btn-primary btn-xs view-btn">View</a>
+                                                <button id="<?= $aa["number"] ?>" class="btn btn-warning btn-xs edit-btn">Edit</button>
+                                                <button id="<?= $aa["number"] ?>" class="btn btn-danger btn-xs delete-btn">Delete</button>
+                                            </td>
+                                        </tr>
+                                <?php
+                                        $index++;
                                     }
-                                    ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                }
+                                ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -642,7 +650,25 @@ require_once('../inc/page-data.php');
 
     <?= require_once("../inc/footer-section.php") ?>
     <script>
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Specific modal openers
+        function openAcademicYearModal() {
+            openModal('academicYearModal');
+        }
+
+        function openAdmissionPeriodModal() {
+            openModal('admissionPeriodModal');
+        }
         $(document).ready(function() {
+
 
             $(".form-select").change("blur", function() {
                 $.ajax({
