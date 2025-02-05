@@ -550,9 +550,9 @@ require_once('../inc/page-data.php');
                         <i class="fas fa-book"></i>
                         <span>Programs</span>
                     </a>
-                    <a href="courses.php" class="menu-item">
+                    <a href="programs.php" class="menu-item">
                         <i class="fas fa-chalkboard"></i>
-                        <span>Courses</span>
+                        <span>Programs</span>
                     </a>
                 </div>
             </div>
@@ -651,67 +651,336 @@ require_once('../inc/page-data.php');
             </div>
         </section>
 
+        <!-- Add New Program Modal -->
+        <div class="modal" id="addProgramModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <button class="close-btn" onclick="closeModal('addProgramModal')">×</button>
+                    <h2>Add New Program</h2>
+                    <form id="addProgramForm" method="POST" enctype="multipart/form-data">
+                        <div class="input-group">
+                            <div class="form-group me-2" style="width: 20%;">
+                                <label for="code">Code</label>
+                                <input type="text" id="code" name="code" class="form-control" required>
+                            </div>
+                            <div class="form-group" style="width: 78%;">
+                                <label for="name">Name</label>
+                                <input type="text" id="name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="form-group me-2">
+                                <label for="creditHours">Credit Hours</label>
+                                <input type="number" name="creditHours" min="2" id="creditHours" value="2" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="contactHours">Contact Hours</label>
+                                <input type="number" name="contactHours" min="2" id="contactHours" value="2" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="form-group me-2">
+                                <label for="semester">Semester</label>
+                                <select id="semester" name="semester" required>
+                                    <option value="">Select</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </div>
+                            <div class="form-group me-2">
+                                <label for="level">Level</label>
+                                <select id="level" name="level" required>
+                                    <option value="">Select</option>
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                    <option value="300">300</option>
+                                    <option value="400">400</option>
+                                </select>
+                            </div>
+                            <div class="form-group me-2">
+                                <label for="category">Category</label>
+                                <select id="category" name="category" required>
+                                    <option value="" hidden>Select</option>
+                                    <?php
+                                    $program_categories = $base->fetchAllProgramCategories();
+                                    foreach ($program_categories as $program_category) {
+                                    ?>
+                                        <option value="<?= $program_category["id"] ?>"><?= $program_category["name"] ?></option>
+                                    <?php
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="department">Department</label>
+                                <select id="department" name="department" required>
+                                    <option value="" hidden>Select</option>
+                                    <?php
+                                    $departments = $base->fetchAllDepartments();
+                                    foreach ($departments as $department) {
+                                    ?>
+                                        <option value="<?= $department["id"] ?>"><?= $department["name"] ?></option>
+                                    <?php
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('addProgramModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary addProgram-btn">Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Program Modal -->
+        <div class="modal" id="editProgramModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <button class="close-btn" onclick="closeModal('editProgramModal')">×</button>
+                    <h2>Edit Program</h2>
+                    <form id="editProgramForm" method="POST" enctype="multipart/form-data">
+                        <div class="input-group">
+                            <div class="form-group me-2" style="width: 20%;">
+                                <label for="edit-code">Code</label>
+                                <input type="text" id="edit-code" name="code" class="form-control" required>
+                            </div>
+                            <div class="form-group" style="width: 78%;">
+                                <label for="edit-name">Name</label>
+                                <input type="text" id="edit-name" name="name" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="form-group me-2">
+                                <label for="edit-creditHours">Credit Hours</label>
+                                <input type="number" name="creditHours" min="2" id="edit-creditHours" value="2" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-contactHours">Contact Hours</label>
+                                <input type="number" name="contactHours" min="2" id="edit-contactHours" value="2" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="form-group me-2">
+                                <label for="edit-semester">Semester</label>
+                                <select id="edit-semester" name="semester" required>
+                                    <option value="">Select</option>
+                                    <option value="1">1</option>
+                                    <option value="2">2</option>
+                                </select>
+                            </div>
+                            <div class="form-group me-2">
+                                <label for="edit-level">Level</label>
+                                <select id="edit-level" name="level" required>
+                                    <option value="">Select</option>
+                                    <option value="100">100</option>
+                                    <option value="200">200</option>
+                                    <option value="300">300</option>
+                                    <option value="400">400</option>
+                                </select>
+                            </div>
+                            <div class="form-group me-2">
+                                <label for="edit-category">Category</label>
+                                <select id="edit-category" name="category" required>
+                                    <option value="" hidden>Select</option>
+                                    <?php
+                                    $program_categories = $base->fetchAllProgramCategories();
+                                    foreach ($program_categories as $program_category) {
+                                    ?>
+                                        <option value="<?= $program_category["id"] ?>"><?= $program_category["name"] ?></option>
+                                    <?php
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="edit-department">Department</label>
+                                <select id="edit-department" name="department" required>
+                                    <option value="" hidden>Select</option>
+                                    <?php
+                                    $departments = $base->fetchAllDepartments();
+                                    foreach ($departments as $department) {
+                                    ?>
+                                        <option value="<?= $department["id"] ?>"><?= $department["name"] ?></option>
+                                    <?php
+                                    }
+                                    ?>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('editProgramModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary editProgram-btn">Save</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </main><!-- End #main -->
 
     <?= require_once("../inc/footer-section.php") ?>
+
     <script>
+        // Modal functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            if (modalId == "addProgramModal") {
+                document.getElementById("addProgramForm").reset();
+            } else if (modalId == "editProgramModal") {
+                console.log(modalId)
+                document.getElementById("editProgramForm").reset();
+            }
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Specific modal openers
+        function openAddProgramModal() {
+            openModal('addProgramModal');
+        }
+
+        function openEditProgramModal() {
+            openModal('editProgramModal');
+        }
+
+        function openUploadProgramModal() {
+            openModal('uploadProgramModal');
+        }
+
+        function setEditProgramFormData(data) {
+            $("#edit-code").val(data.code);
+            $("#edit-name").val(data.name);
+            $("#edit-creditHours").val(data.credit_hours);
+            $("#edit-contactHours").val(data.contact_hours);
+            $("#edit-semester").val(data.semester);
+            $("#edit-level").val(data.level);
+            $("#edit-category").val(data.category_id);
+            $("#edit-department").val(data.department_id);
+        }
+
         $(document).ready(function() {
 
-            $(".form-select").change("blur", function() {
+            $("#addProgramForm").on("submit", function(e) {
+
+                e.preventDefault();
+
+                // Create a new FormData object
+                var formData = new FormData(this);
+
+                // Set up ajax request
                 $.ajax({
-                    type: "POST",
-                    url: "../endpoint/formInfo",
-                    data: {
-                        form_id: this.value,
-                    },
+                    type: 'POST',
+                    url: "../endpoint/add-program",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
                     success: function(result) {
                         console.log(result);
                         if (result.success) {
-                            $("#form-cost-display").show();
-                            $("#form-name").text(result.message[0]["name"]);
-                            $("#form-cost").text(result.message[0]["amount"]);
-                            $("#form_price").val(result.message[0]["amount"]);
-                            //$("#form_type").val(result.message[0]["form_type"]);
-                            $(':input[type="submit"]').prop('disabled', false);
-                        } else {
-                            if (result.message == "logout") {
-                                window.location.href = "?logout=true";
-                                return;
-                            }
-                        }
+                            alert(result.message);
+                            closeModal("addProgramModal");
+                            location.reload();
+                        } else alert(result.message);
                     },
-                    error: function(error) {
-                        console.log(error.statusText);
+                    error: function() {
+                        alert('Error: Internal server error!');
+                    },
+                    ajaxStart: function() {
+                        $(".addProgram-btn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
+                    },
+                    ajaxStop: function() {
+                        $(".addProgram-btn").prop("disabled", false).html('Upload');
                     }
                 });
             });
 
-            $("#approve-btn, #decline-btn").on("click", function(e) {
-                const formAction = $(this).attr('id') === 'approve-btn' ? 'approve' : 'decline';
-                const selectedCount = $('input[name="app-login[]"]:checked').length;
+            $("#editProgramForm").on("submit", function(e) {
 
-                if (selectedCount === 0) {
-                    alert("Please select at least one application.");
-                    return;
-                }
+                e.preventDefault();
 
-                const confirmMessage = `Are you sure you want to ${formAction} ${selectedCount} selected application(s)?`;
-                if (!confirm(confirmMessage)) return;
+                // Create a new FormData object
+                var formData = new FormData(this);
 
-                // Set the action value
-                $('input[name="action"]').val(formAction);
+                // Set up ajax request
+                $.ajax({
+                    type: 'POST',
+                    url: "../endpoint/edit-program",
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.success) {
+                            alert(result.message);
+                            closeModal("editProgramModal");
+                            location.reload();
+                        } else alert(result.message);
+                    },
+                    error: function() {
+                        alert('Error: Internal server error!');
+                    },
+                    ajaxStart: function() {
+                        $(".editProgram-btn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
+                    },
+                    ajaxStop: function() {
+                        $(".editProgram-btn").prop("disabled", false).html('Upload');
+                    }
+                });
+            });
 
-                // Submit the form
-                const form = $("#shortlist-form")[0];
-                const formData = new FormData(form);
+            $(document).on("click", ".edit-btn", function(e) {
+                const code = $(this).attr('id');
+
+                const formData = {
+                    "code": code
+                };
 
                 $.ajax({
                     type: "POST",
-                    url: "../endpoint/shortlisted-application",
+                    url: "../endpoint/fetch-program",
                     data: formData,
-                    contentType: false,
-                    cache: false,
-                    processData: false,
+                    success: function(result) {
+                        console.log(result);
+                        if (result.success) {
+                            if (result.data) {
+                                setEditProgramFormData(result.data[0]);
+                                openEditProgramModal();
+                            } else alert("No data found");
+                        } else {
+                            if (result.message == "logout") {
+                                alert('Your session expired. Please refresh the page to continue!');
+                                window.location.href = "?logout=true";
+                            } else {
+                                alert(result.message);
+                            }
+                        }
+                    },
+                    error: function(error) {
+                        console.log("error area: ", error);
+                        alert("An error occurred while processing your request.");
+                    }
+                });
+            });
+
+            $(document).on("click", ".delete-btn", function(e) {
+                const code = $(this).attr('id');
+
+                const confirmMessage = `Are you sure you want to delete this program?`;
+                if (!confirm(confirmMessage)) return;
+
+                const formData = {
+                    "code": code
+                };
+
+                $.ajax({
+                    type: "POST",
+                    url: "../endpoint/delete-program",
+                    data: formData,
                     success: function(result) {
                         console.log(result);
                         if (result.success) {
@@ -732,37 +1001,6 @@ require_once('../inc/page-data.php');
                     }
                 });
             });
-
-            $("#num1").focus();
-
-            $(".num").on("keyup", function() {
-                if (this.value.length == 4) {
-                    $(this).next(":input").focus().select(); //.val(''); and as well clesr
-                }
-            });
-
-            $("input[type='text']").on("click", function() {
-                $(this).select();
-            });
-
-            function flashMessage(bg_color, message) {
-                const flashMessage = document.getElementById("flashMessage");
-
-                flashMessage.classList.add(bg_color);
-                flashMessage.innerHTML = message;
-
-                setTimeout(() => {
-                    flashMessage.style.visibility = "visible";
-                    flashMessage.classList.add("show");
-                }, 1000);
-
-                setTimeout(() => {
-                    flashMessage.classList.remove("show");
-                    setTimeout(() => {
-                        flashMessage.style.visibility = "hidden";
-                    }, 5000);
-                }, 5000);
-            }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>
