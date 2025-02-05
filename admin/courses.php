@@ -83,6 +83,7 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
             display: flex;
             min-height: 100vh;
             background-color: #f5f6fa;
+            overflow: hidden;
         }
 
         /* Sidebar Styles */
@@ -92,10 +93,19 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
             color: var(--text-color);
             padding: 20px;
             transition: all 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            top: 0;
+            left: 0;
         }
 
         .sidebar.collapsed {
             width: 60px;
+        }
+
+        .sidebar.collapsed+.main-content {
+            margin-left: 60px;
         }
 
         .logo {
@@ -178,6 +188,9 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
             flex: 1;
             padding: 20px;
             transition: all 0.3s ease;
+            margin-left: 250px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .header {
@@ -354,6 +367,11 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
 
         /* Responsive Design */
         @media (max-width: 768px) {
+
+            .search-bar input {
+                width: 200px;
+            }
+
             .sidebar {
                 position: fixed;
                 left: -250px;
@@ -367,10 +385,6 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
 
             .main-content {
                 margin-left: 0;
-            }
-
-            .search-bar input {
-                width: 200px;
             }
         }
 
