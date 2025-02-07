@@ -24,3 +24,11 @@ ADD CONSTRAINT `fk_department_hod` FOREIGN KEY (`hod`) REFERENCES `staff`(`numbe
 
 ALTER TABLE `course` CHANGE `credits` `credit_hours` INT NOT NULL;
 ALTER TABLE `course` ADD COLUMN `contact_hours` INT AFTER `credit_hours`;
+
+CREATE TABLE course_index_code (
+    `code` VARCHAR(4) PRIMARY KEY,
+    `type` VARCHAR(15) NOT NULL
+);
+INSERT INTO course_index_code (`code`, `type`) VALUES 
+('BNS', 'BSC'), ('BME', 'BSC'), ('BMT', 'BSC'), ('BCE', 'BSC'), ('BCS', 'BSC'), 
+('BEE', 'BSC'), ('BIT', 'BSC'), ('BPS', 'BSC'), ('BLG', 'BSC'), ('BLM', 'BSC')

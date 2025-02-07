@@ -46,6 +46,10 @@
             <h3>Administration</h3>
             <div class="menu-items">
                 <a href="#" class="menu-item">
+                    <i class="fas fa-pen-alt"></i>
+                    <span>Course Registration</span>
+                </a>
+                <a href="#" class="menu-item">
                     <i class="fas fa-calendar-alt"></i>
                     <span>Admission Periods</span>
                 </a>
@@ -56,6 +60,15 @@
                 <a href="#" class="menu-item">
                     <i class="fas fa-file-alt"></i>
                     <span>Forms</span>
+                </a>
+            </div>
+        </div>
+        <div class="menu-group">
+            <h3>Reports</h3>
+            <div class="menu-items">
+                <a href="#" class="menu-item">
+                    <i class="fas fa-pie-chart"></i>
+                    <span>General Reports</span>
                 </a>
             </div>
         </div>

@@ -38,13 +38,17 @@ $_SESSION["lastAccessed"] = time();
 require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
+use Src\Core\Base;
 use Src\Core\Program;
 
 require_once('../inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
 $program = new Program($db, $user, $pass);
+$base = new Base($db, $user, $pass);
+
 require_once('../inc/page-data.php');
+
 
 ?>
 <!DOCTYPE html>
@@ -76,6 +80,7 @@ require_once('../inc/page-data.php');
             display: flex;
             min-height: 100vh;
             background-color: #f5f6fa;
+            overflow: hidden;
         }
 
         /* Sidebar Styles */
@@ -85,10 +90,19 @@ require_once('../inc/page-data.php');
             color: var(--text-color);
             padding: 20px;
             transition: all 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            top: 0;
+            left: 0;
         }
 
         .sidebar.collapsed {
             width: 60px;
+        }
+
+        .sidebar.collapsed+.main-content {
+            margin-left: 60px;
         }
 
         .logo {
@@ -171,6 +185,9 @@ require_once('../inc/page-data.php');
             flex: 1;
             padding: 20px;
             transition: all 0.3s ease;
+            margin-left: 250px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .header {
@@ -347,6 +364,11 @@ require_once('../inc/page-data.php');
 
         /* Responsive Design */
         @media (max-width: 768px) {
+
+            .search-bar input {
+                width: 200px;
+            }
+
             .sidebar {
                 position: fixed;
                 left: -250px;
@@ -360,10 +382,6 @@ require_once('../inc/page-data.php');
 
             .main-content {
                 margin-left: 0;
-            }
-
-            .search-bar input {
-                width: 200px;
             }
         }
 
@@ -512,69 +530,7 @@ require_once('../inc/page-data.php');
 
 <body>
 
-    <nav class="sidebar">
-        <div class="logo">
-            <i class="fas fa-university"></i>
-            <h2>RMU Admin</h2>
-        </div>
-        <div class="menu-groups">
-            <div class="menu-group">
-                <h3>People Management</h3>
-                <div class="menu-items">
-                    <a href="staffs.php" class="menu-item">
-                        <i class="fas fa-user-tie"></i>
-                        <span>Staff</span>
-                    </a>
-                    <a href="students.php" class="menu-item">
-                        <i class="fas fa-user-graduate"></i>
-                        <span>Students</span>
-                    </a>
-                    <a href="applicants.php" class="menu-item">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Applicants</span>
-                    </a>
-                </div>
-            </div>
-            <div class="menu-group">
-                <h3>Academic</h3>
-                <div class="menu-items">
-                    <a href="faculties.php" class="menu-item">
-                        <i class="fas fa-building"></i>
-                        <span>Faculties</span>
-                    </a>
-                    <a href="departments.php" class="menu-item">
-                        <i class="fas fa-building"></i>
-                        <span>Departments</span>
-                    </a>
-                    <a href="programs.php" class="menu-item">
-                        <i class="fas fa-book"></i>
-                        <span>Programs</span>
-                    </a>
-                    <a href="programs.php" class="menu-item">
-                        <i class="fas fa-chalkboard"></i>
-                        <span>Programs</span>
-                    </a>
-                </div>
-            </div>
-            <div class="menu-group">
-                <h3>Administration</h3>
-                <div class="menu-items">
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Admission Periods</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-clock"></i>
-                        <span>Academic Year</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Forms</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?= require_once("../inc/navbar.php") ?>
 
     <main id="main" class="main-content">
 
@@ -590,7 +546,7 @@ require_once('../inc/page-data.php');
 
         <section class="mb-4 section dashboard">
             <div style="display:flex; flex-direction: row-reverse;">
-                <button class="action-btn btn btn-success btn-xs" onclick="openAcademicYearModal()">
+                <button class="action-btn btn btn-success btn-sm" onclick="openAddProgramModal()">
                     <i class="fas fa-plus"></i>
                     <span>Add</span>
                 </button>
@@ -598,120 +554,120 @@ require_once('../inc/page-data.php');
         </section>
 
         <section class="section dashboard">
-            <div class="row">
-                <div class="col-12">
+            <div class="col-12">
 
-                    <div class="card recent-sales overflow-auto">
+                <div class="card recent-sales overflow-auto">
 
-                        <div class="card-body">
-                            <table class="table table-borderless datatable table-striped table-hover">
-                                <thead class="table-secondary">
-                                    <tr>
-                                        <th scope="col">#</th>
-                                        <th scope="col">Name</th>
-                                        <th scope="col">Category</th>
-                                        <th scope="col">Regular</th>
-                                        <th scope="col">Weekend</th>
-                                        <th scope="col">Duration</th>
-                                        <th scope="col">Department</th>
-                                        <th scope="col">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
-                                    $prog_list = $program->fetch();
-                                    if (!empty($prog_list) && is_array($prog_list)) {
-                                        $index = 1;
-                                        foreach ($prog_list as $aa) {
-                                    ?>
-                                            <tr>
-                                                <td><?= $index ?></td>
-                                                <td><?= $aa["name"] ?></td>
-                                                <td><?= $aa["category"] ?></td>
-                                                <td><?= $aa["regular"] ? "YES" : "NO" ?></td>
-                                                <td><?= $aa["weekend"] ? "YES" : "NO" ?></td>
-                                                <td><?= $aa["duration"] . " " . $aa["dur_format"] ?></td>
-                                                <td><a href="department-info.php?d=<?= $aa["department_id"] ?>"><?= $aa["department_name"] ?></a></td>
-                                                <td>
-                                                    <a href="program-info.php?pg=<?= $aa["id"] ?>" class="btn btn-primary btn-xs view-btn">View</a>
-                                                    <button id="<?= $aa["id"] ?>" class="btn btn-warning btn-xs edit-btn">Edit</button>
-                                                    <button id="<?= $aa["id"] ?>" class="btn btn-danger btn-xs delete-btn">Delete</button>
-                                                </td>
-                                            </tr>
-                                    <?php
-                                            $index++;
-                                        }
+                    <div class="card-body">
+                        <table class="table table-borderless datatable table-striped table-hover">
+                            <thead class="table-secondary">
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Name</th>
+                                    <th scope="col">Category</th>
+                                    <th scope="col">Regular</th>
+                                    <th scope="col">Weekend</th>
+                                    <th scope="col">Duration</th>
+                                    <th scope="col">Department</th>
+                                    <th scope="col">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <?php
+                                $prog_list = $program->fetch();
+                                if (!empty($prog_list) && is_array($prog_list)) {
+                                    $index = 1;
+                                    foreach ($prog_list as $aa) {
+                                ?>
+                                        <tr>
+                                            <td><?= $index ?></td>
+                                            <td><?= $aa["name"] ?></td>
+                                            <td><?= $aa["category"] ?></td>
+                                            <td><?= $aa["regular"] ? "YES" : "NO" ?></td>
+                                            <td><?= $aa["weekend"] ? "YES" : "NO" ?></td>
+                                            <td><?= $aa["duration"] . " " . $aa["dur_format"] ?></td>
+                                            <td><a href="department-info.php?d=<?= $aa["department_id"] ?>"><?= $aa["department_name"] ?></a></td>
+                                            <td>
+                                                <a href="program-info.php?pg=<?= $aa["id"] ?>" class="btn btn-primary btn-xs view-btn">View</a>
+                                                <button id="<?= $aa["id"] ?>" class="btn btn-warning btn-xs edit-btn">Edit</button>
+                                                <button id="<?= $aa["id"] ?>" class="btn btn-danger btn-xs delete-btn">Delete</button>
+                                            </td>
+                                        </tr>
+                                <?php
+                                        $index++;
                                     }
-                                    ?>
-                                </tbody>
-                            </table>
-                        </div>
+                                }
+                                ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- Add New Program Modal -->
+        <!-- Add New Staff Modal -->
         <div class="modal" id="addProgramModal">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <button class="close-btn" onclick="closeModal('addProgramModal')">×</button>
                     <h2>Add New Program</h2>
                     <form id="addProgramForm" method="POST" enctype="multipart/form-data">
-                        <div class="input-group">
-                            <div class="form-group me-2" style="width: 20%;">
-                                <label for="code">Code</label>
-                                <input type="text" id="code" name="code" class="form-control" required>
-                            </div>
-                            <div class="form-group" style="width: 78%;">
-                                <label for="name">Name</label>
-                                <input type="text" id="name" name="name" required>
-                            </div>
+                        <div class="form-group">
+                            <label for="name">Name</label>
+                            <input type="text" id="name" name="name" class="form-control" required>
+
                         </div>
                         <div class="input-group">
-                            <div class="form-group me-2">
-                                <label for="creditHours">Credit Hours</label>
-                                <input type="number" name="creditHours" min="2" id="creditHours" value="2" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="contactHours">Contact Hours</label>
-                                <input type="number" name="contactHours" min="2" id="contactHours" value="2" required>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <div class="form-group me-2">
-                                <label for="semester">Semester</label>
-                                <select id="semester" name="semester" required>
-                                    <option value="">Select</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
-                                </select>
-                            </div>
-                            <div class="form-group me-2">
-                                <label for="level">Level</label>
-                                <select id="level" name="level" required>
-                                    <option value="">Select</option>
-                                    <option value="100">100</option>
-                                    <option value="200">200</option>
-                                    <option value="300">300</option>
-                                    <option value="400">400</option>
-                                </select>
-                            </div>
                             <div class="form-group me-2">
                                 <label for="category">Category</label>
                                 <select id="category" name="category" required>
                                     <option value="" hidden>Select</option>
+                                    <option value="DEGREE">Degree</option>
+                                    <option value="DIPLOMA">Diploma</option>
+                                    <option value="MASTERS">Masters</option>
+                                    <option value="SHORT">Vocational/Professional</option>
+                                    <option value="UPGRADE">Upgrade</option>
+                                </select>
+                            </div>
+                            <div class="form-group me-2">
+                                <label for="code">Code</label>
+                                <select id="code" name="code" required>
+                                    <option value="" hidden>Select</option>
+                                    <option value="BSC">BSc</option>
+                                    <option value="DIPLOMA">Diploma</option>
+                                    <option value="MSC">MSc</option>
+                                    <option value="MA">MA</option>
+                                    <option value="SHORT">Short</option>
+                                    <option value="UPGRADE">Upgrade</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="width: 25%;">
+                                <label for="group">Group</label>
+                                <select id="group" name="group" required>
+                                    <option value="" hidden>Select</option>
+                                    <option value="M">Masters based</option>
+                                    <option value="A">Science based</option>
+                                    <option value="B">None Science based</option>
+                                    <option value="N">Nothing Applicable</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="form-group me-2" style="width: 32%;">
+                                <label for="faculty">Faculty</label>
+                                <select id="faculty" name="faculty" required>
+                                    <option value="" hidden>Select</option>
                                     <?php
-                                    $program_categories = $base->fetchAllProgramCategories();
-                                    foreach ($program_categories as $program_category) {
+                                    $departments = $base->fetchAllDepartments();
+                                    foreach ($departments as $department) {
                                     ?>
-                                        <option value="<?= $program_category["id"] ?>"><?= $program_category["name"] ?></option>
+                                        <option value="<?= $department["id"] ?>"><?= $department["name"] ?></option>
                                     <?php
                                     }
                                     ?>
                                 </select>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group me-2" style="width: 32%;">
                                 <label for="department">Department</label>
                                 <select id="department" name="department" required>
                                     <option value="" hidden>Select</option>
@@ -725,17 +681,57 @@ require_once('../inc/page-data.php');
                                     ?>
                                 </select>
                             </div>
+                            <div class="form-group" style="width: 32%;">
+                                <label for="index_code">Index Code</label>
+                                <input type="text" id="index_code" name="index_code" minlength="3" maxlength="3" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="form-group me-2" style="width: 32%;">
+                                <label for="code">Duration</label>
+                                <input type="number" id="code" name="code" min="1" class="form-control" required>
+                            </div>
+                            <div class="form-group me-2" style="width: 32%;">
+                                <label for="format">Format</label>
+                                <select id="format" name="format" required>
+                                    <option value="" hidden>Select</option>
+                                    <option value="semester">semester</option>
+                                    <option value="year">year</option>
+                                    <option value="month">month</option>
+                                    <option value="week">week</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="width: 32%;">
+                                <label for="num_semesters">No. of Semesters</label>
+                                <input type="number" id="num_semesters" min="0" name="num_semesters" value="0" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="regular_available">
+                                <label class="form-check-label" for="regular_available">
+                                    Is this program available for regular?
+                                </label>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" value="" id="weekend_available">
+                                <label class="form-check-label" for="weekend_available">
+                                    Is this program available for weekend?
+                                </label>
+                            </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" onclick="closeModal('addProgramModal')">Cancel</button>
-                            <button type="submit" class="btn btn-primary addProgram-btn">Add</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('addCourseModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary addCourse-btn">Add</button>
                         </div>
                     </form>
                 </div>
             </div>
         </div>
 
-        <!-- Edit Program Modal -->
+        <!-- Edit Staff Modal -->
         <div class="modal" id="editProgramModal">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -786,10 +782,10 @@ require_once('../inc/page-data.php');
                                 <select id="edit-category" name="category" required>
                                     <option value="" hidden>Select</option>
                                     <?php
-                                    $program_categories = $base->fetchAllProgramCategories();
+                                    $program_categories = $base->fetchAllCourseCategories();
                                     foreach ($program_categories as $program_category) {
                                     ?>
-                                        <option value="<?= $program_category["id"] ?>"><?= $program_category["name"] ?></option>
+                                        <option value="<?= $program_category["id"] ?>"><?= $course_category["name"] ?></option>
                                     <?php
                                     }
                                     ?>
@@ -822,7 +818,6 @@ require_once('../inc/page-data.php');
     </main><!-- End #main -->
 
     <?= require_once("../inc/footer-section.php") ?>
-
     <script>
         // Modal functions
         function openModal(modalId) {
@@ -848,10 +843,6 @@ require_once('../inc/page-data.php');
             openModal('editProgramModal');
         }
 
-        function openUploadProgramModal() {
-            openModal('uploadProgramModal');
-        }
-
         function setEditProgramFormData(data) {
             $("#edit-code").val(data.code);
             $("#edit-name").val(data.name);
@@ -864,7 +855,6 @@ require_once('../inc/page-data.php');
         }
 
         $(document).ready(function() {
-
             $("#addProgramForm").on("submit", function(e) {
 
                 e.preventDefault();

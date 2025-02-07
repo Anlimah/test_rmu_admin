@@ -27,6 +27,7 @@
             display: flex;
             min-height: 100vh;
             background-color: #f5f6fa;
+            overflow: hidden;
         }
 
         /* Sidebar Styles */
@@ -36,10 +37,19 @@
             color: var(--text-color);
             padding: 20px;
             transition: all 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            top: 0;
+            left: 0;
         }
 
         .sidebar.collapsed {
             width: 60px;
+        }
+
+        .sidebar.collapsed+.main-content {
+            margin-left: 60px;
         }
 
         .logo {
@@ -122,6 +132,9 @@
             flex: 1;
             padding: 20px;
             transition: all 0.3s ease;
+            margin-left: 250px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .header {
@@ -298,6 +311,11 @@
 
         /* Responsive Design */
         @media (max-width: 768px) {
+
+            .search-bar input {
+                width: 200px;
+            }
+
             .sidebar {
                 position: fixed;
                 left: -250px;
@@ -311,10 +329,6 @@
 
             .main-content {
                 margin-left: 0;
-            }
-
-            .search-bar input {
-                width: 200px;
             }
         }
 
@@ -447,6 +461,13 @@
             grid-template-columns: 1fr 1fr;
             gap: 10px;
         }
+
+        .btn-xs {
+            padding: 1px 5px !important;
+            font-size: 12px !important;
+            line-height: 1.5 !important;
+            border-radius: 3px !important;
+        }
     </style>
     <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.css">
@@ -455,69 +476,8 @@
 </head>
 
 <body>
-    <nav class="sidebar">
-        <div class="logo">
-            <i class="fas fa-university"></i>
-            <h2>RMU Admin</h2>
-        </div>
-        <div class="menu-groups">
-            <div class="menu-group">
-                <h3>People Management</h3>
-                <div class="menu-items">
-                    <a href="staffs.php" class="menu-item">
-                        <i class="fas fa-user-tie"></i>
-                        <span>Staff</span>
-                    </a>
-                    <a href="students.php" class="menu-item">
-                        <i class="fas fa-user-graduate"></i>
-                        <span>Students</span>
-                    </a>
-                    <a href="applicants.php" class="menu-item">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Applicants</span>
-                    </a>
-                </div>
-            </div>
-            <div class="menu-group">
-                <h3>Academic</h3>
-                <div class="menu-items">
-                    <a href="faculties.php" class="menu-item">
-                        <i class="fas fa-building"></i>
-                        <span>Faculties</span>
-                    </a>
-                    <a href="departments.php" class="menu-item">
-                        <i class="fas fa-building"></i>
-                        <span>Departments</span>
-                    </a>
-                    <a href="programs.php" class="menu-item">
-                        <i class="fas fa-book"></i>
-                        <span>Programs</span>
-                    </a>
-                    <a href="courses.php" class="menu-item">
-                        <i class="fas fa-chalkboard"></i>
-                        <span>Courses</span>
-                    </a>
-                </div>
-            </div>
-            <div class="menu-group">
-                <h3>Administration</h3>
-                <div class="menu-items">
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Admission Periods</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-clock"></i>
-                        <span>Academic Year</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Forms</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+
+    <?= require_once("../inc/navbar.php") ?>
 
     <main class="main-content">
         <div class="header">
@@ -655,14 +615,6 @@
                     <button class="action-btn" onclick="openAcademicYearModal()">
                         <i class="fas fa-clock"></i>
                         <span>Open/Close Course Registration</span>
-                    </button>
-                    <button class="action-btn" onclick="openAdmissionPeriodModal()">
-                        <i class="fas fa-calendar-plus"></i>
-                        <span>Create Admission Period</span>
-                    </button>
-                    <button class="action-btn" onclick="openReportModal()">
-                        <i class="fas fa-file-invoice"></i>
-                        <span>Generate Reports</span>
                     </button>
                 </div>
             </div>

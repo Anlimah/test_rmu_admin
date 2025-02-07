@@ -54,7 +54,6 @@ require_once('../inc/page-data.php');
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         * {
             margin: 0;
@@ -76,6 +75,7 @@ require_once('../inc/page-data.php');
             display: flex;
             min-height: 100vh;
             background-color: #f5f6fa;
+            overflow: hidden;
         }
 
         /* Sidebar Styles */
@@ -85,10 +85,19 @@ require_once('../inc/page-data.php');
             color: var(--text-color);
             padding: 20px;
             transition: all 0.3s ease;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+            top: 0;
+            left: 0;
         }
 
         .sidebar.collapsed {
             width: 60px;
+        }
+
+        .sidebar.collapsed+.main-content {
+            margin-left: 60px;
         }
 
         .logo {
@@ -171,6 +180,9 @@ require_once('../inc/page-data.php');
             flex: 1;
             padding: 20px;
             transition: all 0.3s ease;
+            margin-left: 250px;
+            height: 100vh;
+            overflow-y: auto;
         }
 
         .header {
@@ -347,6 +359,11 @@ require_once('../inc/page-data.php');
 
         /* Responsive Design */
         @media (max-width: 768px) {
+
+            .search-bar input {
+                width: 200px;
+            }
+
             .sidebar {
                 position: fixed;
                 left: -250px;
@@ -360,10 +377,6 @@ require_once('../inc/page-data.php');
 
             .main-content {
                 margin-left: 0;
-            }
-
-            .search-bar input {
-                width: 200px;
             }
         }
 
@@ -506,75 +519,14 @@ require_once('../inc/page-data.php');
     </style>
     <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/vendor/bootstrap-icons/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="../assets/vendor/simple-datatables/style.css" rel="stylesheet">
     <script src="../js/jquery-3.6.0.min.js"></script>
 </head>
 
 <body>
 
-    <nav class="sidebar">
-        <div class="logo">
-            <i class="fas fa-university"></i>
-            <h2>RMU Admin</h2>
-        </div>
-        <div class="menu-groups">
-            <div class="menu-group">
-                <h3>People Management</h3>
-                <div class="menu-items">
-                    <a href="staffs.php" class="menu-item">
-                        <i class="fas fa-user-tie"></i>
-                        <span>Staff</span>
-                    </a>
-                    <a href="students.php" class="menu-item">
-                        <i class="fas fa-user-graduate"></i>
-                        <span>Students</span>
-                    </a>
-                    <a href="applicants.php" class="menu-item">
-                        <i class="fas fa-user-plus"></i>
-                        <span>Applicants</span>
-                    </a>
-                </div>
-            </div>
-            <div class="menu-group">
-                <h3>Academic</h3>
-                <div class="menu-items">
-                    <a href="faculties.php" class="menu-item">
-                        <i class="fas fa-building"></i>
-                        <span>Faculties</span>
-                    </a>
-                    <a href="departments.php" class="menu-item">
-                        <i class="fas fa-building"></i>
-                        <span>Departments</span>
-                    </a>
-                    <a href="programs.php" class="menu-item">
-                        <i class="fas fa-book"></i>
-                        <span>Programs</span>
-                    </a>
-                    <a href="courses.php" class="menu-item">
-                        <i class="fas fa-chalkboard"></i>
-                        <span>Courses</span>
-                    </a>
-                </div>
-            </div>
-            <div class="menu-group">
-                <h3>Administration</h3>
-                <div class="menu-items">
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-calendar-alt"></i>
-                        <span>Admission Periods</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-clock"></i>
-                        <span>Academic Year</span>
-                    </a>
-                    <a href="#" class="menu-item">
-                        <i class="fas fa-file-alt"></i>
-                        <span>Forms</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-    </nav>
+    <?= require_once("../inc/navbar.php") ?>
 
     <main id="main" class="main-content">
 
