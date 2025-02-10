@@ -1038,14 +1038,14 @@ class AdminController
     {
         $query = "SELECT 
                     al.id, CONCAT(p.first_name, ' ', IFNULL(p.middle_name, ''), ' ', p.last_name) AS fullname, 
-                    p.nationality, ft.name AS app_type, pi.first_prog, pi.second_prog, fs.declaration, fs.printed,
+                    p.nationality, ft.name AS app_type, pi.first_prog, pi.second_prog, fs.declaration, fs.printed, 
                     p.phone_no1_code, p.phone_no1, pd.country_code, pd.phone_number  
                 FROM 
                     personal_information AS p, applicants_login AS al, 
                     forms AS ft, purchase_detail AS pd, program_info AS pi, 
                     form_sections_chek AS fs, admission_period AS ap 
                 WHERE 
-                    p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND
+                    p.app_login = al.id AND pi.app_login = al.id AND fs.app_login = al.id AND 
                     pd.admission_period = ap.id AND pd.form_id = ft.id AND pd.id = al.purchase_id AND ap.id = :ai AND 
                     fs.declaration = 1 AND fs.admitted = 0 AND fs.enrolled = 0 AND fs.declined = 0$SQL_COND";
         return $this->dm->getData($query, array(":ai" => $admin_period));
@@ -3121,9 +3121,9 @@ class AdminController
     private function createStudentEmailAddress($appID): mixed
     {
         $studentNames = $this->fetchApplicantPersInfoByAppID($appID)[0];
-        $fname = trim($studentNames["first_name"]);
-        $mname = trim($studentNames["middle_name"]);
-        $lname = trim($studentNames["last_name"]);
+        $fname = $studentNames["first_name"] ? trim($studentNames["first_name"]) : $studentNames["first_name"];
+        $mname = $studentNames["middle_name"] ? trim($studentNames["middle_name"]) : $studentNames["middle_name"];
+        $lname = $studentNames["last_name"] ? trim($studentNames["last_name"]) : $studentNames["last_name"];
 
         $emailID = $fname . "." . $lname;
         $testEmailAddress = strtolower($emailID . "@st.rmu.edu.gh");
@@ -3177,9 +3177,9 @@ class AdminController
             ":pn" => $data["phone_no1_code"] . $data["phone_no1"],
             ":px" => ucfirst(strtolower($data["prefix"])),
             ":fn" => ucfirst(strtolower($data["first_name"])),
-            ":mn" => ucfirst(strtolower($data["middle_name"])),
+            ":mn" => $data["middle_name"] ? ucfirst(strtolower($data["middle_name"])) : $data["middle_name"],
             ":ln" => ucfirst(strtolower($data["last_name"])),
-            ":sx" => ucfirst(strtolower($data["suffix"])),
+            ":sx" => $data["suffix"] ? ucfirst(strtolower($data["suffix"])) : $data["suffix"],
             ":gd" => $data["gender"],
             ":db" => $data["dob"],
             ":nt" => ucfirst(strtolower($data["nationality"])),
@@ -3324,7 +3324,7 @@ class AdminController
         if (!empty($section)) return array("success" => true, "message" => "Section created for this student's class [{$class_code}]!");
 
         $curriculum = $this->dm->getData(
-            "SELECT c.`credits`, c.`level`, c.`semester`, cc.`fk_course` AS course 
+            "SELECT c.`credit_hours`, c.`level`, c.`semester`, cc.`fk_course` AS course 
             FROM `curriculum` AS cc, `course` AS c 
             WHERE cc.`fk_course` = c.`code` AND cc.`fk_program` = :p",
             array(":p" => $program_id)
@@ -3335,12 +3335,12 @@ class AdminController
         $added = 0;
         foreach ($curriculum as $curr) {
             $added += $this->dm->getData(
-                "INSERT INTO `section` (`fk_class`, `fk_course`, `credits`, `level`, `semester`) 
+                "INSERT INTO `section` (`fk_class`, `fk_course`, `credit_hours`, `level`, `semester`) 
                 VALUES (:fkcl, :fkcs, :cd, :lv, :sm)",
                 array(
                     ":fkcl" => $class_code,
                     ":fkcs" => $curr["course"],
-                    ":cd" => $curr["credits"],
+                    ":cd" => $curr["credit_hours"],
                     ":lv" => $curr["level"],
                     ":sm" => $curr["semester"]
                 )
@@ -4133,6 +4133,4 @@ class AdminController
         $query = "SELECT COUNT(`id`) AS total FROM `acceptance_receipts` WHERE `status` = :s";
         return $this->dm->getData($query, array(":s" => $status));
     }
-
-    
 }

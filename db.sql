@@ -18,9 +18,12 @@ ADD COLUMN `required_elective_subjects` TEXT AFTER `required_elective_passed`,
 ADD COLUMN `any_elective_subjects` TEXT AFTER `required_elective_subjects`;
 
 /*NOT DONE YET ON LIVE SERVER MAIN DB*/
-ALTER TABLE `departments` 
+ALTER TABLE `department` 
 ADD COLUMN `hod` VARCHAR(10) AFTER `name`,
 ADD CONSTRAINT `fk_department_hod` FOREIGN KEY (`hod`) REFERENCES `staff`(`number`);
+
+ALTER TABLE `department` DROP FOREIGN KEY `fk_department_hod`; 
+ALTER TABLE `department` ADD CONSTRAINT `fk_department_hod` FOREIGN KEY (`hod`) REFERENCES `staff`(`number`) ON DELETE SET NULL ON UPDATE CASCADE; 
 
 ALTER TABLE `course` CHANGE `credits` `credit_hours` INT NOT NULL;
 ALTER TABLE `course` ADD COLUMN `contact_hours` INT AFTER `credit_hours`;
@@ -31,4 +34,6 @@ CREATE TABLE course_index_code (
 );
 INSERT INTO course_index_code (`code`, `type`) VALUES 
 ('BNS', 'BSC'), ('BME', 'BSC'), ('BMT', 'BSC'), ('BCE', 'BSC'), ('BCS', 'BSC'), 
-('BEE', 'BSC'), ('BIT', 'BSC'), ('BPS', 'BSC'), ('BLG', 'BSC'), ('BLM', 'BSC')
+('BEE', 'BSC'), ('BIT', 'BSC'), ('BPS', 'BSC'), ('BLG', 'BSC'), ('BLM', 'BSC');
+
+ALTER TABLE `section` CHANGE `credits` `credit_hours` INT(11) NOT NULL; 
