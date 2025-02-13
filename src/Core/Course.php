@@ -113,17 +113,20 @@ class Course
         $query_result = $this->dm->inputData($query, array(":c" => $code));
         if ($query_result) {
             $this->log->activity($_SESSION["user"], "DELETE", "Archived course {$code}");
-            return array("success" => true, "message" => "Course with code {$code} successfully deleted!");
+            return array("success" => true, "message" => "Course with code {$code} successfully archived!");
         }
-        return array("success" => false, "message" => "Failed to add new course!");
+        return array("success" => false, "message" => "Failed to archive new course!");
     }
 
     public function delete($code)
     {
         $query = "DELETE FROM course WHERE code = :c";
         $query_result = $this->dm->inputData($query, array(":c" => $code));
-        if ($query_result) $this->log->activity($_SESSION["user"], "DELETE", "Deleted courseme {$code}");
-        return $query_result;
+        if ($query_result) {
+            $this->log->activity($_SESSION["user"], "DELETE", "Deeleted course {$code}");
+            return array("success" => true, "message" => "Course with code {$code} successfully deleted!");
+        }
+        return array("success" => false, "message" => "Failed to delete course!");
     }
 
     public function total(string $key = "", string $value = "", bool $archived = false)

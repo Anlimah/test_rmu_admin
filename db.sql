@@ -37,3 +37,26 @@ INSERT INTO course_index_code (`code`, `type`) VALUES
 ('BEE', 'BSC'), ('BIT', 'BSC'), ('BPS', 'BSC'), ('BLG', 'BSC'), ('BLM', 'BSC');
 
 ALTER TABLE `section` CHANGE `credits` `credit_hours` INT(11) NOT NULL; 
+
+CREATE TABLE `fees_structure` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `fk_program_id` INT NOT NULL,
+    `type` VARCHAR(15) NOT NULL, -- ENUM('fresh', 'topup'),
+    `category` VARCHAR(15) NOT NULL, -- ENUM('regular', 'weekend'),
+    `name` VARCHAR(100) NOT NULL,
+    `member_amount` DECIMAL(10,2) NOT NULL,
+    `non_member_amount` DECIMAL(10,2) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `archived` TINYINT(1) DEFAULT 0,
+    FOREIGN KEY (`fk_program_id`) REFERENCES `programs`(`id`)
+);
+CREATE INDEX fees_structure_type_idx1 ON `fees_structure` (`type`);
+CREATE INDEX fees_structure_category_idx1 ON `fees_structure` (`category`);
+CREATE INDEX fees_structure_name_idx1 ON `fees_structure` (`name`);
+CREATE INDEX fees_structure_member_amount_idx1 ON `fees_structure` (`member_amount`);
+CREATE INDEX fees_structure_non_member_amount_idx1 ON `fees_structure` (`non_member_amount`);
+CREATE INDEX fees_structure_created_at_idx1 ON `fees_structure` (`created_at`);
+CREATE INDEX fees_structure_updated_at_idx1 ON `fees_structure` (`updated_at`);
+CREATE INDEX fees_structure_archived_idx1 ON `fees_structure` (`archived`);
+

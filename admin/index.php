@@ -95,14 +95,14 @@
         .menu-items {
             display: flex;
             flex-direction: column;
-            gap: 5px;
+            gap: 10px;
         }
 
         .menu-item {
             display: flex;
             align-items: center;
             gap: 10px;
-            padding: 10px;
+            padding: 5px;
             text-decoration: none;
             color: var(--text-color);
             border-radius: 5px;

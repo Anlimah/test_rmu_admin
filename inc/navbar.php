@@ -45,21 +45,25 @@
         <div class="menu-group">
             <h3>Administration</h3>
             <div class="menu-items">
-                <a href="#" class="menu-item">
+                <a href="course-registration.php" class="menu-item">
                     <i class="fas fa-pen-alt"></i>
                     <span>Course Registration</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="admission-period.php" class="menu-item">
                     <i class="fas fa-calendar-alt"></i>
-                    <span>Admission Periods</span>
+                    <span>Admission Period</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="academic-year.php" class="menu-item">
                     <i class="fas fa-clock"></i>
                     <span>Academic Year</span>
                 </a>
-                <a href="#" class="menu-item">
+                <a href="forms.php" class="menu-item">
                     <i class="fas fa-file-alt"></i>
                     <span>Forms</span>
+                </a>
+                <a href="fees-structure.php" class="menu-item">
+                    <i class="fas fa-file-alt"></i>
+                    <span>Fees Structure</span>
                 </a>
             </div>
         </div>
