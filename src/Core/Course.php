@@ -112,7 +112,7 @@ class Course
         $query = "UPDATE course SET archived = 1 WHERE `code` = :c";
         $query_result = $this->dm->inputData($query, array(":c" => $code));
         if ($query_result) {
-            $this->log->activity($_SESSION["user"], "DELETE", "Archived course {$code}");
+            $this->log->activity($_SESSION["user"], "UPDATE", "Archived course {$code}");
             return array("success" => true, "message" => "Course with code {$code} successfully archived!");
         }
         return array("success" => false, "message" => "Failed to archive new course!");

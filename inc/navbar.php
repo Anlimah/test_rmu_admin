@@ -61,7 +61,7 @@
                     <i class="fas fa-file-alt"></i>
                     <span>Forms</span>
                 </a>
-                <a href="fees-structure.php" class="menu-item">
+                <a href="fee-structure.php" class="menu-item">
                     <i class="fas fa-file-alt"></i>
                     <span>Fees Structure</span>
                 </a>

@@ -28,6 +28,8 @@ use Src\Controller\ExposeDataController;
 use Src\Core\Department;
 use Src\Core\Program;
 use Src\Core\Course;
+use Src\Core\FeeItem;
+use Src\Core\FeeStructure;
 use Src\Core\Student;
 
 require_once('../inc/admin-database-con.php');
@@ -38,6 +40,8 @@ $department = new Department($db, $user, $pass);
 $program = new Program($db, $user, $pass);
 $course = new Course($db, $user, $pass);
 $student = new Student($db, $user, $pass);
+$fee_structure = new FeeStructure($db, $user, $pass);
+$fee_item = new FeeItem($db, $user, $pass);
 
 $data = [];
 $errors = [];
@@ -1278,6 +1282,48 @@ if ($_SERVER['REQUEST_METHOD'] == "GET") {
         $excelData = new UploadExcelDataController($_FILES["uploadCourseFile"], 4, 0);
         $result = $excelData->run('course');
         die(json_encode($result));
+    }
+
+    // fee structure
+    elseif ($_GET["url"] == "fetch-fee-structure") {
+        if (!isset($_POST["fee_structure"]) || empty($_POST["fee_structure"])) {
+            die(json_encode(array("success" => false, "message" => "Fee structure is required!")));
+        }
+        die(json_encode(array("success" => true, "data" => $fee_structure->fetch("id", $_POST["fee_structure"]))));
+    } elseif ($_GET["url"] == "add-fee-structure") {
+        die(json_encode($fee_structure->add($_POST)));
+    } elseif ($_GET["url"] == "update-fee-structure") {
+        if (!isset($_POST["fee_structure"]) || empty($_POST["fee_structure"])) {
+            die(json_encode(array("success" => false, "message" => "Fee structure is required!")));
+        }
+        if (!isset($_POST["program"]) || empty($_POST["program"])) {
+            die(json_encode(array("success" => false, "message" => "Program is required!")));
+        }
+        if (!isset($_POST["type"]) || empty($_POST["type"])) {
+            die(json_encode(array("success" => false, "message" => "Fee type is required!")));
+        }
+        if (!isset($_POST["category"]) || empty($_POST["category"])) {
+            die(json_encode(array("success" => false, "message" => "Fee category is required!")));
+        }
+        if (!isset($_POST["member_amount"]) || empty($_POST["member_amount"])) {
+            die(json_encode(array("success" => false, "message" => "Member amount is required!")));
+        }
+        if (!isset($_POST["non_member_amount"]) || empty($_POST["non_member_amount"])) {
+            die(json_encode(array("success" => false, "message" => "Non member amount is required!")));
+        }
+        die(json_encode($fee_structure->update($_POST)));
+    } elseif ($_GET["url"] == "archive-fee-structure") {
+        if (!isset($_POST["fee_structure"]) || empty($_POST["fee_structure"])) {
+            die(json_encode(array("success" => false, "message" => "Fee structure is required!")));
+        }
+        die(json_encode($fee_structure->archive($_POST["fee_structure"])));
+    } elseif ($_GET["url"] == "delete-fee-structure") {
+        if (!isset($_POST["fee_structure"]) || empty($_POST["fee_structure"])) {
+            die(json_encode(array("success" => false, "message" => "Fee structure is required!")));
+        }
+        die(json_encode($fee_structure->delete($_POST["fee_structure"])));
+    } elseif ($_GET["url"] == "total-fee-structure") {
+        die(json_encode($fee_structure->fetch($_POST["key"], $_POST["value"], $_POST["archived"])));
     }
 
     //students

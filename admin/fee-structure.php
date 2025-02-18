@@ -39,12 +39,12 @@ require_once('../bootstrap.php');
 
 use Src\Controller\AdminController;
 use Src\Core\Base;
-use Src\Core\FeesStructure;
+use Src\Core\FeeStructure;
 
 require_once('../inc/admin-database-con.php');
 
 $admin = new AdminController($db, $user, $pass);
-$fees_structure = new FeesStructure($db, $user, $pass);
+$fee_structure = new FeeStructure($db, $user, $pass);
 $base = new Base($db, $user, $pass);
 
 require_once('../inc/page-data.php');
@@ -514,12 +514,11 @@ require_once('../inc/page-data.php');
             gap: 10px;
         }
 
-        .btn-group-xs>.btn,
         .btn-xs {
-            padding: 1px 5px;
-            font-size: 12px;
-            line-height: 1.5;
-            border-radius: 3px;
+            padding: 1px 5px !important;
+            font-size: 12px !important;
+            line-height: 1.5 !important;
+            border-radius: 3px !important;
         }
 
         input.transform-text,
@@ -541,7 +540,7 @@ require_once('../inc/page-data.php');
     <main id="main" class="main-content">
 
         <div class="pagetitle">
-            <h1>Fees Structure</h1>
+            <h1>Fee Structure</h1>
             <nav>
                 <ol class="breadcrumb">
                     <li class="breadcrumb-item"><a href="index.php">Dashboard</a></li>
@@ -552,7 +551,7 @@ require_once('../inc/page-data.php');
 
         <section class="mb-4 section dashboard">
             <div style="display:flex; flex-direction: row-reverse;">
-                <button class="action-btn btn btn-success btn-sm" onclick="openAddFeesStructureModal()">
+                <button class="action-btn btn btn-success btn-sm" onclick="openAddFeeStructureModal()">
                     <i class="fas fa-plus"></i>
                     <span>Add</span>
                 </button>
@@ -580,10 +579,10 @@ require_once('../inc/page-data.php');
                             </thead>
                             <tbody>
                                 <?php
-                                $fees_structure_list = $fees_structure->fetch();
-                                if (!empty($fees_structure_list) && is_array($fees_structure_list)) {
+                                $fee_structure_list = $fee_structure->fetch();
+                                if (!empty($fee_structure_list) && is_array($fee_structure_list)) {
                                     $index = 1;
-                                    foreach ($fees_structure_list as $aa) {
+                                    foreach ($fee_structure_list as $aa) {
                                 ?>
                                         <tr>
                                             <td><?= $index ?></td>
@@ -594,9 +593,9 @@ require_once('../inc/page-data.php');
                                             <td><?= $aa["non_member_amount"] ?></td>
                                             <td><a href="program-info.php?d=<?= $aa["program_id"] ?>"><?= $aa["program_name"] ?></a></td>
                                             <td>
-                                                <a href="fees_structure-info.php?c=<?= $aa["code"] ?>" class="btn btn-primary btn-xs view-btn">View</a>
-                                                <button id="<?= $aa["code"] ?>" class="btn btn-warning btn-xs edit-btn">Edit</button>
-                                                <button id="<?= $aa["code"] ?>" class="btn btn-danger btn-xs delete-btn">Delete</button>
+                                                <a href="fee_structure-info.php?c=<?= $aa["id"] ?>" class="btn btn-primary btn-xs view-btn">View</a>
+                                                <button id="<?= $aa["id"] ?>" class="btn btn-warning btn-xs edit-btn">Edit</button>
+                                                <button id="<?= $aa["id"] ?>" class="btn btn-danger btn-xs archive-btn">Archive</button>
                                             </td>
                                         </tr>
                                 <?php
@@ -612,12 +611,12 @@ require_once('../inc/page-data.php');
         </section>
 
         <!-- Add New Staff Modal -->
-        <div class="modal" id="addFeesStructureModal">
+        <div class="modal" id="addFeeStructureModal">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <button class="close-btn" onclick="closeModal('addFeesStructureModal')">×</button>
-                    <h2>Add New Fees Structure</h2>
-                    <form id="addFeesStructureForm" method="POST" enctype="multipart/form-data">
+                    <button class="close-btn" onclick="closeModal('addFeeStructureModal')">×</button>
+                    <h2>Add New Fee Structure</h2>
+                    <form id="addFeeStructureForm" method="POST" enctype="multipart/form-data">
                         <div class="form-group">
                             <label for="program">Program</label>
                             <select id="program" name="program" required>
@@ -632,53 +631,45 @@ require_once('../inc/page-data.php');
                                 ?>
                             </select>
                         </div>
+                        <div class="form-group">
+                            <label for="currency">Currency</label>
+                            <select id="currency" name="currency" required>
+                                <option value="">Select</option>
+                                <option value="USD" selected>USD</option>
+                                <option value="GHS">GHS</option>
+                            </select>
+                        </div>
                         <div class="input-group">
-                            <div class="form-group me-2 col-4">
+                            <div class="form-group col-5 me-2">
                                 <label for="type">Type</label>
                                 <select id="type" name="type" required>
                                     <option value="">Select</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
+                                    <option value="fresher">FRESHER</option>
+                                    <option value="topup">TOPUP</option>
                                 </select>
                             </div>
-                            <div class="form-group me-2 col-4">
+                            <div class="form-group col-6">
                                 <label for="category">Category</label>
                                 <select id="category" name="category" required>
                                     <option value="">Select</option>
-                                    <option value="100">100</option>
-                                    <option value="200">200</option>
-                                    <option value="300">300</option>
-                                    <option value="400">400</option>
-                                </select>
-                            </div>
-                            <div class="form-group col-4">
-                                <label for="category">Category</label>
-                                <select id="category" name="category" required>
-                                    <option value="" hidden>Select</option>
-                                    <?php
-                                    $course_categories = $base->fetchAllCourseCategories();
-                                    foreach ($course_categories as $course_category) {
-                                    ?>
-                                        <option value="<?= $course_category["id"] ?>"><?= $course_category["name"] ?></option>
-                                    <?php
-                                    }
-                                    ?>
+                                    <option value="weekend">WEEKEND</option>
+                                    <option value="regular">REGULAR</option>
                                 </select>
                             </div>
                         </div>
                         <div class="input-group">
                             <div class="form-group me-2">
                                 <label for="member_amount">Member Amount</label>
-                                <input type="number" name="member_amount" min="2" id="member_amount" value="2" required>
+                                <input type="number" name="member_amount" min="0.00" id="member_amount" value="0.00" required>
                             </div>
                             <div class="form-group">
                                 <label for="non_member_amount">Non Member Amount</label>
-                                <input type="number" name="non_member_amount" min="2" id="non_member_amount" value="2" required>
+                                <input type="number" name="non_member_amount" min="0.00" id="non_member_amount" value="0.00" required>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" onclick="closeModal('addFeesStructureModal')">Cancel</button>
-                            <button type="submit" class="btn btn-primary addFeesStructure-btn">Add</button>
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('addFeeStructureModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary addFeeStructure-btn">Add</button>
                         </div>
                     </form>
                 </div>
@@ -686,83 +677,66 @@ require_once('../inc/page-data.php');
         </div>
 
         <!-- Edit Staff Modal -->
-        <div class="modal" id="editFeesStructureModal">
+        <div class="modal" id="editFeeStructureModal">
             <div class="modal-dialog">
                 <div class="modal-content">
-                    <button class="close-btn" onclick="closeModal('editFeesStructureModal')">×</button>
-                    <h2>Edit Fees Structure</h2>
-                    <form id="editFeesStructureForm" method="POST" enctype="multipart/form-data">
-                        <div class="input-group">
-                            <div class="form-group me-2" style="width: 20%;">
-                                <label for="edit-code">Code</label>
-                                <input type="text" id="edit-code" name="code" class="form-control" required>
-                            </div>
-                            <div class="form-group" style="width: 78%;">
-                                <label for="edit-name">Name</label>
-                                <input type="text" id="edit-name" name="name" required>
-                            </div>
+                    <button class="close-btn" onclick="closeModal('editFeeStructureModal')">×</button>
+                    <h2>Edit Fee Structure</h2>
+                    <form id="editFeeStructureForm" method="POST" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <label for="edit-program">Program</label>
+                            <select id="edit-program" name="program" required>
+                                <option value="" hidden>Select</option>
+                                <?php
+                                $programs = $admin->fetchAllPrograms();
+                                foreach ($programs as $program) {
+                                ?>
+                                    <option value="<?= $program["id"] ?>"><?= $program["name"] ?></option>
+                                <?php
+                                }
+                                ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="edit-currency">Currency</label>
+                            <select id="edit-currency" name="edit-currency" required>
+                                <option value="">Select</option>
+                                <option value="USD">USD</option>
+                                <option value="GHS">GHS</option>
+                            </select>
                         </div>
                         <div class="input-group">
-                            <div class="form-group me-2">
-                                <label for="edit-creditHours">Credit Hours</label>
-                                <input type="number" name="creditHours" min="2" id="edit-creditHours" value="2" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="edit-contactHours">Contact Hours</label>
-                                <input type="number" name="contactHours" min="2" id="edit-contactHours" value="2" required>
-                            </div>
-                        </div>
-                        <div class="input-group">
-                            <div class="form-group me-2">
-                                <label for="edit-semester">Semester</label>
-                                <select id="edit-semester" name="semester" required>
+                            <div class="form-group col-5 me-2">
+                                <label for="edit-type">Type</label>
+                                <select id="edit-type" name="type" required>
                                     <option value="">Select</option>
-                                    <option value="1">1</option>
-                                    <option value="2">2</option>
+                                    <option value="fresher">FRESHER</option>
+                                    <option value="topup">TOPUP</option>
                                 </select>
                             </div>
-                            <div class="form-group me-2">
-                                <label for="edit-level">Level</label>
-                                <select id="edit-level" name="level" required>
-                                    <option value="">Select</option>
-                                    <option value="100">100</option>
-                                    <option value="200">200</option>
-                                    <option value="300">300</option>
-                                    <option value="400">400</option>
-                                </select>
-                            </div>
-                            <div class="form-group me-2">
+                            <div class="form-group col-6">
                                 <label for="edit-category">Category</label>
                                 <select id="edit-category" name="category" required>
-                                    <option value="" hidden>Select</option>
-                                    <?php
-                                    $course_categories = $base->fetchAllCourseCategories();
-                                    foreach ($course_categories as $course_category) {
-                                    ?>
-                                        <option value="<?= $course_category["id"] ?>"><?= $course_category["name"] ?></option>
-                                    <?php
-                                    }
-                                    ?>
+                                    <option value="">Select</option>
+                                    <option value="weekend">WEEKEND</option>
+                                    <option value="regular">REGULAR</option>
                                 </select>
                             </div>
+                        </div>
+                        <div class="input-group">
+                            <div class="form-group me-2">
+                                <label for="edit-member_amount">Member Amount</label>
+                                <input type="number" name="member_amount" min="0.00" id="edit-member_amount" value="0.00" required>
+                            </div>
                             <div class="form-group">
-                                <label for="edit-department">Department</label>
-                                <select id="edit-department" name="department" required>
-                                    <option value="" hidden>Select</option>
-                                    <?php
-                                    $departments = $base->fetchAllDepartments();
-                                    foreach ($departments as $department) {
-                                    ?>
-                                        <option value="<?= $department["id"] ?>"><?= $department["name"] ?></option>
-                                    <?php
-                                    }
-                                    ?>
-                                </select>
+                                <label for="edit-non_member_amount">Non Member Amount</label>
+                                <input type="number" name="non_member_amount" min="0.00" id="edit-non_member_amount" value="0.00" required>
                             </div>
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" onclick="closeModal('editFeesStructureModal')">Cancel</button>
-                            <button type="submit" class="btn btn-primary editFeesStructure-btn">Save</button>
+                            <input type="hidden" name="fee_structure" id="edit-fee_structure">
+                            <button type="button" class="btn btn-secondary" onclick="closeModal('editFeeStructureModal')">Cancel</button>
+                            <button type="submit" class="btn btn-primary editFeeStructure-btn">Save</button>
                         </div>
                     </form>
                 </div>
@@ -779,45 +753,44 @@ require_once('../inc/page-data.php');
         }
 
         function closeModal(modalId) {
-            if (modalId == "addFeesStructureModal") {
-                document.getElementById("addFeesStructureForm").reset();
-            } else if (modalId == "editFeesStructureModal") {
+            if (modalId == "addFeeStructureModal") {
+                document.getElementById("addFeeStructureForm").reset();
+            } else if (modalId == "editFeeStructureModal") {
                 console.log(modalId)
-                document.getElementById("editFeesStructureForm").reset();
-            } else if (modalId == "uploadFeesStructureModal") {
+                document.getElementById("editFeeStructureForm").reset();
+            } else if (modalId == "uploadFeeStructureModal") {
                 $("#upload-notification").text("");
-                document.getElementById("uploadFeesStructureForm").reset();
+                document.getElementById("uploadFeeStructureForm").reset();
             }
             document.getElementById(modalId).classList.remove('active');
         }
 
         // Specific modal openers
-        function openAddFeesStructureModal() {
-            openModal('addFeesStructureModal');
+        function openAddFeeStructureModal() {
+            openModal('addFeeStructureModal');
         }
 
-        function openEditFeesStructureModal() {
-            openModal('editFeesStructureModal');
+        function openEditFeeStructureModal() {
+            openModal('editFeeStructureModal');
         }
 
-        function openUploadFeesStructureModal() {
-            openModal('uploadFeesStructureModal');
+        function openUploadFeeStructureModal() {
+            openModal('uploadFeeStructureModal');
         }
 
         function setEditFormData(data) {
-            $("#edit-code").val(data.code);
-            $("#edit-name").val(data.name);
-            $("#edit-creditHours").val(data.credit_hours);
-            $("#edit-contactHours").val(data.contact_hours);
-            $("#edit-semester").val(data.semester);
-            $("#edit-level").val(data.level);
-            $("#edit-category").val(data.category_id);
-            $("#edit-department").val(data.department_id);
+            $("#edit-fee_structure").val(data.id);
+            $("#edit-program").val(data.program_id);
+            $("#edit-currency").val(data.currency);
+            $("#edit-type").val(data.type);
+            $("#edit-category").val(data.category);
+            $("#edit-member_amount").val(data.member_amount);
+            $("#edit-non_member_amount").val(data.non_member_amount);
         }
 
         $(document).ready(function() {
 
-            $("#addFeesStructureForm").on("submit", function(e) {
+            $("#addFeeStructureForm").on("submit", function(e) {
 
                 e.preventDefault();
 
@@ -827,7 +800,7 @@ require_once('../inc/page-data.php');
                 // Set up ajax request
                 $.ajax({
                     type: 'POST',
-                    url: "../endpoint/add-course",
+                    url: "../endpoint/add-fee-structure",
                     data: formData,
                     processData: false,
                     contentType: false,
@@ -835,7 +808,7 @@ require_once('../inc/page-data.php');
                         console.log(result);
                         if (result.success) {
                             alert(result.message);
-                            closeModal("addFeesStructureModal");
+                            closeModal("addFeeStructureModal");
                             location.reload();
                         } else alert(result.message);
                     },
@@ -843,15 +816,15 @@ require_once('../inc/page-data.php');
                         alert('Error: Internal server error!');
                     },
                     ajaxStart: function() {
-                        $(".addFeesStructure-btn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
+                        $(".addFeeStructure-btn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
                     },
                     ajaxStop: function() {
-                        $(".addFeesStructure-btn").prop("disabled", false).html('Upload');
+                        $(".addFeeStructure-btn").prop("disabled", false).html('Upload');
                     }
                 });
             });
 
-            $("#editFeesStructureForm").on("submit", function(e) {
+            $("#editFeeStructureForm").on("submit", function(e) {
 
                 e.preventDefault();
 
@@ -861,7 +834,7 @@ require_once('../inc/page-data.php');
                 // Set up ajax request
                 $.ajax({
                     type: 'POST',
-                    url: "../endpoint/edit-course",
+                    url: "../endpoint/update-fee-structure",
                     data: formData,
                     processData: false,
                     contentType: false,
@@ -869,7 +842,7 @@ require_once('../inc/page-data.php');
                         console.log(result);
                         if (result.success) {
                             alert(result.message);
-                            closeModal("editFeesStructureModal");
+                            closeModal("editFeeStructureModal");
                             location.reload();
                         } else alert(result.message);
                     },
@@ -877,31 +850,31 @@ require_once('../inc/page-data.php');
                         alert('Error: Internal server error!');
                     },
                     ajaxStart: function() {
-                        $(".editFeesStructure-btn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
+                        $(".editFeeStructure-btn").prop("disabled", true).html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Uploading...');
                     },
                     ajaxStop: function() {
-                        $(".editFeesStructure-btn").prop("disabled", false).html('Upload');
+                        $(".editFeeStructure-btn").prop("disabled", false).html('Upload');
                     }
                 });
             });
 
             $(document).on("click", ".edit-btn", function(e) {
-                const code = $(this).attr('id');
+                const fee_structure = $(this).attr('id');
 
                 const formData = {
-                    "code": code
+                    "fee_structure": fee_structure
                 };
 
                 $.ajax({
                     type: "POST",
-                    url: "../endpoint/fetch-course",
+                    url: "../endpoint/fetch-fee-structure",
                     data: formData,
                     success: function(result) {
                         console.log(result);
                         if (result.success) {
                             if (result.data) {
                                 setEditFormData(result.data[0]);
-                                openEditFeesStructureModal();
+                                openEditFeeStructureModal();
                             } else alert("No data found");
                         } else {
                             if (result.message == "logout") {
@@ -919,19 +892,19 @@ require_once('../inc/page-data.php');
                 });
             });
 
-            $(document).on("click", ".delete-btn", function(e) {
-                const code = $(this).attr('id');
+            $(document).on("click", ".archive-btn", function(e) {
+                const fee_structure = $(this).attr('id');
 
                 const confirmMessage = `Are you sure you want to delete this course?`;
                 if (!confirm(confirmMessage)) return;
 
                 const formData = {
-                    "code": code
+                    "fee_structure": fee_structure
                 };
 
                 $.ajax({
                     type: "POST",
-                    url: "../endpoint/delete-course",
+                    url: "../endpoint/archive-fee-structure",
                     data: formData,
                     success: function(result) {
                         console.log(result);
@@ -953,25 +926,6 @@ require_once('../inc/page-data.php');
                     }
                 });
             });
-
-            function flashMessage(bg_color, message) {
-                const flashMessage = document.getElementById("flashMessage");
-
-                flashMessage.classList.add(bg_color);
-                flashMessage.innerHTML = message;
-
-                setTimeout(() => {
-                    flashMessage.style.visibility = "visible";
-                    flashMessage.classList.add("show");
-                }, 1000);
-
-                setTimeout(() => {
-                    flashMessage.classList.remove("show");
-                    setTimeout(() => {
-                        flashMessage.style.visibility = "hidden";
-                    }, 5000);
-                }, 5000);
-            }
         });
     </script>
     <script src="https://cdn.jsdelivr.net/npm/gasparesganga-jquery-loading-overlay@2.1.7/dist/loadingoverlay.min.js"></script>

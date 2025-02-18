@@ -518,18 +518,11 @@ $declined = $admin->getshortlistedApplicationsCountByStatus('declined')[0]["tota
             gap: 10px;
         }
 
-        .btn-group-xs>.btn,
         .btn-xs {
-            padding: 1px 5px;
-            font-size: 12px;
-            line-height: 1.5;
-            border-radius: 3px;
-        }
-
-        input.transform-text,
-        select.transform-text,
-        textarea.transform-text {
-            text-transform: uppercase !important;
+            padding: 1px 5px !important;
+            font-size: 12px !important;
+            line-height: 1.5 !important;
+            border-radius: 3px !important;
         }
     </style>
     <link rel="stylesheet" href="../assets/vendor/bootstrap/css/bootstrap.min.css">

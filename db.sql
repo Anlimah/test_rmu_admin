@@ -38,10 +38,11 @@ INSERT INTO course_index_code (`code`, `type`) VALUES
 
 ALTER TABLE `section` CHANGE `credits` `credit_hours` INT(11) NOT NULL; 
 
-CREATE TABLE `fees_structure` (
+CREATE TABLE `fee_structure` (
     `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `currency` VARCHAR(5) DEFAULT 'USD',
     `fk_program_id` INT NOT NULL,
-    `type` VARCHAR(15) NOT NULL, -- ENUM('fresh', 'topup'),
+    `type` VARCHAR(15) NOT NULL, -- ENUM('fresher', 'topup'),
     `category` VARCHAR(15) NOT NULL, -- ENUM('regular', 'weekend'),
     `name` VARCHAR(100) NOT NULL,
     `member_amount` DECIMAL(10,2) NOT NULL,
@@ -51,12 +52,31 @@ CREATE TABLE `fees_structure` (
     `archived` TINYINT(1) DEFAULT 0,
     FOREIGN KEY (`fk_program_id`) REFERENCES `programs`(`id`)
 );
-CREATE INDEX fees_structure_type_idx1 ON `fees_structure` (`type`);
-CREATE INDEX fees_structure_category_idx1 ON `fees_structure` (`category`);
-CREATE INDEX fees_structure_name_idx1 ON `fees_structure` (`name`);
-CREATE INDEX fees_structure_member_amount_idx1 ON `fees_structure` (`member_amount`);
-CREATE INDEX fees_structure_non_member_amount_idx1 ON `fees_structure` (`non_member_amount`);
-CREATE INDEX fees_structure_created_at_idx1 ON `fees_structure` (`created_at`);
-CREATE INDEX fees_structure_updated_at_idx1 ON `fees_structure` (`updated_at`);
-CREATE INDEX fees_structure_archived_idx1 ON `fees_structure` (`archived`);
+CREATE INDEX fee_structure_type_idx1 ON `fee_structure` (`type`);
+CREATE INDEX fee_structure_category_idx1 ON `fee_structure` (`category`);
+CREATE INDEX fee_structure_name_idx1 ON `fee_structure` (`name`);
+CREATE INDEX fee_structure_member_amount_idx1 ON `fee_structure` (`member_amount`);
+CREATE INDEX fee_structure_non_member_amount_idx1 ON `fee_structure` (`non_member_amount`);
+CREATE INDEX fee_structure_created_at_idx1 ON `fee_structure` (`created_at`);
+CREATE INDEX fee_structure_updated_at_idx1 ON `fee_structure` (`updated_at`);
+CREATE INDEX fee_structure_archived_idx1 ON `fee_structure` (`archived`);
+
+CREATE TABLE `fee_item` (
+    `id` INT PRIMARY KEY AUTO_INCREMENT,
+    `currency` VARCHAR(5) DEFAULT 'USD',
+    `fk_fee_structure` INT NOT NULL,
+    `name` VARCHAR(100) NOT NULL,
+    `member_amount` DECIMAL(10,2) NOT NULL,
+    `non_member_amount` DECIMAL(10,2) NOT NULL,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    `archived` TINYINT(1) DEFAULT 0,
+    FOREIGN KEY (`fk_fee_structure`) REFERENCES `fee_structure`(`id`)
+);
+CREATE INDEX fee_item_name_idx1 ON `fee_item` (`name`);
+CREATE INDEX fee_item_member_amount_idx1 ON `fee_item` (`member_amount`);
+CREATE INDEX fee_item_non_member_amount_idx1 ON `fee_item` (`non_member_amount`);
+CREATE INDEX fee_item_created_at_idx1 ON `fee_item` (`created_at`);
+CREATE INDEX fee_item_updated_at_idx1 ON `fee_item` (`updated_at`);
+CREATE INDEX fee_item_archived_idx1 ON `fee_item` (`archived`);
 
