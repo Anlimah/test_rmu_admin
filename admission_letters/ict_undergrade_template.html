@@ -4,38 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admission Letter</title>
+    <title>RMU Admission Letter</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Century Gothic', Times, serif;
+            line-height: 1.4;
             margin: 0;
             padding: 0;
-            line-height: 1.2;
-            font-size: 11px;
-        }
-
-        .container {
-            width: 90%;
             margin: 0 auto;
-            padding: 20px;
+            font-size: 11px;
+            width: 100%;
         }
 
-        .header,
-        .footer {
+        .header {
             text-align: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #000;
+            padding-bottom: 10px;
         }
 
         .header img {
             max-width: 100px;
         }
 
-        .header p {
-            display: inline;
+        .letterhead {
+            font-size: 18px;
+            font-weight: bold;
         }
 
         .letter-date,
         .letter-ref {
-            margin-top: 10px;
+            margin-top: 5px;
         }
 
         .ld-display {
@@ -57,25 +56,53 @@
             margin: 0;
         }
 
-        .subject {
-            margin-top: 10px;
+        .title {
             font-weight: bold;
+            text-align: center;
+            margin: 20px 0;
+            text-decoration: underline;
         }
 
         .content {
-            margin-top: 0px;
+            text-align: justify;
         }
 
-        .content ol {
-            margin-left: 20px;
+        .conditions ol {
+            padding-left: 10px;
+        }
+
+        .conditions li {
+            margin-bottom: 10px;
+        }
+
+        .bank-details {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+
+        .bank-box {
+            border: 1px solid #000;
+            padding: 10px;
         }
 
         .signature {
             margin-top: 20px;
         }
 
-        .signature p {
-            margin-bottom: 5px;
+        .note {
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .enclosure {
+            margin-top: 10px;
+        }
+
+        .page-number {
+            text-align: center;
+            margin-top: 40px;
+            font-size: 12px;
         }
 
         .footer p {
@@ -85,133 +112,198 @@
 </head>
 
 <body>
+    <!-- <div class="page-number">1</div> -->
+    <div class="header">
+        <img src="../assets/img/rmu-logo.png" alt="RMU Logo" style="width: 100px; height:100px;">
+        <div class="letterhead">Regional Maritime University</div>
+        <div>Post Office Box GP 1115, Accra, Ghana</div>
+        <div>Tel: (+233 302) 712775 /712343 /718225. Fax: (+233 302) 712047. Registrar Tel/Fax: (+233 302) 714070</div>
+    </div>
 
-    <div class="container">
-        <div class="header">
-            <img src="../assets/img/rmu-logo.png" alt="RMU Logo" style="width: 100px; height:100px;">
-            <h3>Regional Maritime University</h3>
-            <p>
-                <span>Office Box GP 1115, Accra, Ghana. </span>
-                <span>Tel: (+233 302) 712775 /712343 /718225. Fax: (+233 302) 712047</span>
-                <span>Registrar Tel/Fax: (+233 302) 714070</span>
-            </p>
-        </div>
+    <div style="display: inline-block; width: 100%;">
+        <p style="float: left;">MY REF: ${Letter_Reference}</p>
+        <p style="float: right;">${Letter_Date}</p>
+    </div>
+    <p>YOUR REF: ${Your_Reference}</p>
 
-        <div class="letter-date">
-            <div class="ld-display">
-                <p>MY REF: ${Letter_Reference}</p>
-                <p>${Letter_Date}</p>
-            </div>
-            <p>YOUR REF: ${Your_Reference}</p>
-        </div>
+    <div class="recipient-address">
+        <p>${Full_Name}</p>
+        <p>${Box_Location}</p>
+        <p>${Box_Address}</p>
+        <p>${Location}</p>
+    </div>
 
-        <div class="recipient-address">
-            <p>${Full_Name}</p>
-            <p>${Box_Location}</p>
-            <p>${Box_Address}</p>
-            <p>${Location}</p>
-        </div>
+    <div class="title">OFFER OF ADMISSION TO ${Program_Length_1} ${Program_Offered_1} [${Year_of_Admission}]</div>
 
-        <div class="subject" style="text-decoration: underline;">
-            <p>OFFER OF ADMISSION TO ${Program_Length_1} ${Program_Offered_1} [${Year_of_Admission}]</p>
-        </div>
+    <div class="content">
+        <p>I write on behalf of the Academic Council to offer you admission to the Regional Maritime University to
+            pursue a ${Program_Length_2} (${No_of_Semesters}), full time, ${Program_Stream} ${Program_Type} programme
+            leading to the award of ${Program_Offered_2} .</p>
 
+        <p>The programme will begin on <strong>${Commencement_Date}.</strong></p>
 
-        <div class="content">
-            <p>With reference to your application for admission to the undergraduate ${Program_Length_2} programme of
-                this University, I am pleased to inform you that you have been offered admission to the ${Program_Type}
-                (${No_of_Semesters}), full time, ${Program_Stream} ${Program_Offered_2} ${Program_Type} Programme for
-                the ${Year_of_Admission} academic session commencing on ${Commencement_Date}.</p>
-
-            <p>Please take note of the following conditions relating to your admission:</p>
-
+        <div class="conditions">
+            <p>Please take note of the following conditions relating your admission:</p>
             <ol>
-                <li>
-                    Payment arrangements of the semester's tuition fee are as follows:
+                <li>The schedule of tuition and other auxiliary fees for the semester is <strong>${Actual_Bill_in_Words}
+                        [US$${Actual_Bill_in_Figures}]</strong>. Payment arrangements of the
+                    semester's tuition fee are as follows:
                     <ol type="a">
-                        <li>Make initial non-refundable fees of <b>${Initial_Fees_in_Words}
-                                [${Initial_Fees_in_Figures}]</b> or
-                            its cedi equivalent to guarantee your admission and submit pay-in-slip to the Finance
-                            Directorate of the University to obtain official receipt. This payment shall form part of
-                            your fees.</li>
-                        <li>You are required to pay fifty percent (50%) of the first semester fees before reopening on
-                            ${Commencement_Date}. However, you can negotiate flexible payment terms by calling telephone
-                            number <b>${Tel_Number_1}/${Tel_Number_2}</b> or email <u><span
-                                    style="color:rgb(3, 3, 201)">registrar@rmu.edu.gh</span></u>.</li>
-                        <li>Payment of the remaining fifty percent (50%) should be effected two weeks prior to the
-                            commencement of the 1st semester examination.</li>
+                        <li>Payment of an initial non-refundable fee of <strong>${Initial_Fees_in_Words}
+                                [${Initial_Fees_in_Figures}]</strong> or
+                            its cedi equivalent to guarantee your admission. However, you can negotiate flexible payment
+                            terms of the remaining fees by calling telephone numbers
+                            <strong>${Tel_Number_1}/${Tel_Number_2}</strong> or e-mail
+                            <strong>admission@rmu.edu.gh.</strong>
+                        </li>
+                        <li>Payment of the remaining fees should be made two weeks prior to the commencement of the end
+                            of semester examinations.</li>
+                        <li>The University has limited Financial Aid to assist needy students to defray part of their
+                            tuition fees. Interested applicants are to apply for this facility and addressed their
+                            application to the Deputy Registrar (Academic), RMU, Accra-Ghana for consideration.</li>
                     </ol>
                 </li>
-                <li>Thereafter, report at the Registry on or before ${Commencement_Date} with the original and photocopy
-                    of the following:
-                    <ul>
-                        <li>Letter of Admission</li>
-                        <li>Receipt of payment obtained from the University and</li>
-                        <li>Duly completed Acceptance Form</li>
-                    </ul>
-                    as a confirmation of your acceptance of the offer of admission.
+                <li>The above fees should be paid into any of the under-listed Regional Maritime University's Bank
+                    Account:
+                    <div style="display: flex; justify-content: center;">
+                        <u><strong>University Bank Details</strong></u>
+                    </div>
+                    <div class="bank-details">
+                        <div>
+                            <strong>a. Local Dollar Payment Only</strong><br>
+                            Regional Maritime University<br>
+                            Account No. <strong>220106573220</strong><br>
+                            GT bank Ghana Limited<br>
+                            <strong>Spintex Road Branch</strong><br>
+                            PMB 19 Seventh Avenue Ride West, Accra<br>
+                            Republic of Ghana, West Africa<br>
+                            Swift Code: ECOCGHAC
+                        </div>
+                        <div>
+                            <strong>b. Cedi Payment Only</strong><br>
+                            Regional Maritime University<br>
+                            Account No. <strong>220106573110</strong><br>
+                            GT bank Ghana Limited<br>
+                            <strong>Tema-Branch</strong><br>
+                        </div>
+                    </div>
+
+                    <div class="bank-details">
+                        <div>
+                            <strong>c. Money Transfer - Foreign Currency Only</strong><br>
+                            Regional Maritime University<br>
+                            Account No. <strong>2441000717754</strong><br>
+                            Ecobank [Ghana] Limited<br>
+                            <strong>Spintex Road Branch</strong><br>
+                            PMB 19 Seventh Avenue Ride West, Accra<br>
+                            Republic of Ghana, West Africa<br>
+                            Swift Code: ECOCGHAC
+                        </div>
+                        <div>
+                            <strong>d. Cedi Payment Only</strong><br>
+                            Regional Maritime University<br>
+                            Account No.1441000717755<br>
+                            Ecobank [Ghana] Limited<br>
+                            <strong>Spintex Road Branch</strong><br>
+                        </div>
+                    </div>
+
+                    <p>
+                        <strong>The University's current exchange rate is US$1.00 to ${Current_Dollar_Rate}.</strong>
+                        However, with effect from ${New_Dollar_Rate_Effective_Date}, the exchange rate would be pegged
+                        at
+                        <strong>US$1.00 to ${New_Dollar_Rate}</strong> Fees and other charges are subject to review
+                        without prior notice.
+                    </p>
                 </li>
-                <li>From <b>${Commencement_Date} to ${Closing_Date}</b> between the hours of <b>0800 hours and 1200
-                        hours</b> you are
-                    required to present the original and photocopy of each of the following to the Registry for
-                    screening and mandatory medical examination.
+            </ol>
+        </div>
+    </div>
+
+    <div class="content">
+
+        <div class="conditions">
+            <ol start="3">
+                <li>Thereafter, report at the Registry from <strong>${Commencement_Date}</strong> between the hours
+                    of <strong>0800 hours</strong>
+                    and <strong>1400 hours.</strong> You are required to present the original and photocopy of each of
+                    the following to Registry for screening and mandatory medical examination.
                     <ul>
-                        <li>Letter of admission</li>
+                        <li>Letter of admission.</li>
+                        <li>Receipt of payment obtained from the University</li>
                         <li>Birth Certificate</li>
+                        <li>Duly completed Acceptance Form</li>
                         <li>Original copies of all relevant documents (result slips; certificates etc.) cited in the
                             admission application form.</li>
-                        <li>Chest X-ray (original only) and corresponding Radiologist report taken not more than 2 weeks
-                            on receipt of this offer of admission.</li>
+                        <li><strong>Chest X-ray will be taken upon arrival on campus for registration at a cost of One
+                                Hundred and Fifty Ghana Cedis (GH₵150.00).</strong></li>
                     </ul>
                 </li>
                 <li>The University will arrange for all students to acquire the National Health Insurance Identity Card.
                 </li>
-                <li>Limited accommodation is available and is reserved for the 1st and 2nd year Marine Engineering and
-                    Nautical Science students who are required to undergo mandatory cadetship training. Fresh foreign
-                    students will be considered on first come, first served basis. Other students and sponsors may apply
-                    to the Students Coordinator for the hostel accommodation and each application shall be considered on
-                    its own merit. Otherwise, students are expected to make private arrangements for accommodation.
+                <li>Limited accommodation is available and reserved for the 1<sup>st</sup> & 2<sup>nd</sup> year Marine
+                    Engineering and Nautical Science students who are required to undergo mandatory cadetship training.
                     Those granted accommodation shall be required to vacate their rooms during Christmas and
                     inter-semester breaks or whenever the University is on recess.</li>
                 <li>Non-Ghanaian students should note that residence permits are required for the confirmation of their
-                    admission and as such, such affected students are strongly advised on arrival to contact the Public
+                    admission and as such, affected students are strongly advised on arrival to contact the Public
                     Relations Unit immediately for assistance.</li>
-                <li>You are also required to attend a mandatory orientation programme for all freshers on
-                    ${Orientation_Date} as partial fulfillment of your registration/studentship of the University.</li>
-                <li><b>Please note that the offer will be withdrawn and your place given to another applicant on the
-                        waiting list by ${Deadline_Date} if you do not pay and submit the Acceptance Form with evidence
-                        of
-                        payment to the Registry.</b></li>
-                <li>Please also note that, it is the policy of the Government of Ghana that all international
-                    students
-                    living in Ghana for a period of ninety [90] days or more would be required to obtain a
-                    non-Citizen
-                    GhanaCard. The registration fee for the card is <b>${Registration_Fees_in_Words}
-                        [${Registration_Fees_in_Figures}]</b>.</li>
-                <li>
+                <li>You are also required to attend a mandatory orientation programme for all freshers from
+                    <strong>${Orientation_Date}</strong> to <strong>${Orientation_Date_To}</strong> as partial
+                    fulfilment of your registration/studentship of the University.
+                </li>
+                <li><strong>Please note that the offer will be withdrawn and your place given to another applicant on
+                        the waiting list if you do not pay and submit the Acceptance form with evidence of payment to
+                        the Registry by <u>${Deadline_Date}</u>.</strong>
+                </li>
+                <li>Please also note that, it is the policy of the Government of Ghana that all international students
+                    living in Ghana for a period exceeding ninety [90] days would be required to obtain a Non-Citizen
+                    Ghana Card. The registration fee for the card is <strong><u>${Registration_Fees_in_Words}</u>
+                        [${Registration_Fees_in_Figures}]</strong>.<br><br>
                     You are thus required to make adequate financial provision for the purpose of obtaining the cards.
                 </li>
             </ol>
-
-            <p></p>
-
-            <p>Any further clarification regarding this offer of admission should be directed to the undersigned.</p>
-        </div>
-
-        <div class="signature">
-            <p>Congratulations and Best Wishes</p>
-            <p><b>${University_Registrar}</b></p>
-            <p><b>University Registrar</b></p>
-            <p><b><em>Note: Your admission is provisional and could be revoked unless your credentials have been
-                        successfully screened and also declared medically fit.</em></b></p>
-        </div>
-
-        <div class="footer">
-            <p>Member States: Cameroon, The Gambia, Ghana, Liberia, Sierra Leone</p>
-            <p>Email: university.registrar@rmu.edu.gh Website: www.rmu.edu.gh</p>
         </div>
     </div>
 
+    <div class="conditions">
+        <ol start="10">
+            <li>Any further clarification regarding this offer of admission should be directed to the undersigned.</li>
+        </ol>
+    </div>
+
+    <div class="content">
+        <p>Congratulations and Best wishes.</p>
+
+        <div class="signature">
+            <p><strong>
+                    ${University_Registrar}<br>
+                    University Registrar</strong>
+            </p>
+        </div>
+
+        <div class="note">
+            <p><strong>Note</strong>: i. Your admission is provisional and could be revoked unless your credentials have
+                been
+                successfully screened and you have been declared medically fit.</p>
+            <p>ii. <strong>As a policy, the University does not accept change of name and therefore applicant would be
+                    graduated
+                    with names as appeared on Results Slip and/or Academic Certificate used in support of application
+                    for
+                    admission.</strong></p>
+        </div>
+
+        <div class="enclosure">
+            <p><strong>ENC.</strong> i. Acceptance Form (To be filled and submitted with originals and photocopy of
+                University receipts)
+            </p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>Member States: Cameroon, The Gambia, Ghana, Liberia, Sierra Leone</p>
+        <p>Email: university.registrar@rmu.edu.gh Website: www.rmu.edu.gh</p>
+    </div>
 </body>
 
 </html>

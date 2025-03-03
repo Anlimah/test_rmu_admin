@@ -114,3 +114,24 @@ Trace: #0 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMeth
 #2 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Core\FeeStructure.php(115): Src\System\DatabaseMethods->inputData('UPDATE fee_stru...', Array)
 #3 C:\xampp\htdocs\test\rmu_admissions_admin_test\endpoint\index.php(1314): Src\Core\FeeStructure->update(Array)
 #4 {main}
+Warning: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '12343721' for key 'app_number'
+Trace: #0 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(70): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(119): Src\System\DatabaseMethods->query('INSERT INTO `st...', Array)
+#2 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Controller\AdminController.php(3227): Src\System\DatabaseMethods->inputData('INSERT INTO `st...', Array)
+#3 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Controller\AdminController.php(3327): Src\Controller\AdminController->addNewStudent(Array)
+#4 C:\xampp\htdocs\test\rmu_admissions_admin_test\endpoint\index.php(1104): Src\Controller\AdminController->enrollApplicant('1169', '12', '100', '4')
+#5 {main}
+Warning: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '12343721' for key 'app_number'
+Trace: #0 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(70): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(119): Src\System\DatabaseMethods->query('INSERT INTO `st...', Array)
+#2 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Controller\AdminController.php(3227): Src\System\DatabaseMethods->inputData('INSERT INTO `st...', Array)
+#3 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Controller\AdminController.php(3327): Src\Controller\AdminController->addNewStudent(Array)
+#4 C:\xampp\htdocs\test\rmu_admissions_admin_test\endpoint\index.php(1104): Src\Controller\AdminController->enrollApplicant('1169', '12', '100', '4')
+#5 {main}
+Warning: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '12343721' for key 'app_number'
+Trace: #0 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(70): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\System\DatabaseMethods.php(119): Src\System\DatabaseMethods->query('INSERT INTO `st...', Array)
+#2 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Controller\AdminController.php(3227): Src\System\DatabaseMethods->inputData('INSERT INTO `st...', Array)
+#3 C:\xampp\htdocs\test\rmu_admissions_admin_test\src\Controller\AdminController.php(3327): Src\Controller\AdminController->addNewStudent(Array)
+#4 C:\xampp\htdocs\test\rmu_admissions_admin_test\endpoint\index.php(1104): Src\Controller\AdminController->enrollApplicant('1169', '12', '100', '4')
+#5 {main}

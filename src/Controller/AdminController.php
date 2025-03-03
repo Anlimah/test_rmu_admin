@@ -8,6 +8,7 @@ use Src\System\DatabaseMethods;
 use Src\Controller\ExposeDataController;
 use Src\Controller\PaymentController;
 use PhpOffice\PhpWord\TemplateProcessor;
+use NumberToWords\NumberToWords;
 
 class AdminController
 {
@@ -403,7 +404,8 @@ class AdminController
 
     public function fetchAllFromProgramByID($prog_id)
     {
-        $query = "SELECT pg.*, dp.`name` AS department_name FROM programs AS pg, departments AS dp 
+        $query = "SELECT pg.*, dp.`id` AS department_id, dp.`name` AS department_name 
+                    FROM programs AS pg, departments AS dp 
                     WHERE pg.`id` = :i AND pg.`department` = dp.`id`";
         return $this->dm->getData($query, array(":i" => $prog_id));
     }
@@ -2643,9 +2645,149 @@ class AdminController
         }
     }
 
-    private function generateApplicantAdmissionLetter($letter_data, $program, $letter_type = "undergrade", $admission_period = []): mixed
+    public $dictionary = [
+        0 => 'zero',
+        1 => 'one',
+        2 => 'two',
+        3 => 'three',
+        4 => 'four',
+        5 => 'five',
+        6 => 'six',
+        7 => 'seven',
+        8 => 'eight',
+        9 => 'nine',
+        10 => 'ten',
+        11 => 'eleven',
+        12 => 'twelve',
+        13 => 'thirteen',
+        14 => 'fourteen',
+        15 => 'fifteen',
+        16 => 'sixteen',
+        17 => 'seventeen',
+        18 => 'eighteen',
+        19 => 'nineteen',
+        20 => 'twenty',
+        30 => 'thirty',
+        40 => 'forty',
+        50 => 'fifty',
+        60 => 'sixty',
+        70 => 'seventy',
+        80 => 'eighty',
+        90 => 'ninety',
+    ];
+
+    // Function to convert numbers less than 1000 to words
+    function convertLessThanOneThousand($number)
+    {
+        if ($number == 0) {
+            return '';
+        } else if ($number < 20) {
+            return $this->dictionary[$number];
+        } else if ($number < 100) {
+            $tens = floor($number / 10) * 10;
+            $units = $number % 10;
+            return $this->dictionary[$tens] . ($units ? '-' . $this->dictionary[$units] : '');
+        } else {
+            $hundreds = floor($number / 100);
+            $remainder = $number % 100;
+            return $this->dictionary[$hundreds] . ' hundred' . ($remainder ? ' and ' . $this->convertLessThanOneThousand($remainder) : '');
+        }
+    }
+
+    /**
+     * Convert a number to its word representation
+     * 
+     * @param float $number The number to convert to words
+     * @param string $currency The currency to use (default: "")
+     * @return string The number in words
+     */
+    function numberToWords($number, $currency = "")
+    {
+        // Handle negative numbers
+        $negative = false;
+        if ($number < 0) {
+            $negative = true;
+            $number = abs($number);
+        }
+
+        // Split the number into integer and decimal parts
+        $integerPart = floor($number);
+        $decimalPart = round(($number - $integerPart) * 100);
+
+        $units = ['', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion'];
+
+        // Handle zero
+        if ($integerPart == 0) {
+            $result = 'zero';
+        } else {
+            $result = '';
+            $unitIndex = 0;
+
+            // Process groups of 3 digits from right to left
+            while ($integerPart > 0) {
+                $chunk = $integerPart % 1000;
+
+                if ($chunk != 0) {
+                    $chunkWords = $this->convertLessThanOneThousand($chunk);
+                    $result = $chunkWords . ' ' . $units[$unitIndex] . ($result ? ', ' . $result : '');
+                }
+
+                $integerPart = floor($integerPart / 1000);
+                $unitIndex++;
+            }
+        }
+
+        // Add currency if specified
+        if (!empty($currency)) {
+            switch ($currency) {
+                case 'USD':
+                case 'usd':
+                    $current = "dollars";
+                    break;
+                case 'GH¢':
+                case 'gh¢':
+                case 'ghs':
+                case 'GHS':
+                case 'GHc':
+                case 'GHC':
+                    $current = "cedis";
+                    break;
+
+                default:
+                    # code...
+                    break;
+            }
+            $result .= strtolower($current);
+        }
+
+        // Add 'negative' for negative numbers
+        if ($negative) {
+            $result = 'negative ' . $result;
+        }
+
+        // Add decimal part if it exists
+        if ($decimalPart > 0) {
+            $result .= ' and ';
+            if ($decimalPart < 20) {
+                $result .= $this->dictionary[$decimalPart];
+            } else {
+                $tens = floor($decimalPart / 10) * 10;
+                $units = $decimalPart % 10;
+                $result .= $this->dictionary[$tens] . ($units ? '-' . $this->dictionary[$units] : '');
+            }
+            $result .= ' cents';
+        }
+
+        return ucfirst(trim($result));
+    }
+
+    private function generateApplicantAdmissionLetter($letter_data): mixed
     {
         try {
+            $program = $letter_data["program"];
+            $letter_type = $letter_data["type"] ? $letter_data["type"] : "undergrade";
+            $admission_period =  $letter_data["period"] ? $letter_data["period"] : [];
+
             $dir_path = dirname(__DIR__, 2) . DIRECTORY_SEPARATOR . 'admission_letters' . DIRECTORY_SEPARATOR;
 
             // Create directories recursively
@@ -2658,16 +2800,30 @@ class AdminController
             foreach ([$academic_year_path, $intake_path, $program_category, $stream_applied, $program_applied] as $path) {
                 if (!is_dir($path)) mkdir($path, 0755, true);
             }
+
             $mpdf = new \Mpdf\Mpdf();
+            $template = null;
 
-            // if (strtolower($letter_data['department_name']) === "ict")
-            //     $html = file_get_contents($dir_path . "ict_" . $letter_type . '_template.html');
-            // else
-            //     $html = file_get_contents($dir_path . $letter_type . '_template.html');
+            if (strtolower($letter_data['department']) === "ict") {
+                $template = "ict";
+                $html = file_get_contents($dir_path . "{$template}_{$letter_type}_template.html");
+            } else {
+                $html = file_get_contents($dir_path . "{$letter_type}_template.html");
+            }
 
-            $html = file_get_contents($dir_path . $letter_type . '_template.php');
+            //$html = file_get_contents($dir_path . $letter_type . '_template.html');
             // Perform placeholder replacement
+            //$html = str_replace('${Letter_Reference}', generateLetterReference(), $html);
+
+            if (strtolower($letter_data['department']) === "ict") {
+                $bill = floatval($letter_data['Bill']);
+                $html = str_replace('${Actual_Bill_in_Figures}', number_format($bill, 2), $html);
+                $Bill_to_words =  $this->numberToWords($bill, 'USD');
+                $html = str_replace('${Actual_Bill_in_Words}', $Bill_to_words, $html);
+            }
+
             $html = str_replace('${Letter_Reference}', 'RMU/2024/001', $html);
+            $html = str_replace('${Your_Reference}', 'RMU-' . $letter_data['app_number'], $html);
             //$html = str_replace('${Letter_Reference}', $letter_data['Letter_Reference'], $html);
             $html = str_replace('${Letter_Date}', date('F j, Y'), $html);
             $html = str_replace('${Full_Name}', $letter_data['Full_Name'], $html);
@@ -2690,9 +2846,13 @@ class AdminController
             $html = str_replace('${Tel_Number_2}', $letter_data['Tel_Number_2'], $html);
             $html = str_replace('${Closing_Date}', $letter_data['Closing_Date'], $html);
             $html = str_replace('${Orientation_Date}', $letter_data['Orientation_Date'], $html);
+            $html = str_replace('${Orientation_End_Date}', $letter_data['Orientation_End_Date'], $html);
             $html = str_replace('${Deadline_Date}', $letter_data['Deadline_Date'], $html);
             $html = str_replace('${Registration_Fees_in_Words}', $letter_data['Registration_Fees_in_Words'], $html);
             $html = str_replace('${Registration_Fees_in_Figures}', $letter_data['Registration_Fees_in_Figures'], $html);
+            $html = str_replace('${Current_Dollar_Rate}', $letter_data['Current_Dollar_Rate'], $html);
+            $html = str_replace('${New_Dollar_Rate_Effective_Date}', $letter_data['New_Dollar_Rate_Effective_Date'], $html);
+            $html = str_replace('${New_Dollar_Rate}', $letter_data['New_Dollar_Rate'], $html);
             $html = str_replace('${University_Registrar}', $letter_data['University_Registrar'], $html);
 
             $mpdf->DefHTMLHeaderByName(
@@ -2715,12 +2875,19 @@ class AdminController
                 "success" => true,
                 "message" => "Admission letter successfully generated!",
                 "acceptance_form_path" => $dir_path . "acceptance_form.docx",
-                //"letter_word_path" => $word_output_path,
                 "letter_pdf_path" => $pdf_output_path
             ];
         } catch (Exception $e) {
             return ["success" => false, "message" => $e->getMessage()];
         }
+    }
+
+    private function fetchAdmissionFees($program, $category)
+    {
+        return $this->dm->getData(
+            "SELECT {$category}_amount AS bill FROM `fee_structure` WHERE fk_program_id = :i",
+            array(":i" => $program)
+        );
     }
 
     private function loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied, $level): mixed
@@ -2730,22 +2897,13 @@ class AdminController
         $admission_period = $this->fetchCurrentAdmissionPeriod()[0];
         $static_letter_data = $this->fetchAdmissionLetterData()[0];
         $prog_info = $this->fetchAllFromProgramByID($prog_id)[0];
-        // $static_letter_data = [];
+        $bill = 0;
         $is_member = in_array($app_pers_info["nationality"], ["CAMEROON", "GAMBIA", "GHANA", "LIBERIA", "SIERRA LEONE"]);
 
-        // if ($is_member) {
-        //     if (strtolower($prog_info["department_name"]) == "ict") {
-        //         $static_letter_data = $this->fetchMemberICTAdmissionLetterData()[0];
-        //     } else {
-        //         $static_letter_data = $this->fetchMemberAdmissionLetterData()[0];
-        //     }
-        // } else {
-        //     if (strtolower($prog_info["department_name"]) == "ict") {
-        //         $static_letter_data = $this->fetchNonMemberICTAdmissionLetterData()[0];
-        //     } else {
-        //         $static_letter_data = $this->fetchNonMemberAdmissionLetterData()[0];
-        //     }
-        // }
+        if (strtolower($prog_info["department_name"]) == "ict") {
+            if ($is_member) $bill = $this->fetchAdmissionFees($prog_info["id"], "member")[0];
+            else $bill = $this->fetchAdmissionFees($prog_info["id"], "non_member")[0];
+        }
 
         $letter_data = [];
 
@@ -2762,14 +2920,17 @@ class AdminController
 
                 $letter_data = [
                     "success" => true,
-                    "type" => "undergrade",
-                    "period" => $admission_period,
-                    "program" => $program_name,
-                    "phone_number" => $app_pers_info["phone_no1_code"] . $app_pers_info["phone_no1"],
-                    "email_address" => $app_pers_info["email_addr"],
-                    "program_dur" => $program_dur,
-                    "level_admitted" => $level,
                     "data" => [
+                        "type" => "undergrade",
+                        "period" => $admission_period,
+                        "program_id" => $prog_info["id"],
+                        "program" => $program_name,
+                        "phone_number" => $app_pers_info["phone_no1_code"] . $app_pers_info["phone_no1"],
+                        "email_address" => $app_pers_info["email_addr"],
+                        "program_dur" => $program_dur,
+                        "level_admitted" => $level,
+
+                        "department_id" => $prog_info["department_id"],
                         "department" => $prog_info["department_name"],
                         'app_number' => $app_app_number["app_number"],
                         'Prefix' => ucwords(strtolower($app_pers_info["prefix"])),
@@ -2795,15 +2956,20 @@ class AdminController
                         'Tel_Number_2' => $static_letter_data["tel_number_2"],
                         'Closing_Date' => (new \DateTime($static_letter_data["closing_date"]))->format("l F j, Y"),
                         'Orientation_Date' => (new \DateTime($static_letter_data["orientation_date"]))->format("l F j, Y"),
+                        'Orientation_End_Date' => $static_letter_data["orientation_end_date"] ? (new \DateTime($static_letter_data["orientation_end_date"]))->format("l F j, Y") : "",
                         'Deadline_Date' => (new \DateTime($static_letter_data["deadline_date"]))->format("l F j, Y"),
                         'Registration_Fees_in_Words' => $static_letter_data["registration_fees_in_words"],
                         'Registration_Fees_in_Figures' => $static_letter_data["registration_fees_in_figures"],
+                        'Current_Dollar_Rate' => $static_letter_data["current_dollar_rate"],
+                        'New_Dollar_Rate' => $static_letter_data["new_dollar_rate"],
+                        'New_Dollar_Rate_Effective_Date' => $static_letter_data["new_dollar_rate_effective_date"] ? (new \DateTime($static_letter_data["new_dollar_rate_effective_date"]))->format("l F j, Y") : "",
                         'University_Registrar' => $static_letter_data["university_registrar"],
                         'Program_Code' => $prog_info["code"],
                         'Program_Faculty' => ucwords(strtolower($prog_info["faculty"])),
                         'Program_Merit' => ucwords(strtolower($prog_info["merit"])),
                         'Program_Duration' => $prog_info["duration"],
-                        'Program_Dur_Format' => ucwords(strtolower($prog_info["dur_format"]))
+                        'Program_Dur_Format' => ucwords(strtolower($prog_info["dur_format"])),
+                        'Bill' => $bill ? $bill["bill"] : 0
                     ]
                 ];
                 break;
@@ -2979,7 +3145,7 @@ class AdminController
     private function notifyApplicantViaSMS($data): mixed
     {
         $to = $data["phone_number"];
-        $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$data["data"]["Program_Offered_2"]}. ";
+        $message = "Congratulations! You have been admitted to Regional Maritime University to pursue {$data["Program_Offered_2"]}. ";
         $message .= "Kindly log on to the Admission Portal for more details.";
         $response = json_decode($this->expose->sendSMS($to, $message));
         if (!$response->status) return 1;
@@ -2989,19 +3155,26 @@ class AdminController
     public function admitIndividualApplicant($appID, $prog_id, $stream_applied, $level, bool $email_letter = false, bool $sms_notify = false)
     {
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied, $level);
+        //return $l_res;
         if (!$l_res["success"]) return $l_res;
-
-        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"], $l_res["program"], $l_res["type"], $l_res["period"]);
+        $g_res = $this->generateApplicantAdmissionLetter($l_res["data"]);
+        //return $g_res;
         if (!$g_res["success"]) return $g_res;
-
         $file_paths = [];
         array_push($file_paths, $g_res["letter_pdf_path"], $g_res["acceptance_form_path"]);
         $status_update_extras = [];
 
         //if ($email_letter) $status_update_extras["emailed_letter"] = $this->sendAdmissionLetterViaEmail($l_res, $file_paths);
-        if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res);
+        if ($sms_notify) $status_update_extras["notified_sms"] = $this->notifyApplicantViaSMS($l_res["data"]);
 
-        $u_res = $this->updateApplicantAdmissionStatus($appID, $prog_id, $l_res["program_dur"], $l_res["level_admitted"], $stream_applied, $status_update_extras);
+        $u_res = $this->updateApplicantAdmissionStatus(
+            $appID,
+            $prog_id,
+            $l_res["data"]["program_dur"],
+            $l_res["data"]["level_admitted"],
+            $stream_applied,
+            $status_update_extras
+        );
         if (!$u_res) return array("success" => false, "message" => "Failed to admit applicant!");
         return array("success" => true, "message" => "Successfully admitted applicant!");
     }
@@ -3247,8 +3420,8 @@ class AdminController
     public function smsApplicantEnrollmentStatus($data): mixed
     {
         $to = $data["phone_no1_code"] . $data["phone_no1"];
-        $message = "Congratulations! Your enrollment to Regional Maritime University to pursue {$data["p"][0]["name"]} is completed. ";
-        $message .= "Kindly check your mail box for more details.";
+        $message = "Congratulations! Your enrollment to Regional Maritime University to pursue {$data["pi"][0]["name"]} is completed. ";
+        $message .= "Kindly check your mail box for your student account information.";
         $response = json_decode($this->expose->sendSMS($to, $message));
         if (!$response->status) return 1;
         return 0;
@@ -3300,7 +3473,7 @@ class AdminController
         if (!$add_student_result["success"]) return $add_student_result;
 
         //$this->emailApplicantEnrollmentStatus($data);
-        //$this->smsApplicantEnrollmentStatus($data);
+        $this->smsApplicantEnrollmentStatus($data);
 
         $this->updateApplicationStatus($appID, "enrolled", 1);
         return array(
