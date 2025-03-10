@@ -14,38 +14,40 @@
         }
 
         body {
-            padding: 20px;
-            max-width: 900px;
+            line-height: 1.0;
+            margin: 0;
+            padding: 0;
             margin: 0 auto;
-            line-height: 1.6;
+            font-size: 12px;
+            width: 100%;
         }
 
         .header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 15px;
         }
 
         .header h1 {
-            font-size: 20px;
-            margin-bottom: 10px;
+            font-size: 15px;
+            margin-bottom: 5px;
             font-weight: bold;
         }
 
         .header h2 {
-            font-size: 16px;
+            font-size: 14px;
             margin-bottom: 5px;
         }
 
         .program-title {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 5px;
             font-weight: bold;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
 
         th,
@@ -74,18 +76,18 @@
         }
 
         .bank-details {
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
 
         .bank-group {
-            margin-bottom: 30px;
+            margin-bottom: 10px;
             display: flex;
             gap: 40px;
         }
 
         .bank-section h3 {
             font-weight: bold;
-            margin-bottom: 15px;
+            margin-bottom: 5px;
         }
 
         .bank-info {
@@ -101,7 +103,7 @@
 
         .bank-info p {
             margin-bottom: 5px;
-            font-size: 14px;
+            font-size: 12px;
         }
 
         .notice {
@@ -126,102 +128,20 @@
     <div class="program-title">B.SC. MARINE ENGINEERING</div>
 
     <table>
-        <tr>
+        <thead>
             <th>FEE</th>
             <th>M(USD)</th>
             <th>NM(USD)</th>
-        </tr>
-        <tr>
-            <td>Tuition</td>
-            <td>790.00</td>
-            <td>1,993.00</td>
-        </tr>
-        <tr>
-            <td>Accommodation</td>
-            <td>150.00</td>
-            <td>150.00</td>
-        </tr>
-        <tr>
-            <td>Uniform</td>
-            <td>270.00</td>
-            <td>270.00</td>
-        </tr>
-        <tr>
-            <td>Medicare/Medical First Aid</td>
-            <td>100.00</td>
-            <td>100.00</td>
-        </tr>
-        <tr>
-            <td>Medical Examination</td>
-            <td>50.00</td>
-            <td>50.00</td>
-        </tr>
-        <tr>
-            <td>Feeding 2 meals</td>
-            <td>500.00</td>
-            <td>500.00</td>
-        </tr>
-        <tr>
-            <td>Feeding 3 meals</td>
-            <td>745.00</td>
-            <td>745.00</td>
-        </tr>
-        <tr>
-            <td>Laboratory Fees</td>
-            <td>85.00</td>
-            <td>85.00</td>
-        </tr>
-        <tr>
-            <td>SRC/Hall DUES</td>
-            <td>12.00</td>
-            <td>12.00</td>
-        </tr>
-        <tr>
-            <td>Internet Access</td>
-            <td>55.00</td>
-            <td>55.00</td>
-        </tr>
-        <tr>
-            <td>Development Fees</td>
-            <td>40.00</td>
-            <td>40.00</td>
-        </tr>
-        <tr>
-            <td>Matriculation</td>
-            <td>35.00</td>
-            <td>35.00</td>
-        </tr>
-        <tr>
-            <td>Breakages and Maintenance</td>
-            <td>20.00</td>
-            <td>20.00</td>
-        </tr>
-        <tr>
-            <td>Academic Facility User Fee</td>
-            <td>50.00</td>
-            <td>50.00</td>
-        </tr>
-        <tr>
-            <td>Students Handbook</td>
-            <td>50.00</td>
-            <td>50.00</td>
-        </tr>
-        <tr class="total-row">
-            <td>Total 2 Meals</td>
-            <td>2,207.00</td>
-            <td>3,410.00</td>
-        </tr>
-        <tr class="total-row">
-            <td>Total 3 Meals</td>
-            <td>2,452.00</td>
-            <td>3,655.00</td>
-        </tr>
+        </thead>
+        <tbody></tbody>
     </table>
 
     <div class="notes">
-        <p>Note:</p>
-        <p>M - Member States (Ghana, Gambia, Cameroon, Liberia, Sierra Leone)</p>
-        <p>NM - Non Member States (Countries not listed among Member States)</p>
+        <strong>
+            <p>Note:</p>
+            <p>M - Member States (Ghana, Gambia, Cameroon, Liberia, Sierra Leone)</p>
+            <p>NM - Non Member States (Countries not listed among Member States)</p>
+        </strong>
     </div>
 
     <div class="bank-details">
@@ -278,6 +198,111 @@
     </div>
 
     <p class="notice">THE EXCHANGE RATE IS SUBJECT TO CHANGE WITHOUT PRIOR NOTICE</p>
+
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+
+    <script>
+
+        function getUrlVars() {
+            var vars = {};
+            var parts = window.location.href.replace(
+                /[?&]+([^=&]+)=([^&]*)/gi,
+                function (m, key, value) {
+                    vars[key] = value;
+                }
+            );
+            return vars;
+        }
+
+        // Alternative approach using .fetch()
+        $(document).ready(function () {
+            const payload = { program: getUrlVars()["program"] };
+            $.ajax({
+                type: "POST",
+                url: "https://localhost/rmu/admin/endpoint/fetch-fee-structure-item",
+                data: payload,
+                success: function (result) {
+                    console.log(result);
+                    if (populateFeeStructureTable(result.data)) {
+                        window.print()
+                    }
+                },
+                error: function (error) {
+                    console.error(error);
+                    alert("Failed to fetch fee structure. Please try again.");
+                }
+            });
+        });
+
+        function formatCurrency(amount) {
+            // Convert to number and format with comma as thousand separator
+            return parseFloat(amount).toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            });
+        }
+
+        function populateFeeStructureTable(data) {
+            const tableBody = $("tbody");
+            tableBody.empty(); // Clear existing rows
+
+            let feeding2MealsM = 0;
+            let feeding2MealsNM = 0;
+            let feeding3MealsM = 0;
+            let feeding3MealsNM = 0;
+
+            let totalWithoutMealsM = 0;
+            let totalWithoutMealsNM = 0;
+
+            // Dynamically create rows based on fee structure items
+            data.forEach(item => {
+                member_amount = parseFloat(item.member_amount);
+                non_member_amount = parseFloat(item.non_member_amount);
+
+                const rowHtml = `
+                    <tr>
+                        <td>${item.name}</td>
+                        <td>${formatCurrency(item.member_amount)}</td>
+                        <td>${formatCurrency(item.non_member_amount)}</td>
+                    </tr>
+                `;
+                tableBody.append(rowHtml);
+
+                if (item.name.toLowerCase() === 'feeding 2 meals') {
+                    feeding2MealsM += member_amount;
+                    feeding2MealsNM += non_member_amount;
+                } else if (item.name.toLowerCase() === 'feeding 3 meals') {
+                    feeding3MealsM += member_amount;
+                    feeding3MealsNM += non_member_amount;
+                } else {
+                    totalWithoutMealsM += member_amount;
+                    totalWithoutMealsNM += non_member_amount;
+                }
+
+            });
+
+            let total2MealsM = feeding2MealsM + totalWithoutMealsM;
+            let total2MealsNM = feeding2MealsNM + totalWithoutMealsNM;
+            let total3MealsM = feeding3MealsM + totalWithoutMealsM;
+            let total3MealsNM = feeding3MealsNM + totalWithoutMealsNM;
+
+            // Add total rows
+            const totalRowsHtml = `
+                <tr class="total-row">
+                    <td>Total 2 Meals</td>
+                    <td>${formatCurrency(total2MealsM)}</td>
+                    <td>${formatCurrency(total2MealsNM)}</td>
+                </tr>
+                <tr class="total-row">
+                    <td>Total 3 Meals</td>
+                    <td>${formatCurrency(total3MealsM)}</td>
+                    <td>${formatCurrency(total3MealsNM)}</td>
+                </tr>
+            `;
+            tableBody.append(totalRowsHtml);
+            return 1;
+        }
+    </script>
 </body>
 
 </html>

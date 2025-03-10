@@ -80,3 +80,4 @@ CREATE INDEX fee_item_created_at_idx1 ON `fee_item` (`created_at`);
 CREATE INDEX fee_item_updated_at_idx1 ON `fee_item` (`updated_at`);
 CREATE INDEX fee_item_archived_idx1 ON `fee_item` (`archived`);
 
+ALTER TABLE `form_sections_chek` ADD COLUMN letter_path TEXT AFTER stream_admitted;

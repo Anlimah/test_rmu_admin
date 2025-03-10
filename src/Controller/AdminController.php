@@ -736,14 +736,14 @@ class AdminController
         return substr(str_shuffle($str_result), 0, $length_pin);
     }
 
-    public function fetchVendorAPIData($vendor_id): mixed
+    public function fetchVendorAPIData($vendor_id)
     {
         $query = "SELECT au.*, vd.company, vd.company_code FROM api_users AS au, vendor_details AS vd 
                     WHERE au.vendor_id = :vi AND au.vendor_id = vd.id";
         return $this->dm->getData($query, array(":vi" => $vendor_id));
     }
 
-    public function generateAPIKeys($vendor_id): mixed
+    public function generateAPIKeys($vendor_id)
     {
         $vendorData = $this->fetchVendor($vendor_id);
         if (empty($vendorData)) return array("success" => false, "message" => "Vendor data doesn't exist");
@@ -800,7 +800,7 @@ class AdminController
         return $this->dm->getData($query, array(":ai" => $admin_period));
     }
 
-    public function fetchAllAwaitingApplicationsBSGrouped($admin_period): mixed
+    public function fetchAllAwaitingApplicationsBSGrouped($admin_period)
     {
         $query = "SELECT pf.first_prog AS Program 
                 FROM 
@@ -815,7 +815,7 @@ class AdminController
     }
 
 
-    public function saveDownloadedAwaitingResults($data = array()): mixed
+    public function saveDownloadedAwaitingResults($data = array())
     {
         $count = 0;
         foreach ($data as $d) {
@@ -1157,7 +1157,7 @@ class AdminController
 
     // fetch data by form type and admission period
 
-    public function fetchTotalAppsByProgCodeAndAdmisPeriod($prog_code = "", $admin_period = 0): mixed
+    public function fetchTotalAppsByProgCodeAndAdmisPeriod($prog_code = "", $admin_period = 0)
     {
         //$query = "SELECT COUNT(*) AS total FROM `forms` WHERE `form_category` <> :t";
         if ($admin_period == 0) {
@@ -2541,28 +2541,28 @@ class AdminController
         return array("success" => true, "message" => $output);
     }
 
-    public function fetchApplicantPersInfoByAppID($appID): mixed
+    public function fetchApplicantPersInfoByAppID($appID)
     {
         return $this->dm->getData("SELECT * FROM `personal_information` WHERE app_login = :i", array(":i" => $appID));
     }
 
-    public function fetchApplicantProgInfoByAppID($appID): mixed
+    public function fetchApplicantProgInfoByAppID($appID)
     {
         return $this->dm->getData("SELECT * FROM `program_info` WHERE app_login = :i", array(":i" => $appID));
     }
 
-    public function fetchApplicantProgInfoByProgName($progName): mixed
+    public function fetchApplicantProgInfoByProgName($progName)
     {
         return $this->dm->getData("SELECT p.*, f.`name` AS form_type FROM `programs` AS p, `forms` AS f 
         WHERE p.`name` = :n AND p.`type` = f.`id`", array(":n" => $progName));
     }
 
-    public function fetchApplicantProgInfoByProgID($progID): mixed
+    public function fetchApplicantProgInfoByProgID($progID)
     {
         return $this->dm->getData("SELECT * FROM `programs` WHERE `id` = :i", array(":i" => $progID));
     }
 
-    public function fetchAdmissionLetterData(): mixed
+    public function fetchAdmissionLetterData()
     {
         return $this->dm->getData("SELECT * FROM `admission_letter_data` WHERE `in_use` = 1");
     }
@@ -2582,13 +2582,13 @@ class AdminController
     //     return $this->dm->getData("SELECT * FROM `admission_letter_data` WHERE `in_use` = 1");
     // }
 
-    public function fetchApplicantAppNumber(int $appID): mixed
+    public function fetchApplicantAppNumber(int $appID)
     {
         return $this->dm->getData("SELECT pd.`app_number` FROM `purchase_detail` AS pd, applicants_login AS al 
         WHERE al.purchase_id = pd.id AND al.id = :i", array(":i" => $appID));
     }
 
-    public function checkProgramStreamAvailability($progName, $stream_applied): mixed
+    public function checkProgramStreamAvailability($progName, $stream_applied)
     {
         $prog_info = $this->fetchApplicantProgInfoByProgName($progName)[0];
 
@@ -3078,7 +3078,7 @@ class AdminController
         return $letter_data;
     }
 
-    private function updateApplicantAdmissionStatus($app_id, $prog_id, $program_dur, $level, $stream, $extras = []): mixed
+    private function updateApplicantAdmissionStatus($app_id, $prog_id, $program_dur, $level, $letter_path, $stream, $extras = []): mixed
     {
         $extras_query = "";
         if (!empty($extras)) {
@@ -3094,9 +3094,13 @@ class AdminController
             }
         }
         $query = "UPDATE `form_sections_chek` 
-        SET `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p, `programme_duration` = :pr, `level_admitted` = :l , `stream_admitted` = :s 
+        SET `shortlisted` = 1, `admitted` = 1, `declined` = 0,{$extras_query} `programme_awarded` = :p, 
+        `programme_duration` = :pr, `level_admitted` = :l , `stream_admitted` = :s, letter_path = :lp 
         WHERE `app_login` = :i";
-        return ($this->dm->inputData($query, array(":i" => $app_id, ":p" => $prog_id, ":pr" => $program_dur, ":l" => $level, ":s" => $stream)));
+        return ($this->dm->inputData(
+            $query,
+            array(":i" => $app_id, ":p" => $prog_id, ":pr" => $program_dur, ":l" => $level, ":s" => $stream, ":lp" => $letter_path)
+        ));
     }
 
     private function sendAdmissionLetterViaEmail($data, $file_paths = []): mixed
@@ -3152,6 +3156,23 @@ class AdminController
         return 0;
     }
 
+    function extractAdmissionLetterPath($fullPath)
+    {
+        // Normalize directory separators to forward slashes
+        $fullPath = str_replace('\\', '/', $fullPath);
+
+        // Find the position of "admission_letters" in the path
+        $position = strpos($fullPath, 'admission_letters');
+
+        // If "admission_letters" is found in the path, extract from that point onwards
+        if ($position !== false) {
+            return substr($fullPath, $position);
+        }
+
+        // If "admission_letters" is not found, return the original path
+        return $fullPath;
+    }
+
     public function admitIndividualApplicant($appID, $prog_id, $stream_applied, $level, bool $email_letter = false, bool $sms_notify = false)
     {
         $l_res = $this->loadApplicantAdmissionLetterData($appID, $prog_id, $stream_applied, $level);
@@ -3172,6 +3193,7 @@ class AdminController
             $prog_id,
             $l_res["data"]["program_dur"],
             $l_res["data"]["level_admitted"],
+            $this->extractAdmissionLetterPath($g_res["letter_pdf_path"]),
             $stream_applied,
             $status_update_extras
         );
@@ -3206,7 +3228,7 @@ class AdminController
         return 1;
     }
 
-    private function getAdmissionPeriodYearsByID($admin_period): mixed
+    private function getAdmissionPeriodYearsByID($admin_period)
     {
         return $this->dm->getData(
             "SELECT *, YEAR(`start_date`) AS sYear, YEAR(`end_date`) AS eYear FROM admission_period WHERE id = :i",
@@ -3326,7 +3348,7 @@ class AdminController
         );
     }
 
-    private function verifyStudentEmailAddress($emailAddress): mixed
+    private function verifyStudentEmailAddress($emailAddress)
     {
         return $this->dm->getData(
             "SELECT `app_number` FROM `student` WHERE `email` = :e",
@@ -3525,7 +3547,7 @@ class AdminController
         return array("success" => true, "message" => "Section created for this student's class [{$class_code}]!");
     }
 
-    public function getEnrolledApplicantDetailsByAppNum($app_number): mixed
+    public function getEnrolledApplicantDetailsByAppNum($app_number)
     {
         return $this->dm->getData("SELECT * FROM `student` WHERE `app_number` = :a", array(":a" => $app_number));
     }
